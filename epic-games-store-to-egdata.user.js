@@ -4,6 +4,7 @@
 // @version      1.1.7.5
 // @description  Agrega un botón hacia EGData debajo del botón de compra en las páginas de productos de Epic Games Store. Recarga la página cuando la ruta cambia a product o bundle.
 // @author       g31w0fw0rld
+// @license      MIT
 // @match        https://store.epicgames.com/*/p/*
 // @match        https://store.epicgames.com/*/bundles/*
 // @downloadURL  https://github.com/g31w0fw0rld/epic-games-store-to-egdata/raw/main/epic-games-store-to-egdata.user.js
