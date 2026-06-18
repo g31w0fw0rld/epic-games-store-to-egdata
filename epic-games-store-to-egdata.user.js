@@ -1,15 +1,18 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.1.7.5
+// @version      1.1.7.6
 // @description  Agrega un botón hacia EGData debajo del botón de compra en las páginas de productos de Epic Games Store. Recarga la página cuando la ruta cambia a product o bundle.
 // @author       g31w0fw0rld
 // @license      MIT
 // @match        https://store.epicgames.com/*/p/*
 // @match        https://store.epicgames.com/*/bundles/*
+// @match        https://store.epicgames.com/p/*
+// @match        https://store.epicgames.com/bundles/*
 // @downloadURL  https://github.com/g31w0fw0rld/epic-games-store-to-egdata/raw/main/epic-games-store-to-egdata.user.js
 // @updateURL    https://github.com/g31w0fw0rld/epic-games-store-to-egdata/raw/main/epic-games-store-to-egdata.user.js
 // @grant        none
+// @run-at       document-start
 // ==/UserScript==
 
 (function () {
@@ -30,16 +33,62 @@
     const MAX_POLL_ATTEMPTS = 50; // 50 * 400ms = 20s máximo de espera
 
     // Patrones para detectar tipo de página (producto o bundle)
-    const PRODUCT_URL_REGEX = /^https:\/\/store\.epicgames\.com\/[^\/]+\/p\/.+/;
-    const BUNDLE_URL_REGEX = /^https:\/\/store\.epicgames\.com\/[^\/]+\/bundles\/.+/;
-    const PRODUCT_PATH_REGEX = /^\/[^\/]+\/p\/.+/;
-    const BUNDLE_PATH_REGEX = /^\/[^\/]+\/bundles\/.+/;
+    // El segmento de idioma (p.ej. /en-US/) es OPCIONAL: Epic ahora sirve
+    // rutas sin locale como /p/prey o /bundles/xyz (con o sin query de afiliado).
+    const PRODUCT_URL_REGEX = /^https:\/\/store\.epicgames\.com\/(?:[^\/]+\/)?p\/.+/;
+    const BUNDLE_URL_REGEX = /^https:\/\/store\.epicgames\.com\/(?:[^\/]+\/)?bundles\/.+/;
+    const PRODUCT_PATH_REGEX = /^\/(?:[^\/]+\/)?p\/.+/;
+    const BUNDLE_PATH_REGEX = /^\/(?:[^\/]+\/)?bundles\/.+/;
+
+    // Patrón de la petición que la propia página hace para la oferta que se
+    // compra: products/{namespace}/offers/{offerId}. Ese offerId es el que usa
+    // egdata. En bundles vive SOLO en esa request (client-side, no en el
+    // snapshot SSR de React Query), así que se intercepta la red para capturarlo.
+    const PLATFORM_OFFER_REGEX = /\/products\/[0-9a-f]{32}\/offers\/([0-9a-f]{32})/i;
 
     // =============================================
     // ESTADO GLOBAL
     // =============================================
     let waitIntervalId = null;
     let actualPath = '';
+    let capturedOfferId = null; // offerId capturado de la red (camino real del bundle)
+
+    // =============================================
+    // INTERCEPCIÓN DE RED (captura del offerId)
+    // =============================================
+
+    /**
+     * Envuelve XMLHttpRequest.open y fetch para leer (sin alterar) las URLs y
+     * capturar el offerId de la petición a egs-platform-service. Debe instalarse
+     * lo antes posible (@run-at document-start) para no perder la request.
+     */
+    (function hookNetwork() {
+        const capture = (url) => {
+            try {
+                if (typeof url !== 'string') return;
+                const m = url.match(PLATFORM_OFFER_REGEX);
+                if (m) capturedOfferId = m[1];
+            } catch (e) { /* no romper la petición original */ }
+        };
+
+        try {
+            const origOpen = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function (method, url) {
+                capture(url);
+                return origOpen.apply(this, arguments);
+            };
+        } catch (e) { /* entorno sin XHR mutable */ }
+
+        try {
+            if (typeof window.fetch === 'function') {
+                const origFetch = window.fetch;
+                window.fetch = function (input) {
+                    capture(typeof input === 'string' ? input : (input && input.url));
+                    return origFetch.apply(this, arguments);
+                };
+            }
+        } catch (e) { /* fetch no envolvible */ }
+    })();
 
     // =============================================
     // FUNCIONES UTILITARIAS
@@ -55,15 +104,94 @@
     function findSlug() {
         try {
             const queries = window.__REACT_QUERY_INITIAL_QUERIES__?.queries || [];
+            const isBundle = getUrlType() === 'bundle';
+
+            // Se recolectan TODAS las ofertas candidatas de React Query antes de
+            // elegir. En una página de bundle conviven la oferta del bundle
+            // (offerType BUNDLE) y las de los juegos incluidos (BASE_GAME, etc.),
+            // así que elegir "la primera" daría el enlace equivocado.
+            const offers = [];          // { id, type, source }
+            const seenIds = new Set();
+            const pushOffer = (id, type, source) => {
+                if (id && typeof id === 'string' && !seenIds.has(id)) {
+                    seenIds.add(id);
+                    offers.push({ id, type, source });
+                }
+            };
+
+            // a) Camino preciso (productos y, normalmente, bundles): queries cuyo
+            //    hash contiene 'getCatalogOffer' -> data.Catalog.catalogOffer.
             for (const q of queries) {
-                const hasGetCatalogOffer =
-                    (q.queryHash && q.queryHash.includes('getCatalogOffer')) ||
-                    (q.queryKey && JSON.stringify(q.queryKey).includes('getCatalogOffer'));
-                if (hasGetCatalogOffer) {
-                    const id = q.state?.data?.Catalog?.catalogOffer?.id;
-                    if (id) return id;
+                const hash = (q.queryHash || '') + (q.queryKey ? JSON.stringify(q.queryKey) : '');
+                if (hash.includes('getCatalogOffer')) {
+                    const co = q.state?.data?.Catalog?.catalogOffer;
+                    if (co?.id) pushOffer(co.id, co.offerType, 'getCatalogOffer');
                 }
             }
+
+            // b) Red de seguridad: búsqueda en profundidad de cualquier objeto con
+            //    FORMA DE OFERTA (id + namespace + offerType/title) o envuelto en
+            //    'catalogOffer', por si el bundle vive bajo otra query.
+            const seen = new Set();
+            const isOfferLike = (o) =>
+                o && typeof o === 'object' &&
+                typeof o.id === 'string' && o.id &&
+                typeof o.namespace === 'string' &&
+                ('offerType' in o || 'title' in o);
+            const walk = (node) => {
+                if (!node || typeof node !== 'object' || seen.has(node)) return;
+                seen.add(node);
+                if (isOfferLike(node)) pushOffer(node.id, node.offerType, 'deep');
+                const co = node.catalogOffer;
+                if (co && typeof co === 'object' && co.id) pushOffer(co.id, co.offerType, 'deep');
+                for (const k in node) walk(node[k]);
+            };
+            for (const q of queries) walk(q.state?.data);
+
+            // c) Camino por CLAVE de query (clave para bundles): los bundles
+            //    modernos NO exponen la oferta como objeto con id+namespace en
+            //    React Query; la piden vía egs-platform-service con la forma
+            //    products/{namespace}/offers/{offerId}. Ese offerId —el mismo que
+            //    usa egdata— queda en el queryKey/queryHash. Se busca SOLO en las
+            //    claves (no en los datos) para no capturar ofertas de los juegos
+            //    incluidos en el paquete.
+            const reUrl = /offers\/([0-9a-f]{32})/i;
+            const reField = /"offer(?:Id|Sku)?"\s*:\s*"([0-9a-f]{32})"/i;
+            const matchOfferId = (str) => {
+                const m = str.match(reUrl) || str.match(reField);
+                return m ? m[1] : null;
+            };
+            // Primero SOLO en las claves (preciso); luego, como último recurso,
+            // en clave+datos por si el offerId vive en los datos de una query.
+            const findOfferIdInQueryKeys = () => {
+                for (const q of queries) {
+                    const id = matchOfferId(
+                        (q.queryHash || '') + (q.queryKey != null ? JSON.stringify(q.queryKey) : ''));
+                    if (id) return id;
+                }
+                for (const q of queries) {
+                    const id = matchOfferId(JSON.stringify(q));
+                    if (id) return id;
+                }
+                return null;
+            };
+
+            if (isBundle) {
+                // Preferir la oferta de tipo BUNDLE si React Query la expone…
+                const bundle = offers.find(o => /BUNDLE/i.test(o.type || ''));
+                if (bundle) return bundle.id;
+                // …si no, usar el offerId capturado de la red (camino real del
+                // bundle: la request a egs-platform-service), y como respaldo el
+                // que aparezca en el queryKey.
+                return capturedOfferId || findOfferIdInQueryKeys();
+            }
+
+            // Producto: prioriza la oferta del camino preciso 'getCatalogOffer'.
+            const precise = offers.find(o => o.source === 'getCatalogOffer');
+            if (precise) return precise.id;
+            if (offers.length) return offers[0].id;
+            // Último recurso (también para productos): offerId de red o queryKey.
+            return capturedOfferId || findOfferIdInQueryKeys();
         } catch (e) {
             // Error silencioso: los datos de React Query pueden no estar disponibles aún
         }
@@ -179,65 +307,68 @@
     }
 
     /**
-     * Crea e inserta el botón EGData en la página. No duplica si ya existe.
-     * Para páginas de tipo bundle, también añade un segundo botón junto al
-     * segundo botón de compra (si existe).
+     * Inserta el botón EGData colgando del contenedor 3 niveles arriba del botón
+     * de compra dado (misma colocación original que ya funcionaba en productos).
+     * @param {HTMLButtonElement} purchaseButton - Botón de compra de referencia.
+     * @param {string} slug - ID de la oferta en EGData.
+     * @param {boolean} withMargin - Añade separación superior (para botones extra).
+     * @returns {HTMLButtonElement|null} El botón insertado, el existente, o null.
+     */
+    function insertNextToPurchase(purchaseButton, slug, withMargin) {
+        // Contenedor padre adecuado (3 niveles arriba del botón de compra).
+        const host = purchaseButton.parentElement?.parentElement?.parentElement;
+        if (!host) return null;
+
+        // Evitar duplicados: si ya hay un botón EGData bajo este contenedor, salir.
+        const existing = host.querySelector(`[${DATA_ATTR}="true"]`);
+        if (existing) return existing;
+
+        const purchaseButtonIsDisabled =
+            purchaseButton.hasAttribute('disabled') || purchaseButton.className.includes('disabled');
+        if (purchaseButtonIsDisabled) purchaseButton.style.marginLeft = '0px';
+
+        injectStyles();
+
+        // Contenedores div intermedios para la estructura visual (como el original).
+        const div = document.createElement('div');
+        const divButton = document.createElement('div');
+        div.appendChild(divButton);
+
+        const button = buildButton(slug, purchaseButton.className || '');
+        if (withMargin) button.style.marginTop = '0.625rem';
+        divButton.appendChild(button);
+
+        host.appendChild(div);
+        return button;
+    }
+
+    /**
+     * Crea e inserta el botón EGData junto a CADA botón de compra de la página.
+     * Los bundles tienen dos (barra superior y sección "Comprar …"); los
+     * productos normalmente uno. No duplica si ya existe.
      * @param {string} slug - ID de la oferta en EGData.
      * @param {string} urlType - Tipo de página ("product" o "bundle").
      * @param {string} gameTitle - Título del juego (para log).
-     * @returns {HTMLButtonElement|null} El botón creado o null si no fue posible.
+     * @returns {HTMLButtonElement|null} El primer botón creado/encontrado, o null.
      */
     function createEGDataButton(slug, urlType, gameTitle) {
         try {
             const egDataLink = `${EGDATA_BASE_URL}${slug}`;
-            const purchaseButton = document.querySelector(PURCHASE_BUTTON_SELECTOR);
-            if (!purchaseButton) return null;
+            const purchaseButtons = document.querySelectorAll(PURCHASE_BUTTON_SELECTOR);
+            if (!purchaseButtons.length) return null;
 
-            // Navegar al contenedor padre adecuado (3 niveles arriba del botón de compra)
-            let targetContainer = purchaseButton.parentElement?.parentElement?.parentElement;
-            const purchaseButtonIsDisabled = purchaseButton.hasAttribute('disabled') || purchaseButton.className.includes('disabled');
-            if (purchaseButtonIsDisabled) purchaseButton.style.marginLeft = '0px';
+            let firstButton = null;
+            purchaseButtons.forEach((pb) => {
+                // Separación superior en TODOS los botones para que el de la barra
+                // superior se vea igual que el de la sección "Comprar …".
+                const btn = insertNextToPurchase(pb, slug, true);
+                if (btn && !firstButton) firstButton = btn;
+            });
 
-            // Crear contenedores div intermedios para la estructura visual
-            const div = document.createElement('div');
-            targetContainer.appendChild(div);
-            targetContainer = div;
-            const divButton = document.createElement('div');
-            targetContainer.appendChild(divButton);
-            targetContainer = divButton;
-
-            if (!targetContainer) return null;
-
-            // Evitar duplicados comprobando el atributo data
-            const existing = targetContainer.querySelector(`[${DATA_ATTR}="true"]`);
-            if (existing) return existing;
-
-            // Inyectar estilos y crear botón
-            injectStyles();
-            const button = buildButton(slug, purchaseButton.className || '');
-            targetContainer.appendChild(button);
-
-            // Para bundles: añadir segundo botón junto al segundo botón de compra
-            if (urlType === 'bundle') {
-                button.style.marginTop = '0.625rem';
-
-                const purchaseButtons = document.querySelectorAll(PURCHASE_BUTTON_SELECTOR);
-                const secondPurchaseButton = purchaseButtons[1];
-                const secondButtonContainer = secondPurchaseButton?.parentElement?.parentElement?.parentElement;
-                if (secondButtonContainer) {
-                    const div2 = document.createElement('div');
-                    secondButtonContainer.appendChild(div2);
-                    const divButton2 = document.createElement('div');
-                    div2.appendChild(divButton2);
-                    const button2 = button.cloneNode(true);
-                    button2.className = secondPurchaseButton.className;
-                    button2.onclick = () => window.open(egDataLink, '_blank');
-                    divButton2.appendChild(button2);
-                }
+            if (firstButton) {
+                console.log(`(egs2egd): ${gameTitle} [${urlType}] — ${purchaseButtons.length} botón(es) de compra, EGData añadido -> ${egDataLink}`);
             }
-
-            console.log(`(egs2egd): ${gameTitle} [${urlType}] — button added successfully -> ${egDataLink}`);
-            return button;
+            return firstButton;
         } catch (e) {
             console.error('(egs2egd): Error al crear el botón EGData:', e);
             return null;
