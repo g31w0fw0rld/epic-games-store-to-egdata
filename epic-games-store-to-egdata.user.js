@@ -1,14 +1,11 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.1.7.6
-// @description  Agrega un botón hacia EGData debajo del botón de compra en las páginas de productos de Epic Games Store. Recarga la página cuando la ruta cambia a product o bundle.
+// @version      1.2.0
+// @description  Agrega un botón hacia EGData debajo del botón de compra en las páginas de productos y bundles de Epic Games Store. El script corre en toda la tienda para que al navegar (SPA) desde el home, la búsqueda o el browse hacia un producto/bundle recargue y pinte los botones.
 // @author       g31w0fw0rld
 // @license      MIT
-// @match        https://store.epicgames.com/*/p/*
-// @match        https://store.epicgames.com/*/bundles/*
-// @match        https://store.epicgames.com/p/*
-// @match        https://store.epicgames.com/bundles/*
+// @match        https://store.epicgames.com/*
 // @downloadURL  https://github.com/g31w0fw0rld/epic-games-store-to-egdata/raw/main/epic-games-store-to-egdata.user.js
 // @updateURL    https://github.com/g31w0fw0rld/epic-games-store-to-egdata/raw/main/epic-games-store-to-egdata.user.js
 // @grant        none
@@ -39,6 +36,33 @@
     const BUNDLE_URL_REGEX = /^https:\/\/store\.epicgames\.com\/(?:[^\/]+\/)?bundles\/.+/;
     const PRODUCT_PATH_REGEX = /^\/(?:[^\/]+\/)?p\/.+/;
     const BUNDLE_PATH_REGEX = /^\/(?:[^\/]+\/)?bundles\/.+/;
+    // La lista de deseos vive en /wishlist (con o sin locale). Aquí el script no
+    // pinta el botón de EGData sino que persiste orden/filtros (ver módulo abajo).
+    const WISHLIST_PATH_REGEX = /^\/(?:[^\/]+\/)?wishlist\/?$/;
+
+    // =============================================
+    // WISHLIST — persistencia de orden y filtros
+    // =============================================
+    // Clave de almacenamiento (localStorage). Se conserva @grant none a propósito:
+    // activar GM_* forzaría el sandbox de Tampermonkey y entonces window.__REACT_
+    // QUERY_INITIAL_QUERIES__ y el hook de red dejarían de ver los globales de la
+    // página. localStorage basta para que las preferencias sobrevivan recargas.
+    const WL_SETTINGS_KEY = 'egs2egd-wishlist-settings';
+    // Parámetro propio para compartir/guardar una URL con filtros. Epic ignora
+    // los query params que no conoce; el script los lee y aplica. Valor = base64url
+    // de un JSON { sort, filters }. Ej.: /wishlist?egs-wl=eyJ...  (bookmark-able).
+    const WL_URL_PARAM = 'egs-wl';
+    // Selectores del wishlist (tomados del DOM real de Epic).
+    const WL_SORT_LAYOUT = '[data-testid="wishlist-sort-layout"]';
+    const WL_SORT_TOGGLE_ID = 'sort-dropdown_toggle';
+    const WL_SORT_MENU_ID = 'sort-dropdown_menu';
+    const WL_SORT_CURRENT = '.css-pvz02l';           // etiqueta del orden activo
+    const WL_SIDEBAR = '[data-testid="egs-filter-sidebar"]';
+    const WL_GROUP = '.css-1n0v0ym';                 // bloque de cada grupo de filtro
+    const WL_GROUP_TOGGLE = 'button[aria-expanded]'; // cabecera plegable del grupo
+    const WL_GROUP_TITLE = '.css-zk51sn';            // texto del nombre del grupo
+    const WL_CHECKBOX = '[role="checkbox"]';         // cada opción de filtro
+    const WL_TOOLBAR_ID = 'egs2egd-wl-toolbar';
 
     // Patrón de la petición que la propia página hace para la oferta que se
     // compra: products/{namespace}/offers/{offerId}. Ese offerId es el que usa
@@ -52,6 +76,25 @@
     let waitIntervalId = null;
     let actualPath = '';
     let capturedOfferId = null; // offerId capturado de la red (camino real del bundle)
+
+    // Botón EGData: slug resuelto de la página actual y observer que sigue
+    // pintando botones a medida que Epic renderiza controles tarde (p. ej. el
+    // segundo botón de compra del bundle, que a veces llega después del primero).
+    let pageSlug = null;
+    let buttonObserver = null;
+    let buttonObserverDebounce = null;
+
+    // Wishlist: observer + flags para no capturar el estado por defecto encima de
+    // las preferencias guardadas, ni re-capturar mientras se reaplican filtros.
+    let wlObserver = null;
+    let wlCaptureDebounce = null;
+    let wlReady = false;
+    let wlReapplyInProgress = false;
+    // Último orden elegido (índice + etiqueta), capturado al clicar una opción del
+    // menú. El índice es independiente del idioma; la etiqueta es la vía rápida
+    // cuando el idioma coincide. Se mantiene en memoria aunque "Recordar" esté off.
+    let wlLastSort = null;
+    let wlSortBound = false;
 
     // =============================================
     // INTERCEPCIÓN DE RED (captura del offerId)
@@ -315,13 +358,18 @@
      * @returns {HTMLButtonElement|null} El botón insertado, el existente, o null.
      */
     function insertNextToPurchase(purchaseButton, slug, withMargin) {
+        // Dedup POR BOTÓN DE COMPRA (no por contenedor). En los bundles los dos
+        // botones (barra superior y sección "Comprar …") pueden compartir el
+        // ancestro de 3 niveles; deduplicar por contenedor hacía que el segundo
+        // nunca recibiera su botón. Marcar el propio botón de compra garantiza
+        // exactamente un EGData por cada uno, aunque compartan host.
+        if (purchaseButton.dataset.egs2egdDone === '1') return null;
+
         // Contenedor padre adecuado (3 niveles arriba del botón de compra).
         const host = purchaseButton.parentElement?.parentElement?.parentElement;
         if (!host) return null;
 
-        // Evitar duplicados: si ya hay un botón EGData bajo este contenedor, salir.
-        const existing = host.querySelector(`[${DATA_ATTR}="true"]`);
-        if (existing) return existing;
+        purchaseButton.dataset.egs2egdDone = '1';
 
         const purchaseButtonIsDisabled =
             purchaseButton.hasAttribute('disabled') || purchaseButton.className.includes('disabled');
@@ -380,17 +428,46 @@
     // =============================================
 
     /**
+     * Detiene el observer que sigue pintando botones tardíos.
+     */
+    function stopButtonObserver() {
+        if (buttonObserver) { buttonObserver.disconnect(); buttonObserver = null; }
+        if (buttonObserverDebounce) { clearTimeout(buttonObserverDebounce); buttonObserverDebounce = null; }
+    }
+
+    /**
+     * Observa el DOM tras crear el primer botón para pintar los que Epic renderiza
+     * más tarde (el segundo botón de compra del bundle suele llegar después). Antes
+     * el polling se detenía al primer éxito y por eso a veces faltaba el segundo.
+     */
+    function startButtonObserver() {
+        if (buttonObserver) return;
+        buttonObserver = new MutationObserver(() => {
+            if (buttonObserverDebounce) return;
+            buttonObserverDebounce = setTimeout(() => {
+                buttonObserverDebounce = null;
+                if (!pageSlug || !getUrlType()) return;
+                createEGDataButton(pageSlug, getUrlType(), getGameTitle());
+            }, 300);
+        });
+        buttonObserver.observe(document.body || document.documentElement, {
+            childList: true, subtree: true,
+        });
+    }
+
+    /**
      * Inicia un intervalo de polling que espera a que React cargue los datos
      * del catálogo (__REACT_QUERY_INITIAL_QUERIES__), encuentre el slug
-     * del producto y el botón de compra esté en el DOM.
-     * Se detiene automáticamente tras MAX_POLL_ATTEMPTS intentos o al
-     * crear el botón exitosamente.
+     * del producto y el botón de compra esté en el DOM. Al primer botón
+     * arranca un MutationObserver que sigue pintando los botones tardíos.
      */
     function startWaitForData() {
+        stopButtonObserver();
         if (waitIntervalId) {
             clearInterval(waitIntervalId);
             waitIntervalId = null;
         }
+        pageSlug = null;
 
         const urlType = getUrlType();
         if (!urlType) return;
@@ -430,12 +507,351 @@
                 return;
             }
 
-            const btn = createEGDataButton(slug, urlType, gameTitle);
-            if (btn) {
-                clearInterval(waitIntervalId);
-                waitIntervalId = null;
-            }
+            pageSlug = slug;
+            createEGDataButton(slug, urlType, gameTitle);
+            clearInterval(waitIntervalId);
+            waitIntervalId = null;
+            // Seguir observando: el segundo botón del bundle puede llegar tarde.
+            startButtonObserver();
         }, POLL_INTERVAL_MS);
+    }
+
+    // =============================================
+    // WISHLIST — persistencia de orden y filtros
+    // =============================================
+    // El wishlist es 100% estado de React (ni el orden ni los filtros van en la
+    // URL). Para persistir se CAPTURA el estado visible y se REAPLICA replicando
+    // los gestos del usuario: abrir el dropdown de orden y clicar la opción, y
+    // marcar/desmarcar los checkboxes de la barra lateral.
+    // Emparejado ÍNDICE + ETIQUETA: se guardan ambos. Al reaplicar se intenta por
+    // etiqueta (mismo idioma; resiste que cambien las clases css-* y la lista de
+    // filtros) y, si no coincide (idioma distinto), se cae al ÍNDICE, que es
+    // estable entre traducciones. Así funciona multi-idioma sin depender del texto.
+
+    const wlDelay = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    function isWishlist() {
+        return WISHLIST_PATH_REGEX.test(location.pathname);
+    }
+
+    // Espera (sondeando) a que aparezca un elemento; resuelve null al agotar tiempo.
+    function waitForElement(selector, timeoutMs) {
+        return new Promise((resolve) => {
+            const now = document.querySelector(selector);
+            if (now) return resolve(now);
+            const deadline = Date.now() + (timeoutMs || 10000);
+            const iv = setInterval(() => {
+                const el = document.querySelector(selector);
+                if (el) { clearInterval(iv); resolve(el); }
+                else if (Date.now() > deadline) { clearInterval(iv); resolve(null); }
+            }, 200);
+        });
+    }
+
+    // --- Persistencia (localStorage) --------------------------------------------
+    // Estado guardado. sort = { i:índice, t:etiqueta } | null. filters = array de
+    // grupos { i:índice, t:título, items:[{ i:índice, t:etiqueta }] }. Se guardan
+    // índice Y etiqueta a propósito: la etiqueta empareja en el mismo idioma y el
+    // índice es el respaldo independiente del idioma (el orden de opciones/filtros
+    // es estable entre traducciones).
+    function getWishlistSettings() {
+        const def = { remember: true, sort: null, filters: [] };
+        try {
+            const raw = localStorage.getItem(WL_SETTINGS_KEY);
+            const parsed = raw ? JSON.parse(raw) : null;
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                return Object.assign(def, parsed, {
+                    sort: (parsed.sort && typeof parsed.sort === 'object') ? parsed.sort : null,
+                    filters: Array.isArray(parsed.filters) ? parsed.filters : [],
+                });
+            }
+        } catch (e) { console.error('(egs2egd): getWishlistSettings error:', e); }
+        return def;
+    }
+    function saveWishlistSettings(s) {
+        try { localStorage.setItem(WL_SETTINGS_KEY, JSON.stringify(s)); }
+        catch (e) { console.error('(egs2egd): saveWishlistSettings error:', e); }
+    }
+
+    // --- Lectura del DOM ---------------------------------------------------------
+    // Etiqueta del orden activo (texto del botón del dropdown).
+    function wlReadSort() {
+        const toggle = document.getElementById(WL_SORT_TOGGLE_ID);
+        if (!toggle) return '';
+        const cur = toggle.querySelector(WL_SORT_CURRENT) || toggle;
+        return (cur.textContent || '').trim();
+    }
+
+    // Bloques de grupo de filtro (los .css-1n0v0ym que tienen cabecera plegable).
+    function wlGroupBlocks() {
+        const sidebar = document.querySelector(WL_SIDEBAR);
+        if (!sidebar) return [];
+        return Array.from(sidebar.querySelectorAll(WL_GROUP))
+            .filter((b) => b.querySelector(WL_GROUP_TOGGLE) && b.querySelector(WL_CHECKBOX));
+    }
+    function wlGroupTitle(block) {
+        const t = block.querySelector(WL_GROUP_TITLE);
+        return t ? (t.textContent || '').trim() : '';
+    }
+    function wlCheckboxLabel(cb) {
+        const span = cb.querySelector('span');
+        return span ? (span.textContent || '').trim() : (cb.textContent || '').trim();
+    }
+
+    // Opciones del menú de orden (botones role=menuitem). Solo existen con el
+    // menú abierto (Epic lo monta como popper aparte al pulsar el toggle).
+    function wlSortMenuItems() {
+        const menu = document.getElementById(WL_SORT_MENU_ID);
+        if (!menu) return [];
+        return Array.from(menu.querySelectorAll('[role="menuitem"]'));
+    }
+    function wlItemText(el) {
+        const t = el.querySelector('[data-testid="title"]') || el;
+        return (t.textContent || '').trim();
+    }
+
+    // Filtros marcados como array de grupos { i, t, items:[{ i, t }] }.
+    function wlCaptureFilters() {
+        const groups = [];
+        wlGroupBlocks().forEach((block, gi) => {
+            const items = [];
+            Array.from(block.querySelectorAll(WL_CHECKBOX)).forEach((cb, ci) => {
+                if (cb.getAttribute('aria-checked') === 'true') items.push({ i: ci, t: wlCheckboxLabel(cb) });
+            });
+            if (items.length) groups.push({ i: gi, t: wlGroupTitle(block), items });
+        });
+        return groups;
+    }
+
+    // Estado visible completo (para copiar enlace / snapshot al activar Recordar).
+    // El orden usa wlLastSort (tiene índice); si nunca se cambió, cae a la etiqueta
+    // visible sin índice (bastará por etiqueta en el mismo idioma).
+    function wlCaptureState() {
+        return {
+            sort: wlLastSort || (wlReadSort() ? { i: null, t: wlReadSort() } : null),
+            filters: wlCaptureFilters(),
+        };
+    }
+
+    // Captura del orden por delegación: al clicar una opción del menú se registra
+    // su índice + etiqueta. Funciona aunque el menú sea un popper fuera del scope.
+    function bindSortCapture() {
+        if (wlSortBound) return;
+        wlSortBound = true;
+        document.addEventListener('click', (e) => {
+            const item = e.target.closest && e.target.closest('#' + WL_SORT_MENU_ID + ' [role="menuitem"]');
+            if (!item) return;
+            const idx = wlSortMenuItems().indexOf(item);
+            wlLastSort = { i: idx >= 0 ? idx : null, t: wlItemText(item) };
+            if (wlReapplyInProgress || !isWishlist()) return;
+            const s = getWishlistSettings();
+            if (!s.remember) return;
+            s.sort = wlLastSort;
+            saveWishlistSettings(s);
+        }, true);
+    }
+
+    // --- Reaplicación ------------------------------------------------------------
+    async function wlApplySort(want) {
+        if (!want || (want.i == null && !want.t)) return;
+        // Vía rápida (mismo idioma): si la etiqueta visible ya coincide, no abrir.
+        if (want.t && wlReadSort() === want.t) return;
+        const toggle = document.getElementById(WL_SORT_TOGGLE_ID);
+        if (!toggle) return;
+        if (toggle.getAttribute('aria-expanded') !== 'true') toggle.click();
+        const menu = await waitForElement('#' + WL_SORT_MENU_ID, 2500);
+        if (!menu) return;
+        const items = wlSortMenuItems();
+        // Emparejar por etiqueta (mismo idioma); si no aparece, por índice.
+        let target = want.t ? items.find((it) => wlItemText(it) === want.t) : null;
+        if (!target && want.i != null && items[want.i]) target = items[want.i];
+        if (target) target.click();
+        else if (toggle.getAttribute('aria-expanded') === 'true') toggle.click(); // cerrar
+        await wlDelay(350);
+    }
+
+    async function wlApplyFilters(groups) {
+        if (!Array.isArray(groups) || !groups.length) return;
+        const blocks = wlGroupBlocks();
+        for (const g of groups) {
+            // Localizar el grupo por título (mismo idioma) o por índice (respaldo).
+            let block = g.t ? blocks.find((b) => wlGroupTitle(b) === g.t) : null;
+            if (!block && g.i != null) block = blocks[g.i];
+            if (!block) continue;
+
+            const toggle = block.querySelector(WL_GROUP_TOGGLE);
+            if (toggle && toggle.getAttribute('aria-expanded') === 'false') { toggle.click(); await wlDelay(150); }
+
+            const boxes = Array.from(block.querySelectorAll(WL_CHECKBOX));
+            const boxLabels = boxes.map(wlCheckboxLabel);
+            // ¿Están presentes las etiquetas guardadas? (idioma coincidente).
+            const byLabel = (g.items || []).some((it) => it.t && boxLabels.includes(it.t));
+            const wantLabels = new Set((g.items || []).map((it) => it.t));
+            const wantIdx = new Set((g.items || []).map((it) => it.i));
+            boxes.forEach((cb, ci) => {
+                const want = byLabel ? wantLabels.has(boxLabels[ci]) : wantIdx.has(ci);
+                const checked = cb.getAttribute('aria-checked') === 'true';
+                if (want !== checked) cb.click();
+            });
+            await wlDelay(120);
+        }
+    }
+
+    async function wlApplyState(state) {
+        if (!state || typeof state !== 'object') return;
+        await wlApplyFilters(state.filters);
+        await wlApplySort(state.sort);
+    }
+
+    // --- URL compartible ---------------------------------------------------------
+    function wlEncode(state) {
+        try {
+            const json = JSON.stringify({ sort: state.sort || null, filters: state.filters || [] });
+            return btoa(unescape(encodeURIComponent(json)))
+                .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        } catch (e) { return ''; }
+    }
+    function wlDecode(param) {
+        try {
+            let b64 = String(param).replace(/-/g, '+').replace(/_/g, '/');
+            while (b64.length % 4) b64 += '=';
+            const json = decodeURIComponent(escape(atob(b64)));
+            const obj = JSON.parse(json);
+            if (obj && typeof obj === 'object') {
+                return {
+                    sort: (obj.sort && typeof obj.sort === 'object') ? obj.sort : null,
+                    filters: Array.isArray(obj.filters) ? obj.filters : [],
+                };
+            }
+        } catch (e) { /* param inválido: se ignora */ }
+        return null;
+    }
+    // Estado codificado en la URL actual (si lo hay).
+    function wlDecodeParam() {
+        try {
+            const v = new URLSearchParams(location.search).get(WL_URL_PARAM);
+            return v ? wlDecode(v) : null;
+        } catch (e) { return null; }
+    }
+    // URL que reproduce el estado dado al abrirla (con el script instalado).
+    function wlBuildUrl(state) {
+        const enc = wlEncode(state);
+        return location.origin + location.pathname + (enc ? ('?' + WL_URL_PARAM + '=' + enc) : '');
+    }
+
+    // --- UI (barra junto al "Ordenar por:") -------------------------------------
+    function wlInjectToolbar(sortLayout) {
+        if (!sortLayout || document.getElementById(WL_TOOLBAR_ID)) return;
+        const settings = getWishlistSettings();
+
+        const bar = document.createElement('div');
+        bar.id = WL_TOOLBAR_ID;
+        bar.style.cssText = 'display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:8px 0;font-size:13px;color:inherit;';
+
+        // Toggle "Recordar orden y filtros"
+        const remLabel = document.createElement('label');
+        remLabel.style.cssText = 'display:inline-flex;align-items:center;gap:6px;cursor:pointer;';
+        const remChk = document.createElement('input');
+        remChk.type = 'checkbox';
+        remChk.checked = !!settings.remember;
+        remChk.style.cursor = 'pointer';
+        const remText = document.createElement('span');
+        remText.textContent = 'Recordar orden y filtros';
+        remLabel.appendChild(remChk);
+        remLabel.appendChild(remText);
+        remChk.addEventListener('change', () => {
+            const s = getWishlistSettings();
+            s.remember = remChk.checked;
+            if (remChk.checked) { const st = wlCaptureState(); s.sort = st.sort; s.filters = st.filters; }
+            saveWishlistSettings(s);
+        });
+
+        // Botón "Copiar enlace con filtros"
+        const copyBtn = document.createElement('button');
+        copyBtn.type = 'button';
+        copyBtn.textContent = '🔗 Copiar enlace con filtros';
+        copyBtn.style.cssText = 'background:#000;color:#fff;border:none;border-radius:4px;padding:6px 10px;cursor:pointer;font-size:13px;';
+        copyBtn.addEventListener('click', async () => {
+            const url = wlBuildUrl(wlCaptureState());
+            const done = (ok) => { copyBtn.textContent = ok ? '✔ Enlace copiado' : url; setTimeout(() => { copyBtn.textContent = '🔗 Copiar enlace con filtros'; }, 2000); };
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(url); done(true); }
+                else { window.prompt('Copia este enlace:', url); }
+            } catch (e) { window.prompt('Copia este enlace:', url); }
+        });
+
+        bar.appendChild(remLabel);
+        bar.appendChild(copyBtn);
+        sortLayout.parentNode.insertBefore(bar, sortLayout);
+    }
+
+    // --- Captura de cambios del usuario -----------------------------------------
+    function stopWishlistObserver() {
+        if (wlObserver) { wlObserver.disconnect(); wlObserver = null; }
+        if (wlCaptureDebounce) { clearTimeout(wlCaptureDebounce); wlCaptureDebounce = null; }
+    }
+    function startWishlistObserver() {
+        if (wlObserver) return;
+        const scope = document.querySelector('[data-testid="section-wrapper"]') || document.body;
+        wlObserver = new MutationObserver(() => {
+            if (wlCaptureDebounce) return;
+            wlCaptureDebounce = setTimeout(() => {
+                wlCaptureDebounce = null;
+                if (!wlReady || wlReapplyInProgress || !isWishlist()) return;
+                const s = getWishlistSettings();
+                if (!s.remember) return;
+                // El orden lo captura la delegación (bindSortCapture); aquí solo los
+                // filtros, para no pisar el índice de orden con una lectura sin él.
+                const f = wlCaptureFilters();
+                if (JSON.stringify(f) === JSON.stringify(s.filters)) return;
+                s.filters = f;
+                saveWishlistSettings(s);
+            }, 400);
+        });
+        wlObserver.observe(scope, {
+            subtree: true, childList: true, characterData: true,
+            attributes: true, attributeFilter: ['aria-checked'],
+        });
+    }
+
+    // --- Entrada -----------------------------------------------------------------
+    async function initWishlist() {
+        stopWishlistObserver();
+        wlReady = false;
+        wlReapplyInProgress = false;
+
+        const sortLayout = await waitForElement(WL_SORT_LAYOUT, 15000);
+        await waitForElement(WL_SIDEBAR, 8000);
+        if (!sortLayout && !document.querySelector(WL_SIDEBAR)) return;
+
+        wlInjectToolbar(sortLayout);
+        bindSortCapture();
+
+        const settings = getWishlistSettings();
+        // La URL manda: si trae ?egs-wl=..., aplica ese estado; si no, el guardado.
+        const fromUrl = wlDecodeParam();
+        const toApply = fromUrl || (settings.remember ? { sort: settings.sort, filters: settings.filters } : null);
+        const hasSort = toApply && toApply.sort && (toApply.sort.t || toApply.sort.i != null);
+        const hasFilters = toApply && Array.isArray(toApply.filters) && toApply.filters.length;
+
+        if (hasSort || hasFilters) {
+            wlReapplyInProgress = true;
+            try { await wlApplyState(toApply); }
+            catch (e) { console.error('(egs2egd): wlApplyState error:', e); }
+            wlReapplyInProgress = false;
+
+            // Un estado llegado por URL, si "Recordar" está activo, pasa a ser el
+            // guardado (para que persista tras la siguiente recarga sin la query).
+            if (fromUrl && settings.remember) {
+                settings.sort = wlLastSort || fromUrl.sort || settings.sort;
+                settings.filters = wlCaptureFilters();
+                saveWishlistSettings(settings);
+            }
+        }
+
+        wlReady = true;
+        startWishlistObserver();
+        console.log('(egs2egd): wishlist — persistencia de orden/filtros activa');
     }
 
     // =============================================
@@ -468,45 +884,54 @@
     // INICIALIZACIÓN
     // =============================================
 
-    // Limpiar intervalo al salir de la página para evitar memory leaks
+    // Limpiar intervalos/observers al salir de la página para evitar memory leaks
     window.addEventListener('beforeunload', () => {
         if (waitIntervalId) {
             clearInterval(waitIntervalId);
             waitIntervalId = null;
         }
+        stopButtonObserver();
+        stopWishlistObserver();
     });
 
-    // Manejar navegación SPA: si cambia la ruta a producto/bundle, recargar la página.
-    // Si no, reiniciar la búsqueda del botón tras un breve retraso.
+    // Manejar navegación SPA:
+    //  - a producto/bundle: recarga completa (el script no estaba activo en el
+    //    home/búsqueda/browse, y así React Query queda fresco para pintar el botón);
+    //  - a /wishlist: activa la persistencia de orden/filtros;
+    //  - a cualquier otra: solo limpia.
     onUrlChange(() => {
         try {
             const newPath = location.pathname;
-            if (newPath !== actualPath) {
-                actualPath = newPath;
+            if (newPath === actualPath) return;
+            actualPath = newPath;
 
-                if (waitIntervalId) {
-                    clearInterval(waitIntervalId);
-                    waitIntervalId = null;
-                }
-
-                // Si la nueva ruta es producto o bundle, forzar recarga completa
-                const isProductOrBundle =
-                    PRODUCT_PATH_REGEX.test(newPath) || BUNDLE_PATH_REGEX.test(newPath);
-
-                if (isProductOrBundle) {
-                    window.location.reload();
-                    return;
-                }
-
-                // Si no se recarga, reintentar tras un breve retraso
-                setTimeout(() => startWaitForData(), POLL_DELAY_AFTER_NAV_MS);
+            if (waitIntervalId) {
+                clearInterval(waitIntervalId);
+                waitIntervalId = null;
             }
+            stopButtonObserver();
+            stopWishlistObserver();
+
+            // Si la nueva ruta es producto o bundle, forzar recarga completa
+            const isProductOrBundle =
+                PRODUCT_PATH_REGEX.test(newPath) || BUNDLE_PATH_REGEX.test(newPath);
+            if (isProductOrBundle) {
+                window.location.reload();
+                return;
+            }
+
+            // Reintentar tras un breve retraso (deja render la SPA)
+            setTimeout(() => {
+                if (isWishlist()) initWishlist();
+                else startWaitForData();
+            }, POLL_DELAY_AFTER_NAV_MS);
         } catch (e) {
             console.error('(egs2egd): Error en el handler de cambio de URL:', e);
         }
     });
 
-    // Inicio: registrar la ruta actual y comenzar la búsqueda
+    // Inicio: registrar la ruta actual y arrancar según el tipo de página.
     actualPath = location.pathname;
-    startWaitForData();
+    if (isWishlist()) initWishlist();
+    else startWaitForData();
 })();
