@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.2.0
+// @version      1.3.0
 // @description  Agrega un botón hacia EGData debajo del botón de compra en las páginas de productos y bundles de Epic Games Store. El script corre en toda la tienda para que al navegar (SPA) desde el home, la búsqueda o el browse hacia un producto/bundle recargue y pinte los botones.
 // @author       g31w0fw0rld
 // @license      MIT
@@ -14,6 +14,34 @@
 
 (function () {
     'use strict';
+
+    // =============================================
+    // IDIOMA (auto-detect: si la página/navegador está en español -> es, si no -> en)
+    // =============================================
+    // Prioriza el lang del documento (idioma con que Epic sirve la página) y cae
+    // al del navegador. Solo distingue español vs. resto (inglés por defecto).
+    // Nota: EGData es marca y NO se traduce (queda como literal en el botón).
+    function detectLang() {
+        const docLang = (document.documentElement.getAttribute('lang') || '').toLowerCase();
+        const navLang = (navigator.language || navigator.languages?.[0] || '').toLowerCase();
+        return (docLang || navLang).startsWith('es') ? 'es' : 'en';
+    }
+    const LANG = detectLang();
+    const I18N = {
+        es: {
+            remember: 'Recordar orden y filtros',
+            copyLink: '🔗 Copiar enlace con filtros',
+            copied: '✔ Enlace copiado',
+            copyPrompt: 'Copia este enlace:',
+        },
+        en: {
+            remember: 'Remember sort and filters',
+            copyLink: '🔗 Copy link with filters',
+            copied: '✔ Link copied',
+            copyPrompt: 'Copy this link:',
+        },
+    };
+    const t = I18N[LANG];
 
     // =============================================
     // CONSTANTES
@@ -756,7 +784,7 @@
         remChk.checked = !!settings.remember;
         remChk.style.cursor = 'pointer';
         const remText = document.createElement('span');
-        remText.textContent = 'Recordar orden y filtros';
+        remText.textContent = t.remember;
         remLabel.appendChild(remChk);
         remLabel.appendChild(remText);
         remChk.addEventListener('change', () => {
@@ -769,15 +797,15 @@
         // Botón "Copiar enlace con filtros"
         const copyBtn = document.createElement('button');
         copyBtn.type = 'button';
-        copyBtn.textContent = '🔗 Copiar enlace con filtros';
+        copyBtn.textContent = t.copyLink;
         copyBtn.style.cssText = 'background:#000;color:#fff;border:none;border-radius:4px;padding:6px 10px;cursor:pointer;font-size:13px;';
         copyBtn.addEventListener('click', async () => {
             const url = wlBuildUrl(wlCaptureState());
-            const done = (ok) => { copyBtn.textContent = ok ? '✔ Enlace copiado' : url; setTimeout(() => { copyBtn.textContent = '🔗 Copiar enlace con filtros'; }, 2000); };
+            const done = (ok) => { copyBtn.textContent = ok ? t.copied : url; setTimeout(() => { copyBtn.textContent = t.copyLink; }, 2000); };
             try {
                 if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(url); done(true); }
-                else { window.prompt('Copia este enlace:', url); }
-            } catch (e) { window.prompt('Copia este enlace:', url); }
+                else { window.prompt(t.copyPrompt, url); }
+            } catch (e) { window.prompt(t.copyPrompt, url); }
         });
 
         bar.appendChild(remLabel);
