@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.3.0
+// @version      1.4.0
 // @description  Agrega un botón hacia EGData debajo del botón de compra en las páginas de productos y bundles de Epic Games Store. El script corre en toda la tienda para que al navegar (SPA) desde el home, la búsqueda o el browse hacia un producto/bundle recargue y pinte los botones.
 // @author       g31w0fw0rld
 // @license      MIT
@@ -30,12 +30,14 @@
     const I18N = {
         es: {
             remember: 'Recordar orden y filtros',
+            onlyDiscount: 'Solo con descuento',
             copyLink: '🔗 Copiar enlace con filtros',
             copied: '✔ Enlace copiado',
             copyPrompt: 'Copia este enlace:',
         },
         en: {
             remember: 'Remember sort and filters',
+            onlyDiscount: 'Only discounted',
             copyLink: '🔗 Copy link with filters',
             copied: '✔ Link copied',
             copyPrompt: 'Copy this link:',
@@ -583,7 +585,7 @@
     // índice es el respaldo independiente del idioma (el orden de opciones/filtros
     // es estable entre traducciones).
     function getWishlistSettings() {
-        const def = { remember: true, sort: null, filters: [] };
+        const def = { remember: true, sort: null, filters: [], onlyDiscount: false };
         try {
             const raw = localStorage.getItem(WL_SETTINGS_KEY);
             const parsed = raw ? JSON.parse(raw) : null;
@@ -591,6 +593,7 @@
                 return Object.assign(def, parsed, {
                     sort: (parsed.sort && typeof parsed.sort === 'object') ? parsed.sort : null,
                     filters: Array.isArray(parsed.filters) ? parsed.filters : [],
+                    onlyDiscount: !!parsed.onlyDiscount,
                 });
             }
         } catch (e) { console.error('(egs2egd): getWishlistSettings error:', e); }
@@ -658,6 +661,7 @@
         return {
             sort: wlLastSort || (wlReadSort() ? { i: null, t: wlReadSort() } : null),
             filters: wlCaptureFilters(),
+            od: !!getWishlistSettings().onlyDiscount,
         };
     }
 
@@ -734,7 +738,7 @@
     // --- URL compartible ---------------------------------------------------------
     function wlEncode(state) {
         try {
-            const json = JSON.stringify({ sort: state.sort || null, filters: state.filters || [] });
+            const json = JSON.stringify({ sort: state.sort || null, filters: state.filters || [], od: !!state.od });
             return btoa(unescape(encodeURIComponent(json)))
                 .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         } catch (e) { return ''; }
@@ -749,6 +753,7 @@
                 return {
                     sort: (obj.sort && typeof obj.sort === 'object') ? obj.sort : null,
                     filters: Array.isArray(obj.filters) ? obj.filters : [],
+                    od: typeof obj.od === 'boolean' ? obj.od : undefined,
                 };
             }
         } catch (e) { /* param inválido: se ignora */ }
@@ -765,6 +770,25 @@
     function wlBuildUrl(state) {
         const enc = wlEncode(state);
         return location.origin + location.pathname + (enc ? ('?' + WL_URL_PARAM + '=' + enc) : '');
+    }
+
+    // --- Filtro propio "solo con descuento" (Epic no lo trae de fábrica) ---------
+    // Cada juego es un <li> que contiene [data-testid="offer-card-layout-wrapper"].
+    // El descuento se detecta por el texto del precio (chip "-NN%"), robusto ante
+    // las clases hasheadas de Epic y el idioma. Se oculta con display:none.
+    function wlItems() {
+        return Array.from(document.querySelectorAll('[data-testid="offer-card-layout-wrapper"]'))
+            .map((c) => c.closest('li')).filter(Boolean);
+    }
+    function wlItemDiscounted(li) {
+        const price = li.querySelector('[data-testid="price-desktop"]');
+        return !!price && /-\s*\d+\s*%/.test(price.textContent || '');
+    }
+    function wlApplyDiscountFilter() {
+        const on = !!getWishlistSettings().onlyDiscount;
+        wlItems().forEach((li) => {
+            li.style.display = (on && !wlItemDiscounted(li)) ? 'none' : '';
+        });
     }
 
     // --- UI (barra junto al "Ordenar por:") -------------------------------------
@@ -794,6 +818,24 @@
             saveWishlistSettings(s);
         });
 
+        // Checkbox "Solo con descuento" (filtro propio, client-side)
+        const discLabel = document.createElement('label');
+        discLabel.style.cssText = 'display:inline-flex;align-items:center;gap:6px;cursor:pointer;';
+        const discChk = document.createElement('input');
+        discChk.type = 'checkbox';
+        discChk.checked = !!settings.onlyDiscount;
+        discChk.style.cursor = 'pointer';
+        const discText = document.createElement('span');
+        discText.textContent = t.onlyDiscount;
+        discLabel.appendChild(discChk);
+        discLabel.appendChild(discText);
+        discChk.addEventListener('change', () => {
+            const s = getWishlistSettings();
+            s.onlyDiscount = discChk.checked;
+            saveWishlistSettings(s);
+            wlApplyDiscountFilter();
+        });
+
         // Botón "Copiar enlace con filtros"
         const copyBtn = document.createElement('button');
         copyBtn.type = 'button';
@@ -809,6 +851,7 @@
         });
 
         bar.appendChild(remLabel);
+        bar.appendChild(discLabel);
         bar.appendChild(copyBtn);
         sortLayout.parentNode.insertBefore(bar, sortLayout);
     }
@@ -826,6 +869,7 @@
             wlCaptureDebounce = setTimeout(() => {
                 wlCaptureDebounce = null;
                 if (!wlReady || wlReapplyInProgress || !isWishlist()) return;
+                wlApplyDiscountFilter();  // reaplica a los ítems que Epic carga al hacer scroll
                 const s = getWishlistSettings();
                 if (!s.remember) return;
                 // El orden lo captura la delegación (bindSortCapture); aquí solo los
@@ -852,12 +896,19 @@
         await waitForElement(WL_SIDEBAR, 8000);
         if (!sortLayout && !document.querySelector(WL_SIDEBAR)) return;
 
+        // La URL manda: si trae ?egs-wl=..., se lee ANTES de construir la barra para
+        // que el checkbox de "solo con descuento" ya refleje ese estado.
+        const fromUrl = wlDecodeParam();
+        if (fromUrl && typeof fromUrl.od === 'boolean') {
+            const s0 = getWishlistSettings();
+            s0.onlyDiscount = fromUrl.od;
+            saveWishlistSettings(s0);
+        }
+
         wlInjectToolbar(sortLayout);
         bindSortCapture();
 
         const settings = getWishlistSettings();
-        // La URL manda: si trae ?egs-wl=..., aplica ese estado; si no, el guardado.
-        const fromUrl = wlDecodeParam();
         const toApply = fromUrl || (settings.remember ? { sort: settings.sort, filters: settings.filters } : null);
         const hasSort = toApply && toApply.sort && (toApply.sort.t || toApply.sort.i != null);
         const hasFilters = toApply && Array.isArray(toApply.filters) && toApply.filters.length;
@@ -877,6 +928,7 @@
             }
         }
 
+        wlApplyDiscountFilter();  // aplica el filtro "solo con descuento" al arranque
         wlReady = true;
         startWishlistObserver();
         console.log('(egs2egd): wishlist — persistencia de orden/filtros activa');
