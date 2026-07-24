@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.4.0
+// @version      1.5.0
 // @description  Agrega un botón hacia EGData debajo del botón de compra en las páginas de productos y bundles de Epic Games Store. El script corre en toda la tienda para que al navegar (SPA) desde el home, la búsqueda o el browse hacia un producto/bundle recargue y pinte los botones.
 // @author       g31w0fw0rld
 // @license      MIT
@@ -34,6 +34,22 @@
             copyLink: '🔗 Copiar enlace con filtros',
             copied: '✔ Enlace copiado',
             copyPrompt: 'Copia este enlace:',
+            about: 'ℹ️ Saber más',
+            close: 'Cerrar',
+            rememberTip: 'Guarda el orden y los filtros que elijas en Epic y los reaplica automáticamente cada vez que vuelvas a la lista de deseos.',
+            onlyDiscountTip: 'Baja por TODA tu lista (Epic la carga por lotes al hacer scroll) para detectar todos los juegos y ocultar los que no están en oferta. Respeta el orden que elijas en Epic. El descuento se detecta por el badge de porcentaje o por el precio original tachado.',
+            copyLinkTip: 'Genera una URL que, al abrirla con el script instalado, reproduce tu orden y filtros actuales (incluido "solo con descuento").',
+            aboutTip: 'Ver qué hace este script en su totalidad.',
+            aboutTitle: '¿Qué hace este script?',
+            aboutBody: [
+                'Este script conecta Epic Games Store con EGData y mejora tu lista de deseos.',
+                '• En páginas de juego y bundles: añade un botón hacia EGData (base de datos de precios e historial de ofertas) bajo el botón de compra.',
+                '• En tu lista de deseos añade una barra con tres herramientas:',
+                '– Recordar orden y filtros: guarda el orden y los filtros que elijas en Epic y los reaplica al volver.',
+                '– Solo con descuento: baja automáticamente por toda la lista (Epic la carga por lotes al hacer scroll) para detectar TODOS los juegos y mostrar únicamente los que están en oferta, respetando el orden que elegiste en Epic. El descuento se detecta por el badge de porcentaje o por el precio original tachado.',
+                '– Copiar enlace con filtros: genera una URL que, al abrirla, reproduce tu orden y filtros.',
+                'Todo se procesa en tu navegador (se guarda en localStorage); no se envían datos a ningún servidor.',
+            ],
         },
         en: {
             remember: 'Remember sort and filters',
@@ -41,6 +57,22 @@
             copyLink: '🔗 Copy link with filters',
             copied: '✔ Link copied',
             copyPrompt: 'Copy this link:',
+            about: 'ℹ️ Learn more',
+            close: 'Close',
+            rememberTip: 'Saves the sort order and filters you pick in Epic and reapplies them automatically every time you return to the wishlist.',
+            onlyDiscountTip: 'Scrolls through your WHOLE list (Epic loads it in batches on scroll) to detect every game and hide those not on sale. It keeps the sort order you pick in Epic. Discounts are detected by the percentage badge or the struck-through original price.',
+            copyLinkTip: 'Builds a URL that, when opened with the script installed, reproduces your current sort and filters (including "only discounted").',
+            aboutTip: 'See everything this script does.',
+            aboutTitle: 'What does this script do?',
+            aboutBody: [
+                'This script links Epic Games Store with EGData and enhances your wishlist.',
+                '• On game and bundle pages: adds a button to EGData (a price and deal-history database) below the purchase button.',
+                '• On your wishlist it adds a toolbar with three tools:',
+                '– Remember sort and filters: saves the sort order and filters you pick in Epic and reapplies them when you come back.',
+                '– Only discounted: automatically scrolls through the whole list (Epic loads it in batches on scroll) to detect ALL games and show only those on sale, keeping the sort order you chose in Epic. Discounts are detected by the percentage badge or the struck-through original price.',
+                '– Copy link with filters: builds a URL that reproduces your sort and filters when opened.',
+                'Everything runs in your browser (stored in localStorage); no data is sent to any server.',
+            ],
         },
     };
     const t = I18N[LANG];
@@ -53,6 +85,8 @@
     const PURCHASE_BUTTON_SELECTOR = '[data-testid="purchase-cta-button"]';
     const DATA_ATTR = 'data-egs2egd';
     const STYLES_ID = 'egs2egd-styles';
+    // Sincronizar con @version del encabezado en cada bump.
+    const SCRIPT_VERSION = '1.5.0';
 
     // Intervalos y límites de polling
     const POLL_INTERVAL_MS = 400;
@@ -780,15 +814,177 @@
         return Array.from(document.querySelectorAll('[data-testid="offer-card-layout-wrapper"]'))
             .map((c) => c.closest('li')).filter(Boolean);
     }
+    // Detección de descuento robusta (Epic no siempre pinta un chip "-NN%" y usa
+    // el signo menos Unicode "−" (U+2212), no el guion ASCII). Se considera en
+    // descuento si:
+    //   a) hay un badge de porcentaje con guion ASCII o menos Unicode ("-75%"/"−75%"), o
+    //   b) hay un precio ORIGINAL tachado (line-through) — señal inequívoca de oferta.
     function wlItemDiscounted(li) {
-        const price = li.querySelector('[data-testid="price-desktop"]');
-        return !!price && /-\s*\d+\s*%/.test(price.textContent || '');
+        if (/[-−]\s*\d+\s*%/.test(li.textContent || '')) return true;
+        // Precio original tachado: <s>/<del> o cualquier nodo con line-through.
+        if (li.querySelector('s, del')) return true;
+        const price = li.querySelector('[data-testid="price-desktop"]') || li;
+        return Array.from(price.querySelectorAll('span, div')).some((el) => {
+            try {
+                return getComputedStyle(el).textDecorationLine.includes('line-through') &&
+                    /\d/.test(el.textContent || '');
+            } catch (e) { return false; }
+        });
     }
     function wlApplyDiscountFilter() {
         const on = !!getWishlistSettings().onlyDiscount;
         wlItems().forEach((li) => {
             li.style.display = (on && !wlItemDiscounted(li)) ? 'none' : '';
         });
+    }
+
+    // Fuerza la carga de TODOS los ítems del wishlist. Epic los pagina por scroll
+    // (infinite scroll): si no se baja, los que faltan nunca entran al DOM y el
+    // filtro "solo con descuento" no puede ocultarlos. Muestra todo primero (por si
+    // el filtro ya ocultaba ítems), baja hasta que el conteo se estabiliza y luego
+    // regresa al inicio. El caller aplica el filtro al terminar.
+    // Sube por la cadena de ancestros del elemento buscando el que realmente
+    // scrollea (overflow auto/scroll con contenido desbordado). Epic monta el
+    // wishlist dentro de un contenedor propio, no en la ventana: hacer scroll a
+    // window.scrollHeight no dispara la paginación. Devuelve null si scrollea la
+    // ventana (document scrolling element).
+    function wlScrollContainer(el) {
+        let node = el ? el.parentElement : null;
+        while (node && node !== document.body && node !== document.documentElement) {
+            const st = getComputedStyle(node);
+            const oy = st.overflowY;
+            if ((oy === 'auto' || oy === 'scroll' || oy === 'overlay') &&
+                node.scrollHeight > node.clientHeight + 4) {
+                return node;
+            }
+            node = node.parentElement;
+        }
+        return null;
+    }
+
+    let wlLoadingAll = false;
+    async function wlLoadAllItems() {
+        if (wlLoadingAll) return;
+        wlLoadingAll = true;
+        const prevReapply = wlReapplyInProgress;
+        wlReapplyInProgress = true; // silencia captura/observer durante el barrido
+        try {
+            wlItems().forEach((li) => { li.style.display = ''; }); // todo visible para paginar
+            const doc = document.scrollingElement || document.documentElement;
+            const MAX_ROUNDS = 400; // tope de seguridad (~400 * 500ms ≈ 3.3 min)
+            const SETTLE = 5;       // rondas EN EL FONDO sin crecer => terminado
+            let stable = 0;
+            let last = wlItems().length;
+            for (let i = 0; i < MAX_ROUNDS && stable < SETTLE; i++) {
+                // Contenedor real que scrollea (div interno o la ventana).
+                const cont = wlScrollContainer(wlItems()[wlItems().length - 1]);
+                // Scroll SUAVE, un tramo hacia abajo (no salto al fondo): así el
+                // disparador de carga (IntersectionObserver / scroll) se activa.
+                const step = Math.max(300, Math.floor(window.innerHeight * 0.85));
+                if (cont) cont.scrollBy({ top: step, behavior: 'smooth' });
+                else window.scrollBy({ top: step, behavior: 'smooth' });
+                await wlDelay(500);
+                const n = wlItems().length;
+                if (n > last) { last = n; stable = 0; continue; }
+                // Solo contamos "sin novedad" cuando YA estamos al fondo; si no,
+                // seguimos bajando (aún queda lista por recorrer).
+                const atBottom = cont
+                    ? (cont.scrollTop + cont.clientHeight >= cont.scrollHeight - 8)
+                    : (window.innerHeight + window.scrollY >= doc.scrollHeight - 8);
+                if (atBottom) stable++;
+            }
+            // Regresar al inicio, también suave.
+            const top = wlScrollContainer(wlItems()[0]);
+            if (top) top.scrollTo({ top: 0, behavior: 'smooth' });
+            else window.scrollTo({ top: 0, behavior: 'smooth' });
+            await wlDelay(300);
+        } finally {
+            wlReapplyInProgress = prevReapply;
+            wlLoadingAll = false;
+        }
+    }
+
+    // --- Modal "Saber más" (autocontenido, sin dependencias) --------------------
+    function wlShowAboutModal() {
+        if (document.getElementById('egs2egd-about-overlay')) return;
+        const overlay = document.createElement('div');
+        overlay.id = 'egs2egd-about-overlay';
+        Object.assign(overlay.style, {
+            position: 'fixed', inset: '0', width: '100%', height: '100%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(0,0,0,0.6)', zIndex: '2147483647',
+            transition: 'opacity 180ms ease', opacity: '0',
+        });
+        const box = document.createElement('div');
+        Object.assign(box.style, {
+            background: '#101014', color: '#f5f5f5', borderRadius: '14px',
+            padding: '26px 30px', minWidth: '320px', maxWidth: '560px',
+            maxHeight: '80vh', overflowY: 'auto', boxSizing: 'border-box',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)', border: '1px solid #2a2a32',
+            fontFamily: 'Inter, system-ui, sans-serif', fontSize: '14px', lineHeight: '1.5',
+            transform: 'translateY(8px) scale(0.98)', opacity: '0',
+            transition: 'transform 180ms ease, opacity 180ms ease',
+        });
+
+        const title = document.createElement('div');
+        title.textContent = t.aboutTitle;
+        title.style.cssText = 'font-weight:bold;font-size:17px;margin-bottom:14px;';
+        box.appendChild(title);
+
+        (t.aboutBody || []).forEach((p) => {
+            const row = document.createElement('div');
+            const trimmed = String(p).replace(/^\s+/, '');
+            row.textContent = trimmed;
+            row.style.marginBottom = '8px';
+            if (trimmed.startsWith('–')) row.style.paddingLeft = '22px';
+            else if (trimmed.startsWith('•')) row.style.paddingLeft = '10px';
+            box.appendChild(row);
+        });
+
+        const gh = document.createElement('a');
+        gh.href = 'https://github.com/g31w0fw0rld/epic-games-store-to-egdata';
+        gh.target = '_blank';
+        gh.rel = 'noopener';
+        gh.textContent = 'github.com/g31w0fw0rld/epic-games-store-to-egdata';
+        gh.style.cssText = 'display:inline-block;margin-top:6px;color:#26bbff;text-decoration:underline;font-size:12px;';
+        box.appendChild(gh);
+        const kofi = document.createElement('a');
+        kofi.href = 'https://ko-fi.com/g31w0fw0rld';
+        kofi.target = '_blank'; kofi.rel = 'noopener';
+        kofi.textContent = '☕ Apóyame en Ko-fi / Support me on Ko-fi';
+        kofi.style.cssText = 'display:block;margin-top:8px;color:#26bbff;text-decoration:underline;font-size:12px;';
+        box.appendChild(kofi);
+
+        const foot = document.createElement('div');
+        foot.textContent = 'v' + SCRIPT_VERSION + ' · g31w0fw0rld';
+        foot.style.cssText = 'margin-top:2px;font-size:12px;opacity:0.7;';
+        box.appendChild(foot);
+
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.textContent = t.close;
+        closeBtn.style.cssText = 'display:block;margin-top:16px;padding:8px 14px;background:#26bbff;color:#001018;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:13px;';
+        box.appendChild(closeBtn);
+
+        const closeIt = () => {
+            overlay.style.opacity = '0';
+            box.style.opacity = '0';
+            box.style.transform = 'translateY(8px) scale(0.98)';
+            document.removeEventListener('keydown', onKey);
+            setTimeout(() => overlay.remove(), 180);
+        };
+        const onKey = (e) => { if (e.key === 'Escape') closeIt(); };
+        closeBtn.addEventListener('click', closeIt);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeIt(); });
+        document.addEventListener('keydown', onKey);
+
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+        setTimeout(() => {
+            overlay.style.opacity = '1';
+            box.style.transform = 'translateY(0) scale(1)';
+            box.style.opacity = '1';
+        }, 10);
     }
 
     // --- UI (barra junto al "Ordenar por:") -------------------------------------
@@ -803,6 +999,7 @@
         // Toggle "Recordar orden y filtros"
         const remLabel = document.createElement('label');
         remLabel.style.cssText = 'display:inline-flex;align-items:center;gap:6px;cursor:pointer;';
+        remLabel.title = t.rememberTip;
         const remChk = document.createElement('input');
         remChk.type = 'checkbox';
         remChk.checked = !!settings.remember;
@@ -821,6 +1018,7 @@
         // Checkbox "Solo con descuento" (filtro propio, client-side)
         const discLabel = document.createElement('label');
         discLabel.style.cssText = 'display:inline-flex;align-items:center;gap:6px;cursor:pointer;';
+        discLabel.title = t.onlyDiscountTip;
         const discChk = document.createElement('input');
         discChk.type = 'checkbox';
         discChk.checked = !!settings.onlyDiscount;
@@ -829,10 +1027,16 @@
         discText.textContent = t.onlyDiscount;
         discLabel.appendChild(discChk);
         discLabel.appendChild(discText);
-        discChk.addEventListener('change', () => {
+        discChk.addEventListener('change', async () => {
             const s = getWishlistSettings();
             s.onlyDiscount = discChk.checked;
             saveWishlistSettings(s);
+            if (discChk.checked) {
+                // Cargar TODO antes de ocultar, si no el filtro solo veria los
+                // ya cargados. Se deshabilita el check para evitar doble disparo.
+                discChk.disabled = true;
+                try { await wlLoadAllItems(); } finally { discChk.disabled = false; }
+            }
             wlApplyDiscountFilter();
         });
 
@@ -840,6 +1044,7 @@
         const copyBtn = document.createElement('button');
         copyBtn.type = 'button';
         copyBtn.textContent = t.copyLink;
+        copyBtn.title = t.copyLinkTip;
         copyBtn.style.cssText = 'background:#000;color:#fff;border:none;border-radius:4px;padding:6px 10px;cursor:pointer;font-size:13px;';
         copyBtn.addEventListener('click', async () => {
             const url = wlBuildUrl(wlCaptureState());
@@ -850,9 +1055,18 @@
             } catch (e) { window.prompt(t.copyPrompt, url); }
         });
 
+        // Botón "Saber más" (abre el modal con la explicación completa)
+        const aboutBtn = document.createElement('button');
+        aboutBtn.type = 'button';
+        aboutBtn.textContent = t.about;
+        aboutBtn.title = t.aboutTip;
+        aboutBtn.style.cssText = 'background:transparent;color:inherit;border:1px solid currentColor;border-radius:4px;padding:6px 10px;cursor:pointer;font-size:13px;opacity:0.85;';
+        aboutBtn.addEventListener('click', wlShowAboutModal);
+
         bar.appendChild(remLabel);
         bar.appendChild(discLabel);
         bar.appendChild(copyBtn);
+        bar.appendChild(aboutBtn);
         sortLayout.parentNode.insertBefore(bar, sortLayout);
     }
 
@@ -928,6 +1142,9 @@
             }
         }
 
+        // Si el filtro ya viene activo, cargar TODO antes de ocultar para que
+        // aplique sobre la lista completa (Epic la pagina por scroll).
+        if (getWishlistSettings().onlyDiscount) await wlLoadAllItems();
         wlApplyDiscountFilter();  // aplica el filtro "solo con descuento" al arranque
         wlReady = true;
         startWishlistObserver();
