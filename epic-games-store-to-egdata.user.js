@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.5.0
+// @version      1.5.1
 // @description  Agrega un botón hacia EGData debajo del botón de compra en las páginas de productos y bundles de Epic Games Store. El script corre en toda la tienda para que al navegar (SPA) desde el home, la búsqueda o el browse hacia un producto/bundle recargue y pinte los botones.
 // @author       g31w0fw0rld
 // @license      MIT
@@ -86,7 +86,7 @@
     const DATA_ATTR = 'data-egs2egd';
     const STYLES_ID = 'egs2egd-styles';
     // Sincronizar con @version del encabezado en cada bump.
-    const SCRIPT_VERSION = '1.5.0';
+    const SCRIPT_VERSION = '1.5.1';
 
     // Intervalos y límites de polling
     const POLL_INTERVAL_MS = 400;
