@@ -38,6 +38,12 @@ Userscript de Tampermonkey para Epic Games Store: botón a EGData en las página
 
 **Site:** `store.epicgames.com`
 
+## Privacidad / Privacy
+
+**ES:** el script no hace ninguna petición a servidores externos: todo se procesa en tu navegador. Declara `@grant none`, así que no tiene acceso a las APIs privilegiadas del gestor de userscripts. Guarda en `localStorage` de `store.epicgames.com` (clave `egs2egd-wishlist-settings`) solo el orden y los filtros de tu lista de deseos. Para detectar la navegación interna (Epic es una SPA) envuelve el `fetch` y el `XMLHttpRequest` de la página y **solo lee la URL** de cada petición: no altera, guarda ni reenvía las peticiones ni su contenido. El botón de copiar enlace escribe en el portapapeles únicamente cuando haces clic. No se envía nada a terceros ni al autor, y solo visitas EGData si haces clic en el botón.
+
+**EN:** the script makes no requests to external servers: everything runs in your browser. It declares `@grant none`, so it has no access to the userscript manager's privileged APIs. It stores in `localStorage` on `store.epicgames.com` (key `egs2egd-wishlist-settings`) only your wishlist sort order and filters. To detect in-page navigation (Epic is an SPA) it wraps the page's `fetch` and `XMLHttpRequest` and **only reads each request's URL**: it does not alter, store or forward the requests or their contents. The copy-link button writes to the clipboard only when you click it. Nothing is sent to third parties or to the author, and you only visit EGData if you click the button.
+
 ## Apoyar / Support
 
 Esto es parte de algo que estoy construyendo para crecer. Si te sirve y quieres apoyar, puedes invitarme un café en **[Ko-fi](https://ko-fi.com/g31w0fw0rld)** —solo si quieres—; y si hay una causa que lo necesite más que yo, ayúdala a ella.
