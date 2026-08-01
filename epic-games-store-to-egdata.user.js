@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.5.1
-// @description  Agrega un botón hacia EGData debajo del botón de compra en las páginas de productos y bundles de Epic Games Store. El script corre en toda la tienda para que al navegar (SPA) desde el home, la búsqueda o el browse hacia un producto/bundle recargue y pinte los botones.
+// @version      1.5.2
+// @description  Adds an EGData button (price and deal history) below every purchase button on Epic Games Store product and bundle pages — bundles have two, and both get one — linking to that exact offer. On your wishlist it adds an 'only discounted' filter that first loads the whole list, remembered sort and filters, and a shareable link that reproduces them.
 // @author       g31w0fw0rld
 // @license      MIT
 // @match        https://store.epicgames.com/*
@@ -43,11 +43,14 @@
             aboutTitle: '¿Qué hace este script?',
             aboutBody: [
                 'Este script conecta Epic Games Store con EGData y mejora tu lista de deseos.',
-                '• En páginas de juego y bundles: añade un botón hacia EGData (base de datos de precios e historial de ofertas) bajo el botón de compra.',
-                '• En tu lista de deseos añade una barra con tres herramientas:',
-                '– Recordar orden y filtros: guarda el orden y los filtros que elijas en Epic y los reaplica al volver.',
-                '– Solo con descuento: baja automáticamente por toda la lista (Epic la carga por lotes al hacer scroll) para detectar TODOS los juegos y mostrar únicamente los que están en oferta, respetando el orden que elegiste en Epic. El descuento se detecta por el badge de porcentaje o por el precio original tachado.',
-                '– Copiar enlace con filtros: genera una URL que, al abrirla, reproduce tu orden y filtros.',
+                '• En páginas de producto (/p/) y de bundle (/bundles/): añade un botón hacia EGData (base de datos de precios e historial de ofertas) bajo el botón de compra.',
+                '– Enlaza a esa oferta concreta, no a una búsqueda.',
+                '– Un botón por cada botón de compra: los bundles tienen dos (la barra de arriba y la sección "Buy …") y ambos reciben el suyo.',
+                '– Al navegar dentro de la tienda hacia un producto o un bundle, la página se recarga. Epic es una SPA y el script no estaba activo en el home, la búsqueda ni el browse; esa recarga es lo que garantiza que el botón aparezca.',
+                '• En tu lista de deseos (/wishlist) añade una barra con tres herramientas:',
+                '– Solo con descuento: baja automáticamente por toda la lista (Epic la carga por lotes al hacer scroll) para detectar TODOS los juegos y mostrar únicamente los que están en oferta, respetando el orden que elegiste en Epic. El descuento se detecta por el badge de porcentaje o por el precio original tachado. Se recuerda por su cuenta, esté o no activo "Recordar orden y filtros".',
+                '– Recordar orden y filtros: guarda el orden y los filtros de la barra lateral que elijas en Epic y los reaplica al volver.',
+                '– Copiar enlace con filtros: genera una URL que, al abrirla, reproduce tu orden, tus filtros y el estado de "solo con descuento". Si el navegador bloquea el portapapeles, la muestra en un diálogo para copiarla a mano.',
                 'Todo se procesa en tu navegador (se guarda en localStorage); no se envían datos a ningún servidor.',
             ],
         },
@@ -66,11 +69,14 @@
             aboutTitle: 'What does this script do?',
             aboutBody: [
                 'This script links Epic Games Store with EGData and enhances your wishlist.',
-                '• On game and bundle pages: adds a button to EGData (a price and deal-history database) below the purchase button.',
-                '• On your wishlist it adds a toolbar with three tools:',
-                '– Remember sort and filters: saves the sort order and filters you pick in Epic and reapplies them when you come back.',
-                '– Only discounted: automatically scrolls through the whole list (Epic loads it in batches on scroll) to detect ALL games and show only those on sale, keeping the sort order you chose in Epic. Discounts are detected by the percentage badge or the struck-through original price.',
-                '– Copy link with filters: builds a URL that reproduces your sort and filters when opened.',
+                '• On product (/p/) and bundle (/bundles/) pages: adds a button to EGData (a price and deal-history database) below the purchase button.',
+                '– It links to that exact offer, not to a search.',
+                '– One button per purchase button: bundles have two (the bar at the top and the "Buy …" section) and both get theirs.',
+                '– Navigating inside the store to a product or a bundle reloads the page. Epic is a single-page app and the script was not active on the home, search or browse view; that reload is what guarantees the button appears.',
+                '• On your wishlist (/wishlist) it adds a toolbar with three tools:',
+                '– Only discounted: automatically scrolls through the whole list (Epic loads it in batches on scroll) to detect ALL games and show only those on sale, keeping the sort order you chose in Epic. Discounts are detected by the percentage badge or the struck-through original price. It is remembered on its own, whether or not "Remember sort and filters" is on.',
+                '– Remember sort and filters: saves the sort order and the sidebar filters you pick in Epic and reapplies them when you come back.',
+                '– Copy link with filters: builds a URL that reproduces your sort, your filters and the "only discounted" state when opened. If the browser blocks clipboard access, it shows the URL in a dialog so you can copy it by hand.',
                 'Everything runs in your browser (stored in localStorage); no data is sent to any server.',
             ],
         },
@@ -86,7 +92,7 @@
     const DATA_ATTR = 'data-egs2egd';
     const STYLES_ID = 'egs2egd-styles';
     // Sincronizar con @version del encabezado en cada bump.
-    const SCRIPT_VERSION = '1.5.1';
+    const SCRIPT_VERSION = '1.5.2';
 
     // Intervalos y límites de polling
     const POLL_INTERVAL_MS = 400;
