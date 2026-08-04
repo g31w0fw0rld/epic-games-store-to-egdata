@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.5.2
-// @description  Adds an EGData button (price and deal history) below every purchase button on Epic Games Store product and bundle pages — bundles have two, and both get one — linking to that exact offer. On your wishlist it adds an 'only discounted' filter that first loads the whole list, remembered sort and filters, and a shareable link that reproduces them.
+// @version      1.6.0
+// @description  Adds EGData, GG.deals and PCGamingWiki buttons below every purchase button on Epic Games Store product and bundle pages — bundles have two, and both get the trio. EGData links to that exact offer; the other two search by title, GG.deals among Epic-DRM deals with no store-rating floor, and each says so in its tooltip. On your wishlist it adds an 'only discounted' filter that first loads the whole list, remembered sort and filters, and a shareable link that reproduces them.
 // @author       g31w0fw0rld
 // @license      MIT
 // @match        https://store.epicgames.com/*
@@ -39,13 +39,16 @@
             rememberTip: 'Guarda el orden y los filtros que elijas en Epic y los reaplica automáticamente cada vez que vuelvas a la lista de deseos.',
             onlyDiscountTip: 'Baja por TODA tu lista (Epic la carga por lotes al hacer scroll) para detectar todos los juegos y ocultar los que no están en oferta. Respeta el orden que elijas en Epic. El descuento se detecta por el badge de porcentaje o por el precio original tachado.',
             copyLinkTip: 'Genera una URL que, al abrirla con el script instalado, reproduce tu orden y filtros actuales (incluido "solo con descuento").',
+            ggTip: 'Busca el título en GG.deals con el filtro de DRM de Epic. Al buscar por nombre, puede no dar con el juego exacto.',
+            pcgwTip: 'Busca el título en PCGamingWiki (compatibilidad y arreglos). Al buscar por nombre, puede no dar con el artículo exacto.',
             aboutTip: 'Ver qué hace este script en su totalidad.',
             aboutTitle: '¿Qué hace este script?',
             aboutBody: [
                 'Este script conecta Epic Games Store con EGData y mejora tu lista de deseos.',
-                '• En páginas de producto (/p/) y de bundle (/bundles/): añade un botón hacia EGData (base de datos de precios e historial de ofertas) bajo el botón de compra.',
-                '– Enlaza a esa oferta concreta, no a una búsqueda.',
-                '– Un botón por cada botón de compra: los bundles tienen dos (la barra de arriba y la sección "Buy …") y ambos reciben el suyo.',
+                '• En páginas de producto (/p/) y de bundle (/bundles/): añade tres botones bajo el botón de compra.',
+                '– EGData (base de datos de precios e historial de ofertas) enlaza a esa oferta concreta, no a una búsqueda.',
+                '– GG.deals busca el título entre las ofertas con DRM de Epic, sin el mínimo de valoración de tienda que trae por defecto, y PCGamingWiki lo busca para ver compatibilidad y arreglos. Los dos buscan por nombre, así que pueden no acertar; cada uno lo dice en su tooltip.',
+                '– Un juego de botones por cada botón de compra: los bundles tienen dos (la barra de arriba y la sección "Buy …") y ambos reciben el suyo.',
                 '– Al navegar dentro de la tienda hacia un producto o un bundle, la página se recarga. Epic es una SPA y el script no estaba activo en el home, la búsqueda ni el browse; esa recarga es lo que garantiza que el botón aparezca.',
                 '• En tu lista de deseos (/wishlist) añade una barra con tres herramientas:',
                 '– Solo con descuento: baja automáticamente por toda la lista (Epic la carga por lotes al hacer scroll) para detectar TODOS los juegos y mostrar únicamente los que están en oferta, respetando el orden que elegiste en Epic. El descuento se detecta por el badge de porcentaje o por el precio original tachado. Se recuerda por su cuenta, esté o no activo "Recordar orden y filtros".',
@@ -65,13 +68,16 @@
             rememberTip: 'Saves the sort order and filters you pick in Epic and reapplies them automatically every time you return to the wishlist.',
             onlyDiscountTip: 'Scrolls through your WHOLE list (Epic loads it in batches on scroll) to detect every game and hide those not on sale. It keeps the sort order you pick in Epic. Discounts are detected by the percentage badge or the struck-through original price.',
             copyLinkTip: 'Builds a URL that, when opened with the script installed, reproduces your current sort and filters (including "only discounted").',
+            ggTip: 'Searches the title on GG.deals with the Epic DRM filter. Being a title search, it may not hit the exact game.',
+            pcgwTip: 'Searches the title on PCGamingWiki (compatibility and fixes). Being a title search, it may not hit the exact article.',
             aboutTip: 'See everything this script does.',
             aboutTitle: 'What does this script do?',
             aboutBody: [
                 'This script links Epic Games Store with EGData and enhances your wishlist.',
-                '• On product (/p/) and bundle (/bundles/) pages: adds a button to EGData (a price and deal-history database) below the purchase button.',
-                '– It links to that exact offer, not to a search.',
-                '– One button per purchase button: bundles have two (the bar at the top and the "Buy …" section) and both get theirs.',
+                '• On product (/p/) and bundle (/bundles/) pages: adds three buttons below the purchase button.',
+                '– EGData (a price and deal-history database) links to that exact offer, not to a search.',
+                '– GG.deals searches the title among Epic-DRM deals, with none of the default store-rating floor, and PCGamingWiki searches it for compatibility and fixes. Both are title searches, so they can miss; each says so in its tooltip.',
+                '– One set of buttons per purchase button: bundles have two (the bar at the top and the "Buy …" section) and both get theirs.',
                 '– Navigating inside the store to a product or a bundle reloads the page. Epic is a single-page app and the script was not active on the home, search or browse view; that reload is what guarantees the button appears.',
                 '• On your wishlist (/wishlist) it adds a toolbar with three tools:',
                 '– Only discounted: automatically scrolls through the whole list (Epic loads it in batches on scroll) to detect ALL games and show only those on sale, keeping the sort order you chose in Epic. Discounts are detected by the percentage badge or the struck-through original price. It is remembered on its own, whether or not "Remember sort and filters" is on.',
@@ -90,9 +96,34 @@
     const EGDATA_ICON_URL = 'https://cdn.egdata.app/logo_simple_white_clean.png';
     const PURCHASE_BUTTON_SELECTOR = '[data-testid="purchase-cta-button"]';
     const DATA_ATTR = 'data-egs2egd';
+    const LINK_ATTR = 'data-egs2egd-link';
     const STYLES_ID = 'egs2egd-styles';
     // Sincronizar con @version del encabezado en cada bump.
-    const SCRIPT_VERSION = '1.5.2';
+    const SCRIPT_VERSION = '1.6.0';
+
+    // GG.deals filtra por DRM con un bitmask numérico en la query, no por nombre:
+    // 1 Steam, 8 GOG, 16 sin DRM, 32 otros, 128 Microsoft Store, 1024 Epic. Aquí
+    // interesa Epic, que es el DRM de todo lo que se vende en esta tienda.
+    // Va a /deals/ (la lista de ofertas), que es la que acepta el filtro de DRM;
+    // /games/ lo ignora. Y minRating=0 desactiva el mínimo de valoración de tienda
+    // que trae por defecto, que si no esconde parte de las ofertas.
+    const GGDEALS_SEARCH_URL = 'https://gg.deals/deals/';
+    const GGDEALS_EPIC_DRM = '1024';
+    const GGDEALS_MIN_RATING = '0';
+    const PCGW_SEARCH_URL = 'https://www.pcgamingwiki.com/w/index.php';
+
+    // Icono de GG.deals: favicon remoto (su CDN permite el hotlink). Si el CSP de
+    // Epic lo bloqueara, el onerror lo quita y queda solo la etiqueta.
+    const GGDEALS_ICON_URL = 'https://gg.deals/favicon.ico';
+    // Icono de PCGamingWiki: SVG inline. Su favicon.ico responde 403 al hotlink
+    // (Cloudflare) desde otros dominios, así que como <img> remoto no se ve; el SVG
+    // inline es markup y siempre pinta, sin depender del CSP ni del hotlink.
+    const PCGW_ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 827 1158" width="13" height="18" aria-hidden="true" style="vertical-align:middle;flex:0 0 auto"><path d="M0 166.2 448.9-1.1 827.4 56.1l0 1023.9 0.1 28.9L452.1 1158.9 0 1008.4z" fill="#365798"/><path d="M25.3 985.5 24.1 190.5 413 46.8 412 1107.6zM478.1 1108.6 478.3 52.3 788.1 94.3l0 975.8z" fill="#a5b6d9"/><path d="M215.5 737 41.5 727 40.3 420.5 215.9 404.1zm16.7-334.5 156.1-19.4-1.2 359.8-155.2-4.8zM39.3 399.9l0-194.4 176-57.4 1.2 232.1zm350.8-317.2 0.9 274.5-158.7 20.4 0-238zm-253 909.7 0-235.1 141.7 9.3 0 268.4zm247 80.8-17.3-6.4c3.8-22.5-18.9-31.9-19.1-5.7l-18.7-5.5c-0.9-22.1-13.9-31.7-21.2-6.8l-9.7-3-0.6-277.7 12.3 0.9c-4.3 27.5 23.5 28.2 20.3 1.7L350.4 772c-4.4 28.6 23.2 28.9 20.4 1.3l12.7 0.8zM42.8 751.1l82.2 5.9-0.5 108-81.9-11.2zm83.1 129.3-0.9 110.4-82.7-20.2 0-102.4zM494.3 70l278.6 36.6 0 950-278.3 35.1z" fill="#365798"/><path d="m279 507.5c-0.1-5.1 0-10 3.2-14.2 6 0.2 4.9 9.7 5 14.3 10.3 5.1 4.9-10.8 10.2-15.3 7.6-0.8-0.6 16 6.9 15.8 4.9-0.1 3.9-2.4 3.8-6.7-0.1-3.9 0.4-7.8 3.8-10.3 8.2 3.1 0.8 18.2 11.2 15.8 0-6.4-1-14.2 5.8-17.6 2.6 5.2-0.1 14.8 5.4 16.1 7.4 1.7 8.4 3.6 10.2 10.5 0.8 3.1-0.4 4.6 2.8 6.4 3.5 2 7.6 1.4 7.7 6.1 0.1 6.4-2.7 5.5-7.6 5.5-1.8 0-2.4 3.4-2.5 4.7-0.4 4.7 0.4 5.7 5 7 5.9 1.7 4.9 3.3 4.9 8.7 0 2.7 0.5 1.2-3.1 1.9-5.7 1.1-7 0.3-6.7 6.8 0.4 7.8 13.4 1.4 9.7 12.6-1.6 4.8-9.5 1.1-9.5 5.3 0 5.3-1.1 7.7 5.4 8.2 6.4 0.5 6 9.1 0.4 11-3.4 1.2-4.6-0.1-5.8 4-1.2 4.1-1.1 8.4-2.6 12.5-6.1 4.5-11.6-1.7-11.6 8.4 0 2.7-0.6 4.7-1.1 7.3-0.9 5-2.2 0.7-5.8 1.8-1-1.2 0-7.9 0-9.5 0-4.7-1.6-5.8-7-5.4-0.3 5.8-0.2 12-4.9 16.2-2.9-1.9-4-4.8-4.2-8.1-0.3-6.5 0.2-6.7-6.5-8.3-1.2 2.9-2 11.4-1.5 14.5-5.2 2.6-6-5.4-6-8.6 0-2.7 1.1-5.7-2.3-6.7-3.4-0.9-4.6 0.8-4.7 3.9-0.2 6.1-0.5 8.8-5.3 12.2-1.9-5.4-0.3-14.7-6.6-16.4-7-1.8-7.9-6.9-8-13.6-0.1-7.3-8.9-0.3-8.9-8.2 0-0.8-0.6-4.9 0-5.5 2.9-2.1 5.8 1.2 8.5 0.1 1.3-3.6 1.8-9-2.1-9.9-4-0.9-7.8-1.4-6.9-6 1.1-5.7 0.1-5.4 6.3-5.8 4.7-0.3 3-5.2 3.1-8.4-6.2-2.9-8.8 0.8-8.8-7.4 0-5.6-0.4-5.1 5.2-5.1 4.8 0 3.4-1.7 3.4-6.3 0-5.1-9.2-0.6-9.6-7.6-0.2-3 1-5.6 3.9-6.7 5.1-2 5.7-2.3 5.9-7.8 0.3-8 5.6-8.9 12-12.1l0 0 0 0zM88.3 368.3l24.3-92.2-15.7 7.5 21.6-79 25.5-7.3-19.1 53.1 19.2-10.3-55.7 128.3 0 0z" fill="#a5b6d9"/><path d="m278.8 317.9c1.2-3.2 2.5-6.5 3.8-9.9 13.8 5.9 26.4 10.2 40.6 1.9 13.7-8 22.8-24.3 28-38.8 10.2-28.4 10.2-66.8-8.3-91.8-22.5-30.5-54.5-14.5-69.8 13.9-4.7 8.8-11.2 31.3-12.1 45.3-0.5 6.9-0.2 14.1 0.8 21.3 1 8.1 5.2 16.5 4.2 24.7-0.3 2.5-1.8 4.1-4.6 4.6-16.7-28-7.6-72.9 4.9-100.6 12.5-27.6 47.9-55.5 75.9-29 25.7 24.2 28.2 68.1 21.3 100.3-6.2 28.8-26 71.4-61.9 68.2-6.4-0.6-19.1-3.8-22.7-10l0 0zM299.3 272c-3.2-11.6 11.5-19.5 14.8-28.4 1.9-5.2-0.1-9.6-2.2-14-4.9-2.6-9-1.1-10.8 4-3.2 8.9-6.5 14.9-12.6 22.1-3.3-13.7-1.4-29.1 6.6-40.9 4.3-6.3 12.9-9.4 19.4-6.9 20.5 7.8 14.2 42.7 5.3 56.4-4.7 7.3-12.7 7.6-20.5 7.6L299.3 272zm3.4-25.8c0.5 0.7 0.5 1.4 0.2 2-9.4 21.3-18.7 42.6-28.2 64-0.9-0.4-1.4-0.4-1.7-0.7-3.3-3.9-5.6-8.5-7.8-13.1-0.9-1.8 0.1-3.6 1.2-5.1l32.8-43.7c0.9-1.3 2-2.6 3.4-3.4l0 0z" fill="#a5b6d8"/><path d="m188.7 921.7c-6.1 11.9-4.4 25.1-6 38-9.7-2.4-16.7-21.7-18.6-30 1.7-9.9 6.9-17.2 12.9-24.9 2.8-3.6 3.7-7.2 1.9-11.4-0.7-1.6-0.6-3.6-2-4.9-8.7 1.5-13.9 8.2-19.9 14-6.7-7-5.2-33.4 0.2-41.1 8.4-1.5 15.8 1 22.6 5.8 5.3-5.2 5.6-10.3 0.9-15.7-3.6-4.1-14.7-8.9-16.7-13.1-1.6-6.3 10.2-27.5 17.3-27.2 7.8 11.5 12.4 24.5 15 38.1 2.7 1.1 5.1 2.1 8.2 1.5 1.6-15.5-1.9-30.3-6.8-44.8 0.5-0.5 0.8-0.9 1-0.9 8.6 0.6 16.8 2.3 23.4 8.6 14.9 14.2-11.5 41.7 0.4 58.4 10.7-10.3 10.5-23.1 18.6-34 8 10.3 15 31 13.7 44.1-6.9 8.3-12.4 13-28.9 14.2 0.5 3.7-1.8 7.2-0.8 11.5 8.8 9.4 18.5 7.9 30.1 7.2 1.6 8.2-6.7 33.6-12.9 39.7-12.6-5.7-19.1-17.9-26.1-29.1-2.5 1.9-4.6 3.7-6.4 6.1 1.7 12.9 18 29.3 15.9 40.7-5.5 2.6-11.4 4.3-17.7 3.4-6.2-0.9-8.7-4.3-10.2-10.9-3.3-14.7 3.2-32.8-9.2-43.3zm118.5 22.1 0-63.8 67.8 10.9 0 67.4zM307.1 804.2 375 811.3 375 878.1 307.1 868.2zm67.7 165.5 0 66.8-67.6-18.6 0-63.6zm-320.5-31.7 0-28.9 13.7 2 16.5-16.6 0.7 67.6-16.3-20.9z" fill="#a5b6d9"/><path d="m89.1 914.4c1.4-0.6 2.3-0.5 3.4-0.2 2.8 6.5 3.9 13.4 3.6 20.5-0.1 2.7-1.1 5.1-1.7 7.6-0.5 1.9-1.8 3-3.4 3.9-1.3-1.3-0.9-2.5-0.6-3.8 0.8-3.7 1.6-7.3 1.7-11.1 0.2-5.8-1.6-11.2-2.9-16.9l0 0 0 0zm7 42.4c-0.3-3.3 0.9-6.2 1.6-9.1 1-4.4 2.5-8.8 3.1-13.2 0.8-5.6-1-11-2.4-16.4-0.7-2.5-1.5-5-2.2-7.5-0.4-1.6-0.7-3.1 0.2-4.5 1.3-0.1 1.8 0.6 2.1 1.3 2.1 4.3 3.6 8.6 4.5 13.3 1 5.5 0.5 10.9 0.9 16.3 0.3 3.5-0.8 6.9-1.3 10.2-0.6 3.8-2.6 7.4-6.6 9.6l0 0zm7.6 10.4c-1.9-3.7-1.4-6.5-0.1-9.8 3.1-8.1 5.9-16.4 5.3-25.2-0.5-7.7-1.8-15.2-4.6-22.4-1.2-3-2.3-6.1-3.3-9 0.8-1.2 1.7-2 3.4-1.6 1.8 4.1 3.9 8.3 5.1 12.8 5 19 5 37.4-5.7 55.3l0 0z" fill="#a5b6d9"/><path d="m598.7 1047.1-70.3 8.4-0.2-378.8 70.5-3.8zM688.5 533.1c-11 50.3-65.8 45.6-78.3 2.8l-92.4 3.1-0.2-67.9 89.4-3.3c22.8-54 64.5-46.2 81.8 0.2l66.2 0.4 1.6 61.8zm-172.4-237.1 0-24 241.7 7.5 0.1 19.4z" fill="#a5b6d9"/><path d="m52.3 827.5 62.6 9.7-19.2-43.4-8.2 15-13.4-29.3-21.8 48.1zM116.4 788c0 4.4-3.5 7.9-7.9 7.9-4.4 0-7.9-3.5-7.9-7.9 0-4.4 3.5-7.9 7.9-7.9 4.4 0 7.9 3.5 7.9 7.9z" fill="#a5b6d9"/><ellipse cx="649.4" cy="501.8" rx="31" ry="51.8" fill="#365798"/><path d="m177.7 627.1c-1.8 3-1.6 6.7 0.4 9.3l-26.3 40 6.6-0.1 25-36.7c3.2 0.6 6.6-0.9 8.5-3.8 2.4-3.9 1.2-9-2.7-11.4-3.9-2.4-9-1.2-11.5 2.7zm-110.8 29.7-9.7 12.9 4.6 4.3 7.9-11 7.1 0.3c0.4 0.7 0.9 1.4 1.5 2 3.3 3.3 8.6 3.3 11.8 0 3.3-3.3 3.3-8.6 0-11.8-3.3-3.3-8.6-3.3-11.8 0-1 1-1.7 2.3-2.1 3.6zm20.1-68.7c-4.4 0-8 3.6-8 8 0 4.4 3.6 8 8 8 3.7 0 6.8-2.5 7.7-6l44.5 1.3 17.4 21.5c-0.2 0.8-0.4 1.6-0.4 2.4 0 4.6 3.8 8.4 8.4 8.4 4.6 0 8.4-3.8 8.4-8.4 0-4.6-3.8-8.4-8.4-8.4-1.5 0-2.9 0.4-4.1 1.1l-18.9-22.9-48-1.3c-1.4-2.2-3.9-3.7-6.8-3.7zm13.5 27c-4.6 0.1-8.3 4-8.1 8.6 0.1 4.6 4 8.3 8.6 8.1 3.3-0.1 6-2.1 7.3-4.9l22.2-0.5c1.4 2.9 4.4 4.8 7.8 4.7 4.6-0.1 8.3-4 8.1-8.6-0.1-4.6-4-8.3-8.6-8.1-3.6 0.1-6.6 2.5-7.7 5.7l-21.5 0.5c-1.2-3.3-4.4-5.7-8.1-5.6zm-26 16.7c0 4.4-3.6 8-8 8-4.4 0-8-3.6-8-8 0-4.4 3.6-8 8-8 4.4 0 8 3.6 8 8zM87.6 476.5c-3.5 0.2-6.4 2.5-7.5 5.6l-22.6 1 0.3 6.2 22.6-1c1.4 3 4.4 5 7.9 4.9 4.6-0.2 8.1-4.1 7.9-8.7-0.2-4.6-4.1-8.2-8.7-8zm56.3 20c-4.6 0.1-8.3 4-8.1 8.6 0.1 4.6 4 8.3 8.6 8.1 3.3-0.1 6-2.1 7.3-4.9l25.3-0.7c1.4 2.9 4.4 4.8 7.8 4.7 4.6-0.1 8.3-4 8.1-8.6-0.1-4.6-4-8.3-8.6-8.1-3.6 0.1-6.6 2.5-7.7 5.7l-24.6 0.7c-1.2-3.3-4.4-5.7-8.1-5.6zm-44.4-30.4-4.1 4.7 19.8 17.1 80.9-3-0.5-6.2-78.3 2.8zm-41.6 51.7-0.2-6 68.2-4 71.4 103.9-5.3 3.3-70.1-101.1zm132.6 25.4c2.3-2.6 2.6-6.3 1.1-9.3l6.6-9.5 0.4-9-11.7 14.4c-3.1-1.1-6.7-0.2-9 2.4-3 3.5-2.7 8.7 0.8 11.7 3.5 3 8.7 2.7 11.8-0.8zm-32.3 0.4c2 2.9 5.5 4.1 8.7 3.3l30.7 44.3-0.1-9.8-25.5-38c1.8-2.8 1.8-6.4-0.2-9.3-2.6-3.8-7.8-4.7-11.6-2-3.8 2.6-4.7 7.8-2.1 11.6zm-34.8-9.6c-3.5 0.2-6.4 2.5-7.5 5.6l-57.2 2.9 0.3 6.2 57.2-2.9c1.4 3 4.4 5 7.9 4.9 4.6-0.2 8.1-4.1 7.9-8.7-0.2-4.6-4.1-8.2-8.7-8zm17.5 33-81.3 2 0.2 6.3 78.7-2 17.5 22.3c-0.2 0.8-0.4 1.6-0.4 2.4 0 4.6 3.8 8.4 8.4 8.4 4.6 0 8.4-3.8 8.4-8.4 0-4.6-3.8-8.4-8.4-8.4-1.5 0-2.9 0.4-4.1 1.1zM179.2 672.5c1.2 2.6 5 0.2 5.7 3.6-1 4.1-8.9 0.5-11.6 0.9-1.4-4.3 8.4-15.3 10.9-18.8 2.8-1.4 9.4 0 12.6 0 0.3 2.8 0.5 5.3-1.5 7.8-3.4 0.1-6.7-1.4-10.1-1.7-2 2.7-4 5.5-6 8.2zM67.3 604.9l-8.1 0 0-6.7c6.2 0 9.7-1.6 13.2 3.9 6.6 10.3 12.8 20.9 19.1 31.4 3.1 5.2 6.3 10.4 9.5 15.5 4.6 7.4 5.8 8 14.6 8.6 6.3 0.4 12.7 0.4 19.1 0.4 6.6 0 6.4-5.5 12.7-4.9 5.4 5.1 5.4 11.7 0 16.8-6 0.4-5.3-5.8-9.8-5.8l-19.2 0c-9.5 0-12.4 2.1-17.3-5.6-11.2-17.9-22.4-35.7-33.6-53.6z" fill="#a5b6d9"/><path d="m339.3 257.1c0 3.2-2.6 5.9-5.9 5.9-3.2 0-5.9-2.6-5.9-5.9 0-3.2 2.6-5.9 5.9-5.9 3.2 0 5.9 2.6 5.9 5.9zm14.4-13.7c0 3.2-2.6 5.9-5.9 5.9-3.2 0-5.9-2.6-5.9-5.9 0-3.2 2.6-5.9 5.9-5.9 3.2 0 5.9 2.6 5.9 5.9zm23 0c0 3.2-2.6 5.9-5.9 5.9-3.2 0-5.9-2.6-5.9-5.9 0-3.2 2.6-5.9 5.9-5.9 3.2 0 5.9 2.6 5.9 5.9zm-12.9 46.6c0 3.2-2.6 5.9-5.9 5.9-3.2 0-5.9-2.6-5.9-5.9 0-3.2 2.6-5.9 5.9-5.9 3.2 0 5.9 2.6 5.9 5.9zm14.7-11.5c0 3.2-2.6 5.9-5.9 5.9-3.2 0-5.9-2.6-5.9-5.9 0-3.2 2.6-5.9 5.9-5.9 3.2 0 5.9 2.6 5.9 5.9zm7.4-18.3c0 3.2-2.6 5.9-5.9 5.9-3.2 0-5.9-2.6-5.9-5.9 0-3.2 2.6-5.9 5.9-5.9 3.2 0 5.9 2.6 5.9 5.9z" transform="matrix(0.59478444,0,0,0.93466127,95.788817,-7.8295466)" fill="#365798"/></svg>';
+
+    // Limpieza extra del título para las búsquedas externas.
+    const TRADEMARK_REGEX = /[™®©]/g;
+    // Diacríticos combinados, para quitarlos tras normalizar a NFD.
+    const DIACRITICS_REGEX = /[\u0300-\u036f]/g;
 
     // Intervalos y límites de polling
     const POLL_INTERVAL_MS = 400;
@@ -332,6 +363,25 @@
         return rawTitle.replace(/\s*-\s*Epic Games Store.*$/i, '').trim().split('|')[0].trim();
     }
 
+    /**
+     * Título para las búsquedas externas: el mismo de getGameTitle() sin símbolos
+     * de marca ni espacios dobles. Se deja aparte para no tocar el que va al log.
+     * @returns {string} Título limpio, o cadena vacía si no se pudo leer.
+     */
+    function getSearchTitle() {
+        return getGameTitle().replace(TRADEMARK_REGEX, '').replace(/\s+/g, ' ').trim();
+    }
+
+    /**
+     * Normaliza el título para la búsqueda de GG.deals quitando los acentos:
+     * GG.deals translitera en su índice, así que "Pokémon" se busca como "Pokemon".
+     * @param {string} title - Título limpio del juego.
+     * @returns {string} Título sin diacríticos.
+     */
+    function normalizeForGgDeals(title) {
+        return title.normalize('NFD').replace(DIACRITICS_REGEX, '');
+    }
+
     // =============================================
     // FUNCIONES DOM / UI
     // =============================================
@@ -378,6 +428,62 @@
                 outline: 2px solid #fff3 !important;
                 outline-offset: 2px !important;
             }
+            /* Fila de GG.deals + PCGamingWiki: mismo aspecto que el botón de EGData
+               (negro, texto blanco, misma altura y mismas esquinas) repartiéndose a
+               partes iguales el ancho de la columna de compra, que no da para dos
+               etiquetas seguidas. Sin sombra: los botones de Epic no la llevan.
+               Altura y radio llegan como variables desde matchSibling(), medidos del
+               propio botón de EGData, que hereda su aspecto del botón de compra de
+               Epic; un valor fijo aquí se desalinearía en cuanto Epic cambie el suyo.
+               Los valores del var() son solo el respaldo. */
+            .egs2egd-links {
+                display: flex; align-items: stretch; gap: 8px; margin-top: 0.625rem;
+            }
+            a[${LINK_ATTR}="true"] {
+                flex: 1 1 0;
+                min-width: 0;
+                box-sizing: border-box;
+                min-height: var(--egs2egd-h, 40px);
+                border-radius: var(--egs2egd-r, 8px) !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 6px !important;
+                background: #000 !important;
+                color: #fff !important;
+                border: none !important;
+                padding: 5px 8px !important;
+                font-size: 12px !important;
+                font-weight: 700 !important;
+                line-height: 1.3 !important;
+                cursor: pointer !important;
+                text-decoration: none !important;
+                white-space: nowrap;
+                overflow: hidden;
+                transition: background 200ms ease, transform 120ms ease;
+            }
+            a[${LINK_ATTR}="true"]:hover {
+                background: #757575 !important;
+                transform: translateY(-1px);
+                text-decoration: none !important;
+            }
+            a[${LINK_ATTR}="true"]:focus {
+                outline: 2px solid #fff3 !important;
+                outline-offset: 2px !important;
+            }
+            a[${LINK_ATTR}="true"] .egs2egd-ico {
+                display: inline-flex;
+                align-items: center;
+                flex: 0 0 auto;
+            }
+            a[${LINK_ATTR}="true"] img.egs2egd-ico {
+                width: 14px; height: 14px; object-fit: contain;
+            }
+            /* El logo de PCGamingWiki es más alto que ancho (viewBox 827x1158): se
+               fija el alto y se deja el ancho automático para no deformarlo. */
+            a[${LINK_ATTR}="true"] .egs2egd-ico svg {
+                height: 14px; width: auto; display: block;
+            }
         `;
         (document.head || document.documentElement).appendChild(style);
     }
@@ -420,6 +526,89 @@
     }
 
     /**
+     * Crea un enlace externo con el aspecto del botón de EGData, con el icono
+     * dentro y a la izquierda de la etiqueta. Es un <a> real, así que funcionan el
+     * clic central y "copiar dirección del enlace".
+     * @param {{ label: string, url: string, iconSvg?: string, iconUrl?: string, tooltip: string }} opts
+     * @returns {HTMLAnchorElement} El enlace listo para insertar.
+     */
+    function buildLinkButton({ label, url, iconSvg, iconUrl, tooltip }) {
+        const a = document.createElement('a');
+        a.setAttribute(LINK_ATTR, 'true');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'nofollow noopener external';
+        a.title = tooltip;
+
+        if (iconSvg) {
+            const box = document.createElement('span');
+            box.className = 'egs2egd-ico';
+            box.innerHTML = iconSvg;
+            a.appendChild(box);
+        } else if (iconUrl) {
+            const img = document.createElement('img');
+            img.className = 'egs2egd-ico';
+            img.src = iconUrl;
+            img.alt = '';
+            img.addEventListener('error', () => img.remove());  // sin icono si el CSP lo bloquea
+            a.appendChild(img);
+        }
+        const text = document.createElement('span');
+        text.textContent = label;
+        a.appendChild(text);
+        return a;
+    }
+
+    /**
+     * Fila con los enlaces a GG.deals y PCGamingWiki, que buscan por el título de
+     * la página. Devuelve null si no hay título legible: mejor sin botones que con
+     * dos enlaces a una búsqueda vacía.
+     * @returns {HTMLDivElement|null} El contenedor con los dos enlaces, o null.
+     */
+    function buildExternalLinks() {
+        const title = getSearchTitle();
+        if (!title) return null;
+
+        const box = document.createElement('div');
+        box.className = 'egs2egd-links';
+
+        const ggParams = new URLSearchParams({
+            drm: GGDEALS_EPIC_DRM,
+            minRating: GGDEALS_MIN_RATING,
+            title: normalizeForGgDeals(title)
+        });
+        box.appendChild(buildLinkButton({
+            label: 'GG.deals',
+            url: `${GGDEALS_SEARCH_URL}?${ggParams}`,
+            iconUrl: GGDEALS_ICON_URL,
+            tooltip: t.ggTip
+        }));
+        box.appendChild(buildLinkButton({
+            label: 'PCGamingWiki',
+            url: `${PCGW_SEARCH_URL}?${new URLSearchParams({ search: title })}`,
+            iconSvg: PCGW_ICON_SVG,
+            tooltip: t.pcgwTip
+        }));
+        return box;
+    }
+
+    /**
+     * Copia a la fila de enlaces la altura y el radio de esquina del botón hermano,
+     * midiéndolos ya en el DOM. Silencioso si no se puede medir (se queda con los
+     * valores por defecto del CSS).
+     * @param {HTMLElement} links - Fila de enlaces externos.
+     * @param {HTMLElement} sibling - Botón de EGData, del que se copian las medidas.
+     */
+    function matchSibling(links, sibling) {
+        try {
+            const h = sibling.offsetHeight;
+            if (h > 0) links.style.setProperty('--egs2egd-h', `${h}px`);
+            const r = getComputedStyle(sibling).borderRadius;
+            if (r && r !== '0px') links.style.setProperty('--egs2egd-r', r);
+        } catch (e) { /* sin medidas: mandan los valores por defecto del CSS */ }
+    }
+
+    /**
      * Inserta el botón EGData colgando del contenedor 3 niveles arriba del botón
      * de compra dado (misma colocación original que ya funcionaba en productos).
      * @param {HTMLButtonElement} purchaseButton - Botón de compra de referencia.
@@ -456,7 +645,14 @@
         if (withMargin) button.style.marginTop = '0.625rem';
         divButton.appendChild(button);
 
+        // GG.deals y PCGamingWiki van en su propia fila, colgada del mismo host: el
+        // botón de EGData conserva así la colocación exacta que ya funcionaba.
+        const links = buildExternalLinks();
+        if (links) div.appendChild(links);
+
         host.appendChild(div);
+        // Medir después de insertar: antes el botón no tiene alto ni estilo aplicado.
+        if (links) matchSibling(links, button);
         return button;
     }
 
