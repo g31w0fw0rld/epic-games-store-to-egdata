@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.6.0
+// @version      1.7.0
 // @description  Adds EGData, GG.deals and PCGamingWiki buttons below every purchase button on Epic Games Store product and bundle pages — bundles have two, and both get the trio. EGData links to that exact offer; the other two search by title, GG.deals among Epic-DRM deals with no store-rating floor, and each says so in its tooltip. On your wishlist it adds an 'only discounted' filter that first loads the whole list, remembered sort and filters, and a shareable link that reproduces them.
 // @author       g31w0fw0rld
 // @license      MIT
@@ -16,47 +16,27 @@
     'use strict';
 
     // =============================================
-    // IDIOMA (auto-detect: si la página/navegador está en español -> es, si no -> en)
+    // IDIOMA
     // =============================================
-    // Prioriza el lang del documento (idioma con que Epic sirve la página) y cae
-    // al del navegador. Solo distingue español vs. resto (inglés por defecto).
+    // Epic sirve la tienda en 32 idiomas, elegidos en el menú del globo terráqueo.
+    // OJO con CUÁNDO se detecta, porque este script corre con @run-at
+    // document-start (hace falta para no perder la request que engancha más
+    // abajo) y en ese instante casi nada está disponible:
+    //   - La ruta NO lleva segmento de idioma. Epic cambia de idioma con el
+    //     parámetro ?lang= (su propio menú usa hreftemplate="?lang=de").
+    //   - El HTML que llega del servidor son ~25 KB de armazón SIN atributo lang
+    //     y SIN <link hreflang>: el lang lo escribe React al hidratar.
+    //   - El menú de idioma tampoco existe hasta que se hidrata.
+    // La única señal viva en document-start es ?lang=, y solo aparece en la
+    // navegación en que acabas de cambiar de idioma.
+    //
+    // Por eso el idioma no se congela al cargar: se resuelve al LEER una cadena,
+    // que es cuando se pinta algo y la página ya está hidratada. Ver el proxy de
+    // `t` más abajo.
     // Nota: EGData es marca y NO se traduce (queda como literal en el botón).
-    function detectLang() {
-        const docLang = (document.documentElement.getAttribute('lang') || '').toLowerCase();
-        const navLang = (navigator.language || navigator.languages?.[0] || '').toLowerCase();
-        return (docLang || navLang).startsWith('es') ? 'es' : 'en';
-    }
-    const LANG = detectLang();
+    //
+    // Las claves del diccionario son códigos BCP-47 en minúsculas.
     const I18N = {
-        es: {
-            remember: 'Recordar orden y filtros',
-            onlyDiscount: 'Solo con descuento',
-            copyLink: '🔗 Copiar enlace con filtros',
-            copied: '✔ Enlace copiado',
-            copyPrompt: 'Copia este enlace:',
-            about: 'ℹ️ Saber más',
-            close: 'Cerrar',
-            rememberTip: 'Guarda el orden y los filtros que elijas en Epic y los reaplica automáticamente cada vez que vuelvas a la lista de deseos.',
-            onlyDiscountTip: 'Baja por TODA tu lista (Epic la carga por lotes al hacer scroll) para detectar todos los juegos y ocultar los que no están en oferta. Respeta el orden que elijas en Epic. El descuento se detecta por el badge de porcentaje o por el precio original tachado.',
-            copyLinkTip: 'Genera una URL que, al abrirla con el script instalado, reproduce tu orden y filtros actuales (incluido "solo con descuento").',
-            ggTip: 'Busca el título en GG.deals con el filtro de DRM de Epic. Al buscar por nombre, puede no dar con el juego exacto.',
-            pcgwTip: 'Busca el título en PCGamingWiki (compatibilidad y arreglos). Al buscar por nombre, puede no dar con el artículo exacto.',
-            aboutTip: 'Ver qué hace este script en su totalidad.',
-            aboutTitle: '¿Qué hace este script?',
-            aboutBody: [
-                'Este script conecta Epic Games Store con EGData y mejora tu lista de deseos.',
-                '• En páginas de producto (/p/) y de bundle (/bundles/): añade tres botones bajo el botón de compra.',
-                '– EGData (base de datos de precios e historial de ofertas) enlaza a esa oferta concreta, no a una búsqueda.',
-                '– GG.deals busca el título entre las ofertas con DRM de Epic, sin el mínimo de valoración de tienda que trae por defecto, y PCGamingWiki lo busca para ver compatibilidad y arreglos. Los dos buscan por nombre, así que pueden no acertar; cada uno lo dice en su tooltip.',
-                '– Un juego de botones por cada botón de compra: los bundles tienen dos (la barra de arriba y la sección "Buy …") y ambos reciben el suyo.',
-                '– Al navegar dentro de la tienda hacia un producto o un bundle, la página se recarga. Epic es una SPA y el script no estaba activo en el home, la búsqueda ni el browse; esa recarga es lo que garantiza que el botón aparezca.',
-                '• En tu lista de deseos (/wishlist) añade una barra con tres herramientas:',
-                '– Solo con descuento: baja automáticamente por toda la lista (Epic la carga por lotes al hacer scroll) para detectar TODOS los juegos y mostrar únicamente los que están en oferta, respetando el orden que elegiste en Epic. El descuento se detecta por el badge de porcentaje o por el precio original tachado. Se recuerda por su cuenta, esté o no activo "Recordar orden y filtros".',
-                '– Recordar orden y filtros: guarda el orden y los filtros de la barra lateral que elijas en Epic y los reaplica al volver.',
-                '– Copiar enlace con filtros: genera una URL que, al abrirla, reproduce tu orden, tus filtros y el estado de "solo con descuento". Si el navegador bloquea el portapapeles, la muestra en un diálogo para copiarla a mano.',
-                'Todo se procesa en tu navegador (se guarda en localStorage); no se envían datos a ningún servidor.',
-            ],
-        },
         en: {
             remember: 'Remember sort and filters',
             onlyDiscount: 'Only discounted',
@@ -86,8 +66,1019 @@
                 'Everything runs in your browser (stored in localStorage); no data is sent to any server.',
             ],
         },
+        es: {
+            remember: 'Recordar orden y filtros',
+            onlyDiscount: 'Solo con descuento',
+            copyLink: '🔗 Copiar enlace con filtros',
+            copied: '✔ Enlace copiado',
+            copyPrompt: 'Copia este enlace:',
+            about: 'ℹ️ Saber más',
+            close: 'Cerrar',
+            rememberTip: 'Guarda el orden y los filtros que elijas en Epic y los reaplica automáticamente cada vez que vuelvas a la lista de deseos.',
+            onlyDiscountTip: 'Baja por TODA tu lista (Epic la carga por lotes al hacer scroll) para detectar todos los juegos y ocultar los que no están en oferta. Respeta el orden que elijas en Epic. El descuento se detecta por el badge de porcentaje o por el precio original tachado.',
+            copyLinkTip: 'Genera una URL que, al abrirla con el script instalado, reproduce tu orden y filtros actuales (incluido "solo con descuento").',
+            ggTip: 'Busca el título en GG.deals con el filtro de DRM de Epic. Al buscar por nombre, puede no dar con el juego exacto.',
+            pcgwTip: 'Busca el título en PCGamingWiki (compatibilidad y arreglos). Al buscar por nombre, puede no dar con el artículo exacto.',
+            aboutTip: 'Ver qué hace este script en su totalidad.',
+            aboutTitle: '¿Qué hace este script?',
+            aboutBody: [
+                'Este script conecta Epic Games Store con EGData y mejora tu lista de deseos.',
+                '• En páginas de producto (/p/) y de bundle (/bundles/): añade tres botones bajo el botón de compra.',
+                '– EGData (base de datos de precios e historial de ofertas) enlaza a esa oferta concreta, no a una búsqueda.',
+                '– GG.deals busca el título entre las ofertas con DRM de Epic, sin el mínimo de valoración de tienda que trae por defecto, y PCGamingWiki lo busca para ver compatibilidad y arreglos. Los dos buscan por nombre, así que pueden no acertar; cada uno lo dice en su tooltip.',
+                '– Un juego de botones por cada botón de compra: los bundles tienen dos (la barra de arriba y la sección "Buy …") y ambos reciben el suyo.',
+                '– Al navegar dentro de la tienda hacia un producto o un bundle, la página se recarga. Epic es una SPA y el script no estaba activo en el home, la búsqueda ni el browse; esa recarga es lo que garantiza que el botón aparezca.',
+                '• En tu lista de deseos (/wishlist) añade una barra con tres herramientas:',
+                '– Solo con descuento: baja automáticamente por toda la lista (Epic la carga por lotes al hacer scroll) para detectar TODOS los juegos y mostrar únicamente los que están en oferta, respetando el orden que elegiste en Epic. El descuento se detecta por el badge de porcentaje o por el precio original tachado. Se recuerda por su cuenta, esté o no activo "Recordar orden y filtros".',
+                '– Recordar orden y filtros: guarda el orden y los filtros de la barra lateral que elijas en Epic y los reaplica al volver.',
+                '– Copiar enlace con filtros: genera una URL que, al abrirla, reproduce tu orden, tus filtros y el estado de "solo con descuento". Si el navegador bloquea el portapapeles, la muestra en un diálogo para copiarla a mano.',
+                'Todo se procesa en tu navegador (se guarda en localStorage); no se envían datos a ningún servidor.',
+            ],
+        },
+        'es-419': {
+            remember: 'Recordar orden y filtros',
+            onlyDiscount: 'Solo con descuento',
+            copyLink: '🔗 Copiar enlace con filtros',
+            copied: '✔ Enlace copiado',
+            copyPrompt: 'Copia este enlace:',
+            about: 'ℹ️ Saber más',
+            close: 'Cerrar',
+            rememberTip: 'Guarda el orden y los filtros que elijas en Epic y los vuelve a aplicar automáticamente cada vez que regreses a la lista de deseos.',
+            onlyDiscountTip: 'Recorre TODA tu lista (Epic la carga por lotes al desplazarte) para detectar todos los juegos y ocultar los que no están en oferta. Respeta el orden que elijas en Epic. El descuento se detecta por la etiqueta de porcentaje o por el precio original tachado.',
+            copyLinkTip: 'Genera una URL que, al abrirla con el script instalado, reproduce tu orden y filtros actuales (incluido "solo con descuento").',
+            ggTip: 'Busca el título en GG.deals con el filtro de DRM de Epic. Al buscar por nombre, puede que no encuentre el juego exacto.',
+            pcgwTip: 'Busca el título en PCGamingWiki (compatibilidad y arreglos). Al buscar por nombre, puede que no encuentre el artículo exacto.',
+            aboutTip: 'Ver todo lo que hace este script.',
+            aboutTitle: '¿Qué hace este script?',
+            aboutBody: [
+                'Este script conecta Epic Games Store con EGData y mejora tu lista de deseos.',
+                '• En páginas de producto (/p/) y de paquete (/bundles/): agrega tres botones debajo del botón de compra.',
+                '– EGData (base de datos de precios e historial de ofertas) enlaza a esa oferta concreta, no a una búsqueda.',
+                '– GG.deals busca el título entre las ofertas con DRM de Epic, sin el mínimo de valoración de tienda que trae por defecto, y PCGamingWiki lo busca para ver compatibilidad y arreglos. Los dos buscan por nombre, así que pueden fallar; cada uno lo dice en su información emergente.',
+                '– Un juego de botones por cada botón de compra: los paquetes tienen dos (la barra de arriba y la sección "Buy …") y ambos reciben el suyo.',
+                '– Al navegar dentro de la tienda hacia un producto o un paquete, la página se recarga. Epic es una SPA y el script no estaba activo en el inicio, la búsqueda ni el catálogo; esa recarga es lo que garantiza que el botón aparezca.',
+                '• En tu lista de deseos (/wishlist) agrega una barra con tres herramientas:',
+                '– Solo con descuento: recorre automáticamente toda la lista (Epic la carga por lotes al desplazarte) para detectar TODOS los juegos y mostrar únicamente los que están en oferta, respetando el orden que elegiste en Epic. El descuento se detecta por la etiqueta de porcentaje o por el precio original tachado. Se recuerda por su cuenta, esté o no activo "Recordar orden y filtros".',
+                '– Recordar orden y filtros: guarda el orden y los filtros de la barra lateral que elijas en Epic y los vuelve a aplicar al regresar.',
+                '– Copiar enlace con filtros: genera una URL que, al abrirla, reproduce tu orden, tus filtros y el estado de "solo con descuento". Si el navegador bloquea el portapapeles, la muestra en un cuadro de diálogo para copiarla a mano.',
+                'Todo se procesa en tu navegador (se guarda en localStorage); no se envían datos a ningún servidor.',
+            ],
+        },
+        de: {
+            remember: 'Sortierung und Filter merken',
+            onlyDiscount: 'Nur reduzierte',
+            copyLink: '🔗 Link mit Filtern kopieren',
+            copied: '✔ Link kopiert',
+            copyPrompt: 'Diesen Link kopieren:',
+            about: 'ℹ️ Mehr erfahren',
+            close: 'Schließen',
+            rememberTip: 'Speichert die in Epic gewählte Sortierung und Filter und wendet sie bei jeder Rückkehr zur Wunschliste automatisch wieder an.',
+            onlyDiscountTip: 'Scrollt durch deine GESAMTE Liste (Epic lädt sie beim Scrollen in Schüben), um alle Spiele zu erfassen und die auszublenden, die nicht im Angebot sind. Die in Epic gewählte Sortierung bleibt erhalten. Rabatte werden am Prozent-Abzeichen oder am durchgestrichenen Originalpreis erkannt.',
+            copyLinkTip: 'Baut eine URL, die beim Öffnen mit installiertem Skript deine aktuelle Sortierung und Filter wiederherstellt (einschließlich „Nur reduzierte“).',
+            ggTip: 'Sucht den Titel auf GG.deals mit dem Epic-DRM-Filter. Da es eine Titelsuche ist, wird nicht immer das exakte Spiel getroffen.',
+            pcgwTip: 'Sucht den Titel auf PCGamingWiki (Kompatibilität und Fixes). Da es eine Titelsuche ist, wird nicht immer der exakte Artikel getroffen.',
+            aboutTip: 'Alles ansehen, was dieses Skript macht.',
+            aboutTitle: 'Was macht dieses Skript?',
+            aboutBody: [
+                'Dieses Skript verbindet den Epic Games Store mit EGData und verbessert deine Wunschliste.',
+                '• Auf Produkt- (/p/) und Bundle-Seiten (/bundles/): fügt drei Schaltflächen unter der Kaufschaltfläche ein.',
+                '– EGData (eine Datenbank für Preise und Angebotsverlauf) verlinkt genau auf dieses Angebot, nicht auf eine Suche.',
+                '– GG.deals sucht den Titel unter den Angeboten mit Epic-DRM, ohne die standardmäßige Mindestbewertung der Shops, und PCGamingWiki sucht ihn für Kompatibilität und Fixes. Beides sind Titelsuchen und können danebenliegen; jede sagt das in ihrem Tooltip.',
+                '– Ein Satz Schaltflächen pro Kaufschaltfläche: Bundles haben zwei (die Leiste oben und der Abschnitt „Buy …“) und beide bekommen ihren.',
+                '– Wer innerhalb des Shops zu einem Produkt oder Bundle navigiert, löst einen Seiten-Neuladevorgang aus. Epic ist eine Single-Page-App und das Skript war auf Startseite, Suche und Katalog nicht aktiv; genau dieses Neuladen sorgt dafür, dass die Schaltfläche erscheint.',
+                '• Auf deiner Wunschliste (/wishlist) kommt eine Leiste mit drei Werkzeugen dazu:',
+                '– Nur reduzierte: scrollt automatisch durch die ganze Liste (Epic lädt sie beim Scrollen in Schüben), um ALLE Spiele zu erfassen und nur die im Angebot zu zeigen, unter Beibehaltung der in Epic gewählten Sortierung. Rabatte werden am Prozent-Abzeichen oder am durchgestrichenen Originalpreis erkannt. Das wird eigenständig gemerkt, unabhängig davon, ob „Sortierung und Filter merken“ aktiv ist.',
+                '– Sortierung und Filter merken: speichert die in Epic gewählte Sortierung und die Filter der Seitenleiste und wendet sie bei der Rückkehr wieder an.',
+                '– Link mit Filtern kopieren: baut eine URL, die beim Öffnen deine Sortierung, deine Filter und den Zustand von „Nur reduzierte“ wiederherstellt. Blockiert der Browser die Zwischenablage, wird die URL in einem Dialog zum Abschreiben angezeigt.',
+                'Alles läuft in deinem Browser (gespeichert im localStorage); es werden keine Daten an einen Server gesendet.',
+            ],
+        },
+        fr: {
+            remember: 'Mémoriser tri et filtres',
+            onlyDiscount: 'Uniquement en promo',
+            copyLink: '🔗 Copier le lien avec filtres',
+            copied: '✔ Lien copié',
+            copyPrompt: 'Copiez ce lien :',
+            about: 'ℹ️ En savoir plus',
+            close: 'Fermer',
+            rememberTip: 'Enregistre le tri et les filtres choisis dans Epic et les réapplique automatiquement à chaque retour sur la liste de souhaits.',
+            onlyDiscountTip: 'Parcourt TOUTE votre liste (Epic la charge par lots au défilement) pour détecter tous les jeux et masquer ceux qui ne sont pas en promotion. Le tri choisi dans Epic est conservé. Les remises sont détectées via le badge de pourcentage ou le prix d’origine barré.',
+            copyLinkTip: 'Construit une URL qui, ouverte avec le script installé, reproduit votre tri et vos filtres actuels (y compris « uniquement en promo »).',
+            ggTip: 'Recherche le titre sur GG.deals avec le filtre DRM Epic. S’agissant d’une recherche par titre, le jeu exact peut ne pas être trouvé.',
+            pcgwTip: 'Recherche le titre sur PCGamingWiki (compatibilité et correctifs). S’agissant d’une recherche par titre, l’article exact peut ne pas être trouvé.',
+            aboutTip: 'Voir tout ce que fait ce script.',
+            aboutTitle: 'Que fait ce script ?',
+            aboutBody: [
+                'Ce script relie l’Epic Games Store à EGData et améliore votre liste de souhaits.',
+                '• Sur les pages produit (/p/) et bundle (/bundles/) : ajoute trois boutons sous le bouton d’achat.',
+                '– EGData (base de données de prix et d’historique des promotions) pointe vers cette offre précise, pas vers une recherche.',
+                '– GG.deals recherche le titre parmi les offres avec DRM Epic, sans la note minimale de boutique appliquée par défaut, et PCGamingWiki le recherche pour la compatibilité et les correctifs. Ce sont deux recherches par titre, elles peuvent donc se tromper ; chacune le précise dans son infobulle.',
+                '– Un jeu de boutons par bouton d’achat : les bundles en ont deux (la barre du haut et la section « Buy … ») et chacun reçoit le sien.',
+                '– Naviguer dans la boutique vers un produit ou un bundle recharge la page. Epic est une application monopage et le script n’était pas actif sur l’accueil, la recherche ou le catalogue ; c’est ce rechargement qui garantit l’apparition du bouton.',
+                '• Sur votre liste de souhaits (/wishlist), il ajoute une barre avec trois outils :',
+                '– Uniquement en promo : parcourt automatiquement toute la liste (Epic la charge par lots au défilement) pour détecter TOUS les jeux et n’afficher que ceux en promotion, en conservant le tri choisi dans Epic. Les remises sont détectées via le badge de pourcentage ou le prix d’origine barré. Ce réglage est mémorisé à part, que « Mémoriser tri et filtres » soit actif ou non.',
+                '– Mémoriser tri et filtres : enregistre le tri et les filtres de la barre latérale choisis dans Epic et les réapplique au retour.',
+                '– Copier le lien avec filtres : construit une URL qui, à l’ouverture, reproduit votre tri, vos filtres et l’état de « uniquement en promo ». Si le navigateur bloque le presse-papiers, l’URL s’affiche dans une boîte de dialogue pour la copier à la main.',
+                'Tout est traité dans votre navigateur (stocké dans localStorage) ; aucune donnée n’est envoyée à un serveur.',
+            ],
+        },
+        it: {
+            remember: 'Ricorda ordinamento e filtri',
+            onlyDiscount: 'Solo scontati',
+            copyLink: '🔗 Copia link con filtri',
+            copied: '✔ Link copiato',
+            copyPrompt: 'Copia questo link:',
+            about: 'ℹ️ Scopri di più',
+            close: 'Chiudi',
+            rememberTip: 'Salva l’ordinamento e i filtri scelti su Epic e li riapplica automaticamente ogni volta che torni alla lista dei desideri.',
+            onlyDiscountTip: 'Scorre TUTTA la tua lista (Epic la carica a blocchi durante lo scorrimento) per rilevare tutti i giochi e nascondere quelli non in offerta. Mantiene l’ordinamento scelto su Epic. Gli sconti si rilevano dal badge della percentuale o dal prezzo originale barrato.',
+            copyLinkTip: 'Genera un URL che, aperto con lo script installato, riproduce l’ordinamento e i filtri attuali (incluso «solo scontati»).',
+            ggTip: 'Cerca il titolo su GG.deals con il filtro DRM di Epic. Trattandosi di una ricerca per titolo, potrebbe non trovare il gioco esatto.',
+            pcgwTip: 'Cerca il titolo su PCGamingWiki (compatibilità e correzioni). Trattandosi di una ricerca per titolo, potrebbe non trovare la voce esatta.',
+            aboutTip: 'Vedi tutto quello che fa questo script.',
+            aboutTitle: 'Che cosa fa questo script?',
+            aboutBody: [
+                'Questo script collega l’Epic Games Store a EGData e migliora la tua lista dei desideri.',
+                '• Nelle pagine di prodotto (/p/) e di bundle (/bundles/): aggiunge tre pulsanti sotto il pulsante di acquisto.',
+                '– EGData (database di prezzi e storico delle offerte) rimanda a quella offerta precisa, non a una ricerca.',
+                '– GG.deals cerca il titolo tra le offerte con DRM di Epic, senza la valutazione minima del negozio applicata per impostazione predefinita, e PCGamingWiki lo cerca per compatibilità e correzioni. Sono entrambe ricerche per titolo, quindi possono sbagliare; ciascuna lo dice nel proprio tooltip.',
+                '– Un gruppo di pulsanti per ogni pulsante di acquisto: i bundle ne hanno due (la barra in alto e la sezione «Buy …») ed entrambi ricevono il proprio.',
+                '– Navigando dentro il negozio verso un prodotto o un bundle la pagina si ricarica. Epic è una single-page app e lo script non era attivo su home, ricerca o catalogo; è proprio quel ricaricamento a garantire che il pulsante compaia.',
+                '• Nella tua lista dei desideri (/wishlist) aggiunge una barra con tre strumenti:',
+                '– Solo scontati: scorre automaticamente tutta la lista (Epic la carica a blocchi durante lo scorrimento) per rilevare TUTTI i giochi e mostrare solo quelli in offerta, mantenendo l’ordinamento scelto su Epic. Gli sconti si rilevano dal badge della percentuale o dal prezzo originale barrato. Viene ricordato per conto proprio, che «Ricorda ordinamento e filtri» sia attivo o no.',
+                '– Ricorda ordinamento e filtri: salva l’ordinamento e i filtri della barra laterale scelti su Epic e li riapplica al ritorno.',
+                '– Copia link con filtri: genera un URL che all’apertura riproduce ordinamento, filtri e stato di «solo scontati». Se il browser blocca gli appunti, l’URL viene mostrato in una finestra per copiarlo a mano.',
+                'Tutto viene elaborato nel tuo browser (salvato in localStorage); non viene inviato alcun dato a nessun server.',
+            ],
+        },
+        nl: {
+            remember: 'Sortering en filters onthouden',
+            onlyDiscount: 'Alleen afgeprijsd',
+            copyLink: '🔗 Link met filters kopiëren',
+            copied: '✔ Link gekopieerd',
+            copyPrompt: 'Kopieer deze link:',
+            about: 'ℹ️ Meer informatie',
+            close: 'Sluiten',
+            rememberTip: 'Slaat de sortering en filters op die je in Epic kiest en past ze automatisch opnieuw toe telkens als je terugkeert naar de verlanglijst.',
+            onlyDiscountTip: 'Scrolt door je HELE lijst (Epic laadt die in batches tijdens het scrollen) om alle games te vinden en de niet-afgeprijsde te verbergen. De sortering die je in Epic kiest blijft behouden. Kortingen worden herkend aan de percentagebadge of de doorgestreepte originele prijs.',
+            copyLinkTip: 'Maakt een URL die, geopend met het script geïnstalleerd, je huidige sortering en filters herstelt (inclusief "alleen afgeprijsd").',
+            ggTip: 'Zoekt de titel op GG.deals met het Epic-DRM-filter. Omdat het een titelzoekopdracht is, wordt niet altijd het exacte spel gevonden.',
+            pcgwTip: 'Zoekt de titel op PCGamingWiki (compatibiliteit en fixes). Omdat het een titelzoekopdracht is, wordt niet altijd het exacte artikel gevonden.',
+            aboutTip: 'Bekijk alles wat dit script doet.',
+            aboutTitle: 'Wat doet dit script?',
+            aboutBody: [
+                'Dit script verbindt de Epic Games Store met EGData en verbetert je verlanglijst.',
+                '• Op product- (/p/) en bundelpagina’s (/bundles/): voegt drie knoppen toe onder de koopknop.',
+                '– EGData (een database met prijzen en aanbiedingsgeschiedenis) linkt naar precies die aanbieding, niet naar een zoekopdracht.',
+                '– GG.deals zoekt de titel tussen de aanbiedingen met Epic-DRM, zonder de standaard minimumbeoordeling van winkels, en PCGamingWiki zoekt hem op compatibiliteit en fixes. Beide zijn titelzoekopdrachten en kunnen ernaast zitten; elk vermeldt dat in zijn tooltip.',
+                '– Eén set knoppen per koopknop: bundels hebben er twee (de balk bovenaan en de sectie "Buy …") en beide krijgen de hunne.',
+                '– Binnen de winkel naar een product of bundel navigeren herlaadt de pagina. Epic is een single-page app en het script was niet actief op home, zoeken of bladeren; juist die herlaadactie zorgt dat de knop verschijnt.',
+                '• Op je verlanglijst (/wishlist) komt een balk met drie hulpmiddelen bij:',
+                '– Alleen afgeprijsd: scrolt automatisch door de hele lijst (Epic laadt die in batches tijdens het scrollen) om ALLE games te vinden en alleen de afgeprijsde te tonen, met behoud van de sortering die je in Epic koos. Kortingen worden herkend aan de percentagebadge of de doorgestreepte originele prijs. Dit wordt apart onthouden, of "Sortering en filters onthouden" nu aan staat of niet.',
+                '– Sortering en filters onthouden: slaat de sortering en de zijbalkfilters op die je in Epic kiest en past ze bij terugkomst opnieuw toe.',
+                '– Link met filters kopiëren: maakt een URL die bij openen je sortering, je filters en de stand van "alleen afgeprijsd" herstelt. Blokkeert de browser het klembord, dan wordt de URL in een dialoogvenster getoond om hem met de hand te kopiëren.',
+                'Alles draait in je browser (opgeslagen in localStorage); er worden geen gegevens naar een server gestuurd.',
+            ],
+        },
+        pt: {
+            remember: 'Memorizar ordenação e filtros',
+            onlyDiscount: 'Apenas com desconto',
+            copyLink: '🔗 Copiar ligação com filtros',
+            copied: '✔ Ligação copiada',
+            copyPrompt: 'Copie esta ligação:',
+            about: 'ℹ️ Saber mais',
+            close: 'Fechar',
+            rememberTip: 'Guarda a ordenação e os filtros que escolher na Epic e volta a aplicá-los automaticamente sempre que regressar à lista de desejos.',
+            onlyDiscountTip: 'Percorre TODA a sua lista (a Epic carrega-a por lotes ao deslocar) para detetar todos os jogos e ocultar os que não estão em promoção. Mantém a ordenação que escolher na Epic. Os descontos são detetados pelo distintivo de percentagem ou pelo preço original riscado.',
+            copyLinkTip: 'Gera um URL que, aberto com o script instalado, reproduz a sua ordenação e filtros atuais (incluindo "apenas com desconto").',
+            ggTip: 'Procura o título no GG.deals com o filtro de DRM da Epic. Sendo uma pesquisa por título, pode não encontrar o jogo exato.',
+            pcgwTip: 'Procura o título no PCGamingWiki (compatibilidade e correções). Sendo uma pesquisa por título, pode não encontrar o artigo exato.',
+            aboutTip: 'Ver tudo o que este script faz.',
+            aboutTitle: 'O que faz este script?',
+            aboutBody: [
+                'Este script liga a Epic Games Store ao EGData e melhora a sua lista de desejos.',
+                '• Em páginas de produto (/p/) e de pacote (/bundles/): acrescenta três botões por baixo do botão de compra.',
+                '– O EGData (base de dados de preços e histórico de promoções) liga a essa oferta concreta, não a uma pesquisa.',
+                '– O GG.deals procura o título entre as ofertas com DRM da Epic, sem a classificação mínima de loja aplicada por omissão, e o PCGamingWiki procura-o para compatibilidade e correções. Ambas são pesquisas por título e podem falhar; cada uma diz isso na sua dica.',
+                '– Um conjunto de botões por cada botão de compra: os pacotes têm dois (a barra de cima e a secção "Buy …") e ambos recebem o seu.',
+                '– Navegar dentro da loja até um produto ou pacote recarrega a página. A Epic é uma aplicação de página única e o script não estava ativo na página inicial, na pesquisa nem no catálogo; é esse recarregamento que garante que o botão aparece.',
+                '• Na sua lista de desejos (/wishlist) acrescenta uma barra com três ferramentas:',
+                '– Apenas com desconto: percorre automaticamente toda a lista (a Epic carrega-a por lotes ao deslocar) para detetar TODOS os jogos e mostrar só os que estão em promoção, mantendo a ordenação que escolheu na Epic. Os descontos são detetados pelo distintivo de percentagem ou pelo preço original riscado. É memorizado por si só, esteja ou não ativo "Memorizar ordenação e filtros".',
+                '– Memorizar ordenação e filtros: guarda a ordenação e os filtros da barra lateral que escolher na Epic e volta a aplicá-los ao regressar.',
+                '– Copiar ligação com filtros: gera um URL que, ao ser aberto, reproduz a sua ordenação, os seus filtros e o estado de "apenas com desconto". Se o navegador bloquear a área de transferência, mostra o URL numa caixa de diálogo para o copiar à mão.',
+                'Tudo é processado no seu navegador (guardado em localStorage); não são enviados dados para nenhum servidor.',
+            ],
+        },
+        'pt-br': {
+            remember: 'Lembrar ordenação e filtros',
+            onlyDiscount: 'Somente com desconto',
+            copyLink: '🔗 Copiar link com filtros',
+            copied: '✔ Link copiado',
+            copyPrompt: 'Copie este link:',
+            about: 'ℹ️ Saiba mais',
+            close: 'Fechar',
+            rememberTip: 'Salva a ordenação e os filtros que você escolher na Epic e os aplica de novo automaticamente toda vez que voltar à lista de desejos.',
+            onlyDiscountTip: 'Percorre TODA a sua lista (a Epic carrega em lotes conforme você rola) para detectar todos os jogos e ocultar os que não estão em promoção. Mantém a ordenação que você escolher na Epic. Os descontos são detectados pelo selo de porcentagem ou pelo preço original riscado.',
+            copyLinkTip: 'Gera uma URL que, aberta com o script instalado, reproduz sua ordenação e filtros atuais (incluindo "somente com desconto").',
+            ggTip: 'Busca o título no GG.deals com o filtro de DRM da Epic. Por ser uma busca por título, pode não encontrar o jogo exato.',
+            pcgwTip: 'Busca o título no PCGamingWiki (compatibilidade e correções). Por ser uma busca por título, pode não encontrar o artigo exato.',
+            aboutTip: 'Ver tudo o que este script faz.',
+            aboutTitle: 'O que este script faz?',
+            aboutBody: [
+                'Este script conecta a Epic Games Store ao EGData e melhora sua lista de desejos.',
+                '• Em páginas de produto (/p/) e de pacote (/bundles/): adiciona três botões abaixo do botão de compra.',
+                '– O EGData (banco de dados de preços e histórico de ofertas) leva a essa oferta específica, não a uma busca.',
+                '– O GG.deals busca o título entre as ofertas com DRM da Epic, sem a nota mínima de loja aplicada por padrão, e o PCGamingWiki busca por compatibilidade e correções. As duas são buscas por título, então podem errar; cada uma avisa isso na sua dica.',
+                '– Um conjunto de botões por botão de compra: os pacotes têm dois (a barra de cima e a seção "Buy …") e ambos recebem o seu.',
+                '– Navegar dentro da loja até um produto ou pacote recarrega a página. A Epic é um aplicativo de página única e o script não estava ativo na home, na busca nem no catálogo; é esse recarregamento que garante que o botão apareça.',
+                '• Na sua lista de desejos (/wishlist) adiciona uma barra com três ferramentas:',
+                '– Somente com desconto: percorre automaticamente a lista inteira (a Epic carrega em lotes conforme você rola) para detectar TODOS os jogos e mostrar apenas os que estão em promoção, mantendo a ordenação que você escolheu na Epic. Os descontos são detectados pelo selo de porcentagem ou pelo preço original riscado. É lembrado por conta própria, esteja ou não ativo "Lembrar ordenação e filtros".',
+                '– Lembrar ordenação e filtros: salva a ordenação e os filtros da barra lateral que você escolher na Epic e os aplica de novo quando você voltar.',
+                '– Copiar link com filtros: gera uma URL que, ao ser aberta, reproduz sua ordenação, seus filtros e o estado de "somente com desconto". Se o navegador bloquear a área de transferência, mostra a URL em uma caixa de diálogo para copiar à mão.',
+                'Tudo é processado no seu navegador (salvo no localStorage); nenhum dado é enviado a nenhum servidor.',
+            ],
+        },
+        pl: {
+            remember: 'Zapamiętaj sortowanie i filtry',
+            onlyDiscount: 'Tylko przecenione',
+            copyLink: '🔗 Kopiuj link z filtrami',
+            copied: '✔ Link skopiowany',
+            copyPrompt: 'Skopiuj ten link:',
+            about: 'ℹ️ Dowiedz się więcej',
+            close: 'Zamknij',
+            rememberTip: 'Zapisuje sortowanie i filtry wybrane w Epic i stosuje je automatycznie za każdym razem, gdy wracasz na listę życzeń.',
+            onlyDiscountTip: 'Przewija CAŁĄ twoją listę (Epic ładuje ją partiami podczas przewijania), aby wykryć wszystkie gry i ukryć te, które nie są w promocji. Zachowuje sortowanie wybrane w Epic. Przeceny są wykrywane po plakietce z procentem lub po przekreślonej cenie pierwotnej.',
+            copyLinkTip: 'Tworzy adres URL, który po otwarciu z zainstalowanym skryptem odtwarza bieżące sortowanie i filtry (wraz z „tylko przecenione”).',
+            ggTip: 'Wyszukuje tytuł w GG.deals z filtrem DRM Epic. Ponieważ to wyszukiwanie po tytule, może nie trafić w dokładną grę.',
+            pcgwTip: 'Wyszukuje tytuł w PCGamingWiki (zgodność i poprawki). Ponieważ to wyszukiwanie po tytule, może nie trafić w dokładny artykuł.',
+            aboutTip: 'Zobacz wszystko, co robi ten skrypt.',
+            aboutTitle: 'Co robi ten skrypt?',
+            aboutBody: [
+                'Ten skrypt łączy Epic Games Store z EGData i ulepsza twoją listę życzeń.',
+                '• Na stronach produktu (/p/) i pakietu (/bundles/): dodaje trzy przyciski pod przyciskiem zakupu.',
+                '– EGData (baza cen i historii promocji) prowadzi dokładnie do tej oferty, a nie do wyszukiwania.',
+                '– GG.deals szuka tytułu wśród ofert z DRM Epic, bez domyślnego progu ocen sklepów, a PCGamingWiki szuka go pod kątem zgodności i poprawek. Oba to wyszukiwania po tytule, więc mogą chybić; każde mówi o tym w swojej podpowiedzi.',
+                '– Jeden zestaw przycisków na każdy przycisk zakupu: pakiety mają dwa (górny pasek i sekcja „Buy …”) i oba dostają swój.',
+                '– Przejście wewnątrz sklepu do produktu lub pakietu przeładowuje stronę. Epic to aplikacja jednostronicowa, a skrypt nie był aktywny na stronie głównej, w wyszukiwarce ani w katalogu; to właśnie to przeładowanie gwarantuje pojawienie się przycisku.',
+                '• Na twojej liście życzeń (/wishlist) dodaje pasek z trzema narzędziami:',
+                '– Tylko przecenione: automatycznie przewija całą listę (Epic ładuje ją partiami podczas przewijania), aby wykryć WSZYSTKIE gry i pokazać tylko te w promocji, zachowując sortowanie wybrane w Epic. Przeceny są wykrywane po plakietce z procentem lub po przekreślonej cenie pierwotnej. Jest zapamiętywane osobno, niezależnie od tego, czy „Zapamiętaj sortowanie i filtry” jest włączone.',
+                '– Zapamiętaj sortowanie i filtry: zapisuje sortowanie i filtry paska bocznego wybrane w Epic i stosuje je po powrocie.',
+                '– Kopiuj link z filtrami: tworzy adres URL, który po otwarciu odtwarza twoje sortowanie, filtry i stan „tylko przecenione”. Jeśli przeglądarka zablokuje schowek, adres pojawi się w oknie dialogowym do ręcznego skopiowania.',
+                'Wszystko działa w twojej przeglądarce (zapisywane w localStorage); żadne dane nie są wysyłane na serwer.',
+            ],
+        },
+        ru: {
+            remember: 'Запоминать сортировку и фильтры',
+            onlyDiscount: 'Только со скидкой',
+            copyLink: '🔗 Скопировать ссылку с фильтрами',
+            copied: '✔ Ссылка скопирована',
+            copyPrompt: 'Скопируйте эту ссылку:',
+            about: 'ℹ️ Подробнее',
+            close: 'Закрыть',
+            rememberTip: 'Сохраняет выбранные в Epic сортировку и фильтры и применяет их автоматически при каждом возвращении в список желаемого.',
+            onlyDiscountTip: 'Прокручивает ВЕСЬ ваш список (Epic подгружает его частями при прокрутке), чтобы найти все игры и скрыть те, что не по скидке. Сортировка, выбранная в Epic, сохраняется. Скидка определяется по значку с процентом или по зачёркнутой исходной цене.',
+            copyLinkTip: 'Формирует ссылку, которая при открытии с установленным скриптом воспроизводит текущие сортировку и фильтры (включая «только со скидкой»).',
+            ggTip: 'Ищет название на GG.deals с фильтром DRM Epic. Это поиск по названию, поэтому нужная игра может не найтись.',
+            pcgwTip: 'Ищет название на PCGamingWiki (совместимость и исправления). Это поиск по названию, поэтому нужная статья может не найтись.',
+            aboutTip: 'Посмотреть всё, что делает этот скрипт.',
+            aboutTitle: 'Что делает этот скрипт?',
+            aboutBody: [
+                'Этот скрипт связывает Epic Games Store с EGData и улучшает ваш список желаемого.',
+                '• На страницах товара (/p/) и комплекта (/bundles/): добавляет три кнопки под кнопкой покупки.',
+                '– EGData (база цен и истории скидок) ведёт именно к этому предложению, а не к поиску.',
+                '– GG.deals ищет название среди предложений с DRM Epic, без применяемого по умолчанию минимального рейтинга магазинов, а PCGamingWiki ищет его по части совместимости и исправлений. Оба — поиск по названию, поэтому могут промахнуться; каждый пишет об этом в своей подсказке.',
+                '– По одному набору кнопок на каждую кнопку покупки: у комплектов их две (верхняя панель и раздел «Buy …»), и каждая получает свой.',
+                '– Переход внутри магазина к товару или комплекту перезагружает страницу. Epic — одностраничное приложение, и на главной, в поиске и в каталоге скрипт не был активен; именно эта перезагрузка гарантирует появление кнопки.',
+                '• В списке желаемого (/wishlist) добавляется панель с тремя инструментами:',
+                '– Только со скидкой: автоматически прокручивает весь список (Epic подгружает его частями при прокрутке), чтобы найти ВСЕ игры и показать только те, что по скидке, сохраняя выбранную в Epic сортировку. Скидка определяется по значку с процентом или по зачёркнутой исходной цене. Запоминается отдельно, независимо от того, включено ли «Запоминать сортировку и фильтры».',
+                '– Запоминать сортировку и фильтры: сохраняет выбранные в Epic сортировку и фильтры боковой панели и применяет их при возвращении.',
+                '– Скопировать ссылку с фильтрами: формирует ссылку, которая при открытии воспроизводит вашу сортировку, фильтры и состояние «только со скидкой». Если браузер блокирует буфер обмена, ссылка показывается в диалоге для копирования вручную.',
+                'Всё выполняется в вашем браузере (сохраняется в localStorage); никакие данные не отправляются на сервер.',
+            ],
+        },
+        uk: {
+            remember: 'Запам’ятовувати сортування та фільтри',
+            onlyDiscount: 'Лише зі знижкою',
+            copyLink: '🔗 Скопіювати посилання з фільтрами',
+            copied: '✔ Посилання скопійовано',
+            copyPrompt: 'Скопіюйте це посилання:',
+            about: 'ℹ️ Докладніше',
+            close: 'Закрити',
+            rememberTip: 'Зберігає обрані в Epic сортування та фільтри і застосовує їх автоматично щоразу, коли ви повертаєтесь до списку бажаного.',
+            onlyDiscountTip: 'Прокручує ВЕСЬ ваш список (Epic підвантажує його частинами під час прокручування), щоб знайти всі ігри та сховати ті, що не зі знижкою. Сортування, обране в Epic, зберігається. Знижку визначено за значком з відсотком або за закресленою початковою ціною.',
+            copyLinkTip: 'Створює посилання, яке при відкритті зі встановленим скриптом відтворює поточні сортування та фільтри (разом із «лише зі знижкою»).',
+            ggTip: 'Шукає назву на GG.deals із фільтром DRM Epic. Це пошук за назвою, тож потрібна гра може не знайтися.',
+            pcgwTip: 'Шукає назву на PCGamingWiki (сумісність і виправлення). Це пошук за назвою, тож потрібна стаття може не знайтися.',
+            aboutTip: 'Переглянути все, що робить цей скрипт.',
+            aboutTitle: 'Що робить цей скрипт?',
+            aboutBody: [
+                'Цей скрипт пов’язує Epic Games Store з EGData і покращує ваш список бажаного.',
+                '• На сторінках товару (/p/) і комплекту (/bundles/): додає три кнопки під кнопкою купівлі.',
+                '– EGData (база цін та історії знижок) веде саме до цієї пропозиції, а не до пошуку.',
+                '– GG.deals шукає назву серед пропозицій із DRM Epic, без застосовуваного за замовчуванням мінімального рейтингу магазинів, а PCGamingWiki шукає її щодо сумісності та виправлень. Обидва — пошук за назвою, тож можуть схибити; кожен пише про це у своїй підказці.',
+                '– По одному набору кнопок на кожну кнопку купівлі: у комплектів їх дві (верхня панель і розділ «Buy …»), і кожна отримує свій.',
+                '– Перехід усередині магазину до товару чи комплекту перезавантажує сторінку. Epic — односторінковий застосунок, і на головній, у пошуку та в каталозі скрипт не був активним; саме це перезавантаження гарантує появу кнопки.',
+                '• У списку бажаного (/wishlist) додається панель із трьома інструментами:',
+                '– Лише зі знижкою: автоматично прокручує весь список (Epic підвантажує його частинами під час прокручування), щоб знайти ВСІ ігри та показати тільки ті, що зі знижкою, зберігаючи обране в Epic сортування. Знижку визначено за значком з відсотком або за закресленою початковою ціною. Запам’ятовується окремо, незалежно від того, чи ввімкнено «Запам’ятовувати сортування та фільтри».',
+                '– Запам’ятовувати сортування та фільтри: зберігає обрані в Epic сортування та фільтри бічної панелі і застосовує їх при поверненні.',
+                '– Скопіювати посилання з фільтрами: створює посилання, яке при відкритті відтворює ваше сортування, фільтри та стан «лише зі знижкою». Якщо браузер блокує буфер обміну, посилання показується в діалозі для копіювання вручну.',
+                'Усе виконується у вашому браузері (зберігається в localStorage); жодні дані не надсилаються на сервер.',
+            ],
+        },
+        cs: {
+            remember: 'Zapamatovat řazení a filtry',
+            onlyDiscount: 'Pouze zlevněné',
+            copyLink: '🔗 Kopírovat odkaz s filtry',
+            copied: '✔ Odkaz zkopírován',
+            copyPrompt: 'Zkopírujte tento odkaz:',
+            about: 'ℹ️ Zjistit více',
+            close: 'Zavřít',
+            rememberTip: 'Uloží řazení a filtry zvolené v Epicu a znovu je použije pokaždé, když se vrátíte na seznam přání.',
+            onlyDiscountTip: 'Projde CELÝ váš seznam (Epic ho načítá po dávkách při posouvání), aby našel všechny hry a skryl ty, které nejsou ve slevě. Řazení zvolené v Epicu zůstává zachováno. Slevy se poznají podle štítku s procenty nebo podle přeškrtnuté původní ceny.',
+            copyLinkTip: 'Vytvoří adresu URL, která po otevření s nainstalovaným skriptem obnoví vaše aktuální řazení a filtry (včetně „pouze zlevněné“).',
+            ggTip: 'Vyhledá název na GG.deals s filtrem DRM Epic. Protože jde o vyhledávání podle názvu, nemusí najít přesnou hru.',
+            pcgwTip: 'Vyhledá název na PCGamingWiki (kompatibilita a opravy). Protože jde o vyhledávání podle názvu, nemusí najít přesný článek.',
+            aboutTip: 'Zobrazit vše, co tento skript dělá.',
+            aboutTitle: 'Co tento skript dělá?',
+            aboutBody: [
+                'Tento skript propojuje Epic Games Store s EGData a vylepšuje váš seznam přání.',
+                '• Na stránkách produktu (/p/) a balíčku (/bundles/): přidává tři tlačítka pod tlačítko nákupu.',
+                '– EGData (databáze cen a historie slev) odkazuje přesně na tuto nabídku, ne na vyhledávání.',
+                '– GG.deals hledá název mezi nabídkami s DRM Epic, bez výchozího minimálního hodnocení obchodů, a PCGamingWiki ho hledá kvůli kompatibilitě a opravám. Obojí je vyhledávání podle názvu, takže se může minout; každé to uvádí ve své nápovědě.',
+                '– Jedna sada tlačítek na každé tlačítko nákupu: balíčky mají dvě (horní lišta a sekce „Buy …“) a obě dostanou svou.',
+                '– Přechod uvnitř obchodu na produkt nebo balíček znovu načte stránku. Epic je jednostránková aplikace a skript nebyl aktivní na domovské stránce, ve vyhledávání ani v katalogu; právě toto načtení zaručí, že se tlačítko objeví.',
+                '• Na vašem seznamu přání (/wishlist) přidává lištu se třemi nástroji:',
+                '– Pouze zlevněné: automaticky projde celý seznam (Epic ho načítá po dávkách při posouvání), aby našel VŠECHNY hry a zobrazil jen ty ve slevě, se zachováním řazení zvoleného v Epicu. Slevy se poznají podle štítku s procenty nebo podle přeškrtnuté původní ceny. Pamatuje se samostatně, ať už je „Zapamatovat řazení a filtry“ zapnuté, nebo ne.',
+                '– Zapamatovat řazení a filtry: uloží řazení a filtry postranního panelu zvolené v Epicu a znovu je použije po návratu.',
+                '– Kopírovat odkaz s filtry: vytvoří adresu URL, která po otevření obnoví vaše řazení, filtry a stav „pouze zlevněné“. Pokud prohlížeč zablokuje schránku, zobrazí adresu v dialogu, abyste ji mohli zkopírovat ručně.',
+                'Vše probíhá ve vašem prohlížeči (uloženo v localStorage); na žádný server se neodesílají data.',
+            ],
+        },
+        da: {
+            remember: 'Husk sortering og filtre',
+            onlyDiscount: 'Kun nedsatte',
+            copyLink: '🔗 Kopiér link med filtre',
+            copied: '✔ Link kopieret',
+            copyPrompt: 'Kopiér dette link:',
+            about: 'ℹ️ Læs mere',
+            close: 'Luk',
+            rememberTip: 'Gemmer den sortering og de filtre, du vælger i Epic, og anvender dem automatisk igen, hver gang du vender tilbage til ønskelisten.',
+            onlyDiscountTip: 'Scroller gennem HELE din liste (Epic indlæser den i portioner, når du scroller) for at finde alle spil og skjule dem, der ikke er på tilbud. Den sortering, du vælger i Epic, bevares. Rabatter genkendes på procentmærket eller den overstregede originalpris.',
+            copyLinkTip: 'Bygger en URL, der ved åbning med scriptet installeret gendanner din nuværende sortering og dine filtre (inklusive "kun nedsatte").',
+            ggTip: 'Søger efter titlen på GG.deals med Epics DRM-filter. Da det er en titelsøgning, rammer den ikke altid det præcise spil.',
+            pcgwTip: 'Søger efter titlen på PCGamingWiki (kompatibilitet og rettelser). Da det er en titelsøgning, rammer den ikke altid den præcise artikel.',
+            aboutTip: 'Se alt, hvad dette script gør.',
+            aboutTitle: 'Hvad gør dette script?',
+            aboutBody: [
+                'Dette script forbinder Epic Games Store med EGData og forbedrer din ønskeliste.',
+                '• På produkt- (/p/) og bundtsider (/bundles/): tilføjer tre knapper under købsknappen.',
+                '– EGData (en database over priser og tilbudshistorik) linker til præcis det tilbud, ikke til en søgning.',
+                '– GG.deals søger efter titlen blandt tilbud med Epic-DRM, uden den minimumsbutiksvurdering der gælder som standard, og PCGamingWiki søger efter den for kompatibilitet og rettelser. Begge er titelsøgninger og kan ramme forkert; hver enkelt siger det i sit værktøjstip.',
+                '– Ét sæt knapper pr. købsknap: bundter har to (bjælken øverst og afsnittet "Buy …"), og begge får deres.',
+                '– At navigere inde i butikken til et produkt eller et bundt genindlæser siden. Epic er en single-page-app, og scriptet var ikke aktivt på forsiden, i søgningen eller i katalogget; netop den genindlæsning sikrer, at knappen dukker op.',
+                '• På din ønskeliste (/wishlist) tilføjes en bjælke med tre værktøjer:',
+                '– Kun nedsatte: scroller automatisk gennem hele listen (Epic indlæser den i portioner, når du scroller) for at finde ALLE spil og kun vise dem på tilbud, med den sortering du valgte i Epic. Rabatter genkendes på procentmærket eller den overstregede originalpris. Det huskes for sig selv, uanset om "Husk sortering og filtre" er slået til.',
+                '– Husk sortering og filtre: gemmer den sortering og de sidepanelfiltre, du vælger i Epic, og anvender dem igen, når du kommer tilbage.',
+                '– Kopiér link med filtre: bygger en URL, der ved åbning gendanner din sortering, dine filtre og tilstanden for "kun nedsatte". Blokerer browseren udklipsholderen, vises URL\'en i en dialog, så du kan kopiere den i hånden.',
+                'Alt kører i din browser (gemt i localStorage); der sendes ingen data til nogen server.',
+            ],
+        },
+        fi: {
+            remember: 'Muista lajittelu ja suodattimet',
+            onlyDiscount: 'Vain alennetut',
+            copyLink: '🔗 Kopioi linkki suodattimineen',
+            copied: '✔ Linkki kopioitu',
+            copyPrompt: 'Kopioi tämä linkki:',
+            about: 'ℹ️ Lue lisää',
+            close: 'Sulje',
+            rememberTip: 'Tallentaa Epicissä valitsemasi lajittelun ja suodattimet ja ottaa ne automaattisesti uudelleen käyttöön aina, kun palaat toivelistalle.',
+            onlyDiscountTip: 'Vierittää KOKO listasi läpi (Epic lataa sen erissä vierityksen aikana) löytääkseen kaikki pelit ja piilottaakseen ne, jotka eivät ole tarjouksessa. Epicissä valitsemasi lajittelu säilyy. Alennukset tunnistetaan prosenttimerkinnästä tai yliviivatusta alkuperäishinnasta.',
+            copyLinkTip: 'Muodostaa osoitteen, joka skripti asennettuna avattaessa palauttaa nykyisen lajittelusi ja suodattimesi (mukaan lukien "vain alennetut").',
+            ggTip: 'Hakee nimen GG.deals-sivustolta Epicin DRM-suodattimella. Koska kyseessä on nimihaku, se ei aina osu täsmälleen oikeaan peliin.',
+            pcgwTip: 'Hakee nimen PCGamingWikistä (yhteensopivuus ja korjaukset). Koska kyseessä on nimihaku, se ei aina osu täsmälleen oikeaan artikkeliin.',
+            aboutTip: 'Katso kaikki, mitä tämä skripti tekee.',
+            aboutTitle: 'Mitä tämä skripti tekee?',
+            aboutBody: [
+                'Tämä skripti yhdistää Epic Games Storen EGDataan ja parantaa toivelistaasi.',
+                '• Tuote- (/p/) ja kokoelmasivuilla (/bundles/): lisää kolme painiketta ostopainikkeen alle.',
+                '– EGData (hintojen ja tarjoushistorian tietokanta) vie juuri siihen tarjoukseen, ei hakuun.',
+                '– GG.deals hakee nimen Epic-DRM-tarjousten joukosta ilman oletuksena käytössä olevaa kauppojen vähimmäisarvosanaa, ja PCGamingWiki hakee sen yhteensopivuutta ja korjauksia varten. Molemmat ovat nimihakuja ja voivat mennä ohi; kumpikin kertoo sen omassa vihjeessään.',
+                '– Yksi painikesarja jokaista ostopainiketta kohden: kokoelmilla niitä on kaksi (ylapalkki ja "Buy …" -osio) ja molemmat saavat omansa.',
+                '– Kaupan sisällä tuotteeseen tai kokoelmaan siirtyminen lataa sivun uudelleen. Epic on yhden sivun sovellus eikä skripti ollut aktiivinen etusivulla, haussa tai selauksessa; juuri tuo uudelleenlataus takaa, että painike ilmestyy.',
+                '• Toivelistallesi (/wishlist) lisätään palkki, jossa on kolme työkalua:',
+                '– Vain alennetut: vierittää automaattisesti koko listan läpi (Epic lataa sen erissä vierityksen aikana) löytääkseen KAIKKI pelit ja näyttääkseen vain tarjouksessa olevat, säilyttäen Epicissä valitsemasi lajittelun. Alennukset tunnistetaan prosenttimerkinnästä tai yliviivatusta alkuperäishinnasta. Tämä muistetaan erikseen riippumatta siitä, onko "Muista lajittelu ja suodattimet" päällä.',
+                '– Muista lajittelu ja suodattimet: tallentaa Epicissä valitsemasi lajittelun ja sivupalkin suodattimet ja ottaa ne uudelleen käyttöön palatessasi.',
+                '– Kopioi linkki suodattimineen: muodostaa osoitteen, joka avattaessa palauttaa lajittelusi, suodattimesi ja "vain alennetut" -tilan. Jos selain estää leikepöydän, osoite näytetään valintaikkunassa käsin kopioitavaksi.',
+                'Kaikki tapahtuu selaimessasi (tallennetaan localStorageen); mitään tietoja ei lähetetä palvelimelle.',
+            ],
+        },
+        sv: {
+            remember: 'Kom ihåg sortering och filter',
+            onlyDiscount: 'Endast rabatterade',
+            copyLink: '🔗 Kopiera länk med filter',
+            copied: '✔ Länk kopierad',
+            copyPrompt: 'Kopiera den här länken:',
+            about: 'ℹ️ Läs mer',
+            close: 'Stäng',
+            rememberTip: 'Sparar den sortering och de filter du väljer i Epic och tillämpar dem automatiskt varje gång du återvänder till önskelistan.',
+            onlyDiscountTip: 'Skrollar genom HELA din lista (Epic laddar den i omgångar när du skrollar) för att hitta alla spel och dölja dem som inte är på rea. Sorteringen du väljer i Epic behålls. Rabatter känns igen på procentmärket eller det överstrukna originalpriset.',
+            copyLinkTip: 'Bygger en URL som, öppnad med skriptet installerat, återskapar din nuvarande sortering och dina filter (inklusive "endast rabatterade").',
+            ggTip: 'Söker efter titeln på GG.deals med Epics DRM-filter. Eftersom det är en titelsökning hittas inte alltid exakt rätt spel.',
+            pcgwTip: 'Söker efter titeln på PCGamingWiki (kompatibilitet och fixar). Eftersom det är en titelsökning hittas inte alltid exakt rätt artikel.',
+            aboutTip: 'Se allt som det här skriptet gör.',
+            aboutTitle: 'Vad gör det här skriptet?',
+            aboutBody: [
+                'Det här skriptet kopplar ihop Epic Games Store med EGData och förbättrar din önskelista.',
+                '• På produkt- (/p/) och paketsidor (/bundles/): lägger till tre knappar under köpknappen.',
+                '– EGData (en databas över priser och reahistorik) länkar till exakt det erbjudandet, inte till en sökning.',
+                '– GG.deals söker efter titeln bland erbjudanden med Epic-DRM, utan det lägsta butiksbetyg som gäller som standard, och PCGamingWiki söker efter den för kompatibilitet och fixar. Båda är titelsökningar och kan missa; var och en säger det i sin verktygstips.',
+                '– En uppsättning knappar per köpknapp: paket har två (fältet högst upp och avsnittet "Buy …") och båda får sina.',
+                '– Att navigera inne i butiken till en produkt eller ett paket laddar om sidan. Epic är en ensidesapp och skriptet var inte aktivt på startsidan, i sökningen eller i katalogen; det är just den omladdningen som garanterar att knappen dyker upp.',
+                '• På din önskelista (/wishlist) läggs ett fält med tre verktyg till:',
+                '– Endast rabatterade: skrollar automatiskt genom hela listan (Epic laddar den i omgångar när du skrollar) för att hitta ALLA spel och bara visa dem som är på rea, med den sortering du valde i Epic. Rabatter känns igen på procentmärket eller det överstrukna originalpriset. Det kommer ihåg för sig självt, oavsett om "Kom ihåg sortering och filter" är på.',
+                '– Kom ihåg sortering och filter: sparar den sortering och de sidofältsfilter du väljer i Epic och tillämpar dem när du kommer tillbaka.',
+                '– Kopiera länk med filter: bygger en URL som vid öppning återskapar din sortering, dina filter och läget för "endast rabatterade". Om webbläsaren blockerar urklipp visas URL:en i en dialogruta så att du kan kopiera den för hand.',
+                'Allt körs i din webbläsare (sparat i localStorage); inga data skickas till någon server.',
+            ],
+        },
+        no: {
+            remember: 'Husk sortering og filtre',
+            onlyDiscount: 'Kun nedsatte',
+            copyLink: '🔗 Kopier lenke med filtre',
+            copied: '✔ Lenke kopiert',
+            copyPrompt: 'Kopier denne lenken:',
+            about: 'ℹ️ Les mer',
+            close: 'Lukk',
+            rememberTip: 'Lagrer sorteringen og filtrene du velger i Epic, og bruker dem automatisk igjen hver gang du kommer tilbake til ønskelisten.',
+            onlyDiscountTip: 'Blar gjennom HELE listen din (Epic laster den i puljer når du blar) for å finne alle spill og skjule dem som ikke er på tilbud. Sorteringen du velger i Epic beholdes. Rabatter gjenkjennes på prosentmerket eller den overstrøkne originalprisen.',
+            copyLinkTip: 'Bygger en URL som, åpnet med skriptet installert, gjenskaper din nåværende sortering og dine filtre (inkludert "kun nedsatte").',
+            ggTip: 'Søker etter tittelen på GG.deals med Epics DRM-filter. Siden det er et tittelsøk, treffer det ikke alltid det eksakte spillet.',
+            pcgwTip: 'Søker etter tittelen på PCGamingWiki (kompatibilitet og fikser). Siden det er et tittelsøk, treffer det ikke alltid den eksakte artikkelen.',
+            aboutTip: 'Se alt dette skriptet gjør.',
+            aboutTitle: 'Hva gjør dette skriptet?',
+            aboutBody: [
+                'Dette skriptet kobler Epic Games Store til EGData og forbedrer ønskelisten din.',
+                '• På produkt- (/p/) og pakkesider (/bundles/): legger til tre knapper under kjøpsknappen.',
+                '– EGData (en database over priser og tilbudshistorikk) lenker til akkurat det tilbudet, ikke til et søk.',
+                '– GG.deals søker etter tittelen blant tilbud med Epic-DRM, uten minstekravet til butikkvurdering som gjelder som standard, og PCGamingWiki søker etter den for kompatibilitet og fikser. Begge er tittelsøk og kan bomme; hver av dem sier det i verktøytipset sitt.',
+                '– Ett sett knapper per kjøpsknapp: pakker har to (linjen øverst og delen "Buy …"), og begge får sine.',
+                '– Å navigere inne i butikken til et produkt eller en pakke laster siden på nytt. Epic er en ensides app, og skriptet var ikke aktivt på forsiden, i søket eller i katalogen; nettopp den innlastingen garanterer at knappen dukker opp.',
+                '• På ønskelisten din (/wishlist) legges det til en linje med tre verktøy:',
+                '– Kun nedsatte: blar automatisk gjennom hele listen (Epic laster den i puljer når du blar) for å finne ALLE spill og bare vise dem som er på tilbud, med sorteringen du valgte i Epic. Rabatter gjenkjennes på prosentmerket eller den overstrøkne originalprisen. Det huskes for seg selv, uansett om "Husk sortering og filtre" er på.',
+                '– Husk sortering og filtre: lagrer sorteringen og sidepanelfiltrene du velger i Epic, og bruker dem igjen når du kommer tilbake.',
+                '– Kopier lenke med filtre: bygger en URL som ved åpning gjenskaper sorteringen din, filtrene dine og tilstanden for "kun nedsatte". Blokkerer nettleseren utklippstavlen, vises URL-en i en dialog så du kan kopiere den for hånd.',
+                'Alt kjører i nettleseren din (lagret i localStorage); ingen data sendes til noen server.',
+            ],
+        },
+        hu: {
+            remember: 'Rendezés és szűrők megjegyzése',
+            onlyDiscount: 'Csak akciós',
+            copyLink: '🔗 Link másolása szűrőkkel',
+            copied: '✔ Link másolva',
+            copyPrompt: 'Másold ki ezt a linket:',
+            about: 'ℹ️ További információ',
+            close: 'Bezárás',
+            rememberTip: 'Elmenti az Epicben kiválasztott rendezést és szűrőket, és automatikusan újra alkalmazza őket, valahányszor visszatérsz a kívánságlistához.',
+            onlyDiscountTip: 'Végiggörgeti a TELJES listádat (az Epic görgetéskor adagokban tölti be), hogy megtaláljon minden játékot, és elrejtse azokat, amelyek nincsenek akcióban. Az Epicben választott rendezés megmarad. Az akciót a százalékos jelvény vagy az áthúzott eredeti ár alapján ismeri fel.',
+            copyLinkTip: 'Olyan URL-t készít, amely a szkript telepítése mellett megnyitva visszaállítja a jelenlegi rendezésedet és szűrőidet (a „csak akciós” beállítással együtt).',
+            ggTip: 'Megkeresi a címet a GG.deals oldalon az Epic DRM-szűrőjével. Mivel cím szerinti keresés, előfordulhat, hogy nem a pontos játékot találja meg.',
+            pcgwTip: 'Megkeresi a címet a PCGamingWikin (kompatibilitás és javítások). Mivel cím szerinti keresés, előfordulhat, hogy nem a pontos szócikket találja meg.',
+            aboutTip: 'Nézd meg mindazt, amit ez a szkript csinál.',
+            aboutTitle: 'Mit csinál ez a szkript?',
+            aboutBody: [
+                'Ez a szkript összeköti az Epic Games Store-t az EGDatával, és feljavítja a kívánságlistádat.',
+                '• Termék- (/p/) és csomagoldalakon (/bundles/): három gombot ad a vásárlás gomb alá.',
+                '– Az EGData (ár- és akciótörténeti adatbázis) pontosan arra az ajánlatra mutat, nem keresésre.',
+                '– A GG.deals az Epic DRM-es ajánlatok között keresi a címet, az alapértelmezett minimális bolti értékelés nélkül, a PCGamingWiki pedig kompatibilitás és javítások miatt keresi. Mindkettő cím szerinti keresés, tehát mellényúlhat; mindegyik jelzi ezt a saját buboréksúgójában.',
+                '– Vásárlás gombonként egy gombkészlet: a csomagoknak kettő van (a felső sáv és a „Buy …” szakasz), és mindkettő megkapja a sajátját.',
+                '– Ha a bolton belül egy termékre vagy csomagra navigálsz, az oldal újratöltődik. Az Epic egyoldalas alkalmazás, és a szkript nem volt aktív a főoldalon, a keresésben vagy a katalógusban; éppen ez az újratöltés garantálja, hogy a gomb megjelenjen.',
+                '• A kívánságlistádon (/wishlist) egy háromeszközös sávot ad hozzá:',
+                '– Csak akciós: automatikusan végiggörgeti az egész listát (az Epic görgetéskor adagokban tölti be), hogy MINDEN játékot megtaláljon, és csak az akciósakat mutassa, megtartva az Epicben választott rendezést. Az akciót a százalékos jelvény vagy az áthúzott eredeti ár alapján ismeri fel. Külön jegyzi meg, függetlenül attól, hogy a „Rendezés és szűrők megjegyzése” be van-e kapcsolva.',
+                '– Rendezés és szűrők megjegyzése: elmenti az Epicben választott rendezést és az oldalsáv szűrőit, és visszatéréskor újra alkalmazza őket.',
+                '– Link másolása szűrőkkel: olyan URL-t készít, amely megnyitva visszaállítja a rendezésedet, a szűrőidet és a „csak akciós” állapotot. Ha a böngésző letiltja a vágólapot, párbeszédablakban jeleníti meg az URL-t, hogy kézzel másolhasd.',
+                'Minden a böngésződben fut (a localStorage-ban tárolva); semmilyen adat nem kerül szerverre.',
+            ],
+        },
+        ro: {
+            remember: 'Reține sortarea și filtrele',
+            onlyDiscount: 'Doar reduse',
+            copyLink: '🔗 Copiază linkul cu filtre',
+            copied: '✔ Link copiat',
+            copyPrompt: 'Copiază acest link:',
+            about: 'ℹ️ Află mai multe',
+            close: 'Închide',
+            rememberTip: 'Salvează sortarea și filtrele alese în Epic și le reaplică automat de fiecare dată când revii la lista de dorințe.',
+            onlyDiscountTip: 'Parcurge ÎNTREAGA ta listă (Epic o încarcă în loturi pe măsură ce derulezi) pentru a detecta toate jocurile și a le ascunde pe cele care nu sunt la reducere. Păstrează sortarea aleasă în Epic. Reducerile sunt detectate după insigna cu procentul sau după prețul inițial tăiat.',
+            copyLinkTip: 'Generează un URL care, deschis cu scriptul instalat, reproduce sortarea și filtrele tale actuale (inclusiv „doar reduse”).',
+            ggTip: 'Caută titlul pe GG.deals cu filtrul DRM Epic. Fiind o căutare după titlu, este posibil să nu găsească jocul exact.',
+            pcgwTip: 'Caută titlul pe PCGamingWiki (compatibilitate și remedieri). Fiind o căutare după titlu, este posibil să nu găsească articolul exact.',
+            aboutTip: 'Vezi tot ce face acest script.',
+            aboutTitle: 'Ce face acest script?',
+            aboutBody: [
+                'Acest script conectează Epic Games Store cu EGData și îți îmbunătățește lista de dorințe.',
+                '• Pe paginile de produs (/p/) și de pachet (/bundles/): adaugă trei butoane sub butonul de cumpărare.',
+                '– EGData (bază de date cu prețuri și istoric al reducerilor) duce exact la acea ofertă, nu la o căutare.',
+                '– GG.deals caută titlul printre ofertele cu DRM Epic, fără nota minimă de magazin aplicată implicit, iar PCGamingWiki îl caută pentru compatibilitate și remedieri. Ambele sunt căutări după titlu, deci pot greși; fiecare spune asta în indiciul său.',
+                '– Un set de butoane pentru fiecare buton de cumpărare: pachetele au două (bara de sus și secțiunea „Buy …”) și fiecare îl primește pe al său.',
+                '– Navigarea în interiorul magazinului către un produs sau un pachet reîncarcă pagina. Epic este o aplicație cu o singură pagină, iar scriptul nu era activ pe pagina principală, în căutare sau în catalog; tocmai acea reîncărcare garantează apariția butonului.',
+                '• Pe lista ta de dorințe (/wishlist) adaugă o bară cu trei instrumente:',
+                '– Doar reduse: parcurge automat toată lista (Epic o încarcă în loturi pe măsură ce derulezi) pentru a detecta TOATE jocurile și a le afișa doar pe cele la reducere, păstrând sortarea aleasă în Epic. Reducerile sunt detectate după insigna cu procentul sau după prețul inițial tăiat. Se reține separat, indiferent dacă „Reține sortarea și filtrele” este activ.',
+                '– Reține sortarea și filtrele: salvează sortarea și filtrele din bara laterală alese în Epic și le reaplică la revenire.',
+                '– Copiază linkul cu filtre: generează un URL care, la deschidere, reproduce sortarea, filtrele și starea „doar reduse”. Dacă browserul blochează clipboardul, afișează URL-ul într-o fereastră pentru a-l copia manual.',
+                'Totul se procesează în browserul tău (salvat în localStorage); nu se trimit date către niciun server.',
+            ],
+        },
+        bg: {
+            remember: 'Запомняне на подредбата и филтрите',
+            onlyDiscount: 'Само с намаление',
+            copyLink: '🔗 Копиране на връзка с филтри',
+            copied: '✔ Връзката е копирана',
+            copyPrompt: 'Копирайте тази връзка:',
+            about: 'ℹ️ Научете повече',
+            close: 'Затваряне',
+            rememberTip: 'Запазва избраните в Epic подредба и филтри и ги прилага автоматично всеки път, когато се върнете в списъка с желания.',
+            onlyDiscountTip: 'Превърта ЦЕЛИЯ ви списък (Epic го зарежда на партиди при превъртане), за да открие всички игри и да скрие тези, които не са в промоция. Подредбата, избрана в Epic, се запазва. Намаленията се разпознават по значката с процент или по зачеркнатата първоначална цена.',
+            copyLinkTip: 'Създава адрес, който при отваряне с инсталиран скрипт възстановява текущите ви подредба и филтри (включително „само с намаление“).',
+            ggTip: 'Търси заглавието в GG.deals с филтъра за DRM на Epic. Тъй като е търсене по заглавие, може да не намери точната игра.',
+            pcgwTip: 'Търси заглавието в PCGamingWiki (съвместимост и поправки). Тъй като е търсене по заглавие, може да не намери точната статия.',
+            aboutTip: 'Вижте всичко, което прави този скрипт.',
+            aboutTitle: 'Какво прави този скрипт?',
+            aboutBody: [
+                'Този скрипт свързва Epic Games Store с EGData и подобрява списъка ви с желания.',
+                '• На страници на продукт (/p/) и на пакет (/bundles/): добавя три бутона под бутона за покупка.',
+                '– EGData (база данни с цени и история на промоциите) води точно до тази оферта, а не до търсене.',
+                '– GG.deals търси заглавието сред офертите с DRM на Epic, без прилаганата по подразбиране минимална оценка на магазините, а PCGamingWiki го търси за съвместимост и поправки. И двете са търсения по заглавие, така че може да сгрешат; всяко го посочва в подсказката си.',
+                '– По един набор бутони на всеки бутон за покупка: пакетите имат два (лентата отгоре и разделът „Buy …“) и всеки получава своя.',
+                '– Придвижването в магазина към продукт или пакет презарежда страницата. Epic е приложение с една страница и скриптът не беше активен на началната страница, в търсенето или в каталога; именно това презареждане гарантира появата на бутона.',
+                '• В списъка ви с желания (/wishlist) добавя лента с три инструмента:',
+                '– Само с намаление: автоматично превърта целия списък (Epic го зарежда на партиди при превъртане), за да открие ВСИЧКИ игри и да покаже само тези в промоция, като запазва избраната в Epic подредба. Намаленията се разпознават по значката с процент или по зачеркнатата първоначална цена. Запомня се отделно, независимо дали „Запомняне на подредбата и филтрите“ е включено.',
+                '– Запомняне на подредбата и филтрите: запазва избраните в Epic подредба и филтри от страничната лента и ги прилага при връщане.',
+                '– Копиране на връзка с филтри: създава адрес, който при отваряне възстановява подредбата, филтрите и състоянието „само с намаление“. Ако браузърът блокира клипборда, адресът се показва в диалог за ръчно копиране.',
+                'Всичко се обработва във вашия браузър (запазва се в localStorage); не се изпращат данни към никакъв сървър.',
+            ],
+        },
+        tr: {
+            remember: 'Sıralama ve filtreleri hatırla',
+            onlyDiscount: 'Yalnızca indirimliler',
+            copyLink: '🔗 Filtreli bağlantıyı kopyala',
+            copied: '✔ Bağlantı kopyalandı',
+            copyPrompt: 'Bu bağlantıyı kopyalayın:',
+            about: 'ℹ️ Daha fazla bilgi',
+            close: 'Kapat',
+            rememberTip: 'Epic’te seçtiğiniz sıralama ve filtreleri kaydeder ve istek listesine her döndüğünüzde otomatik olarak yeniden uygular.',
+            onlyDiscountTip: 'TÜM listenizi kaydırarak gezer (Epic kaydırdıkça listeyi partiler hâlinde yükler); böylece bütün oyunları bulur ve indirimde olmayanları gizler. Epic’te seçtiğiniz sıralama korunur. İndirimler yüzde rozetinden veya üstü çizili orijinal fiyattan anlaşılır.',
+            copyLinkTip: 'Betik kuruluyken açıldığında mevcut sıralamanızı ve filtrelerinizi ("yalnızca indirimliler" dâhil) geri getiren bir adres oluşturur.',
+            ggTip: 'Başlığı GG.deals üzerinde Epic DRM filtresiyle arar. Başlığa göre arama olduğu için tam olarak aradığınız oyunu bulamayabilir.',
+            pcgwTip: 'Başlığı PCGamingWiki üzerinde arar (uyumluluk ve düzeltmeler). Başlığa göre arama olduğu için tam olarak aradığınız makaleyi bulamayabilir.',
+            aboutTip: 'Bu betiğin yaptığı her şeyi görün.',
+            aboutTitle: 'Bu betik ne yapar?',
+            aboutBody: [
+                'Bu betik Epic Games Store’u EGData ile birleştirir ve istek listenizi geliştirir.',
+                '• Ürün (/p/) ve paket (/bundles/) sayfalarında: satın alma düğmesinin altına üç düğme ekler.',
+                '– EGData (fiyat ve indirim geçmişi veritabanı) bir aramaya değil, tam olarak o teklife bağlanır.',
+                '– GG.deals başlığı Epic DRM’li fırsatlar arasında, varsayılan mağaza puanı alt sınırı olmadan arar; PCGamingWiki ise uyumluluk ve düzeltmeler için arar. İkisi de başlığa göre arama yaptığından ıskalayabilir; her biri bunu kendi ipucunda belirtir.',
+                '– Her satın alma düğmesi için bir düğme takımı: paketlerde iki tane vardır (üstteki çubuk ve "Buy …" bölümü) ve her ikisi de kendi takımını alır.',
+                '– Mağaza içinde bir ürüne veya pakete gitmek sayfayı yeniden yükler. Epic tek sayfalık bir uygulamadır ve betik ana sayfada, aramada veya katalogda etkin değildi; düğmenin görünmesini garantileyen tam da bu yeniden yüklemedir.',
+                '• İstek listenizde (/wishlist) üç araçlı bir çubuk ekler:',
+                '– Yalnızca indirimliler: tüm listeyi otomatik olarak kaydırır (Epic kaydırdıkça listeyi partiler hâlinde yükler), BÜTÜN oyunları bulur ve Epic’te seçtiğiniz sıralamayı koruyarak yalnızca indirimde olanları gösterir. İndirimler yüzde rozetinden veya üstü çizili orijinal fiyattan anlaşılır. "Sıralama ve filtreleri hatırla" açık olsun olmasın, kendi başına hatırlanır.',
+                '– Sıralama ve filtreleri hatırla: Epic’te seçtiğiniz sıralamayı ve kenar çubuğu filtrelerini kaydeder ve geri döndüğünüzde yeniden uygular.',
+                '– Filtreli bağlantıyı kopyala: açıldığında sıralamanızı, filtrelerinizi ve "yalnızca indirimliler" durumunu geri getiren bir adres oluşturur. Tarayıcı panoyu engellerse adresi elle kopyalayabilmeniz için bir iletişim kutusunda gösterir.',
+                'Her şey tarayıcınızda işlenir (localStorage’da saklanır); hiçbir sunucuya veri gönderilmez.',
+            ],
+        },
+        ar: {
+            remember: 'تذكّر الترتيب وعوامل التصفية',
+            onlyDiscount: 'المخفَّضة فقط',
+            copyLink: '🔗 نسخ الرابط مع عوامل التصفية',
+            copied: '✔ تم نسخ الرابط',
+            copyPrompt: 'انسخ هذا الرابط:',
+            about: 'ℹ️ معرفة المزيد',
+            close: 'إغلاق',
+            rememberTip: 'يحفظ الترتيب وعوامل التصفية التي تختارها في Epic ويعيد تطبيقها تلقائيًا في كل مرة تعود فيها إلى قائمة الرغبات.',
+            onlyDiscountTip: 'يمرّر خلال قائمتك بالكامل (تحمّلها Epic على دفعات أثناء التمرير) للعثور على كل الألعاب وإخفاء غير المخفَّضة منها. يحافظ على الترتيب الذي تختاره في Epic. يُكتشف التخفيض من شارة النسبة المئوية أو من السعر الأصلي المشطوب.',
+            copyLinkTip: 'ينشئ رابطًا يعيد، عند فتحه والبرنامج النصي مثبَّت، ترتيبك وعوامل التصفية الحالية (بما في ذلك «المخفَّضة فقط»).',
+            ggTip: 'يبحث عن العنوان في GG.deals باستخدام مرشّح حماية Epic. لأنه بحث بالعنوان، قد لا يصل إلى اللعبة المطلوبة بالضبط.',
+            pcgwTip: 'يبحث عن العنوان في PCGamingWiki (التوافق والإصلاحات). لأنه بحث بالعنوان، قد لا يصل إلى المقالة المطلوبة بالضبط.',
+            aboutTip: 'اطّلع على كل ما يفعله هذا البرنامج النصي.',
+            aboutTitle: 'ماذا يفعل هذا البرنامج النصي؟',
+            aboutBody: [
+                'يربط هذا البرنامج النصي متجر Epic Games بـ EGData ويحسّن قائمة رغباتك.',
+                '• في صفحات المنتج (‎/p/‎) والحزم (‎/bundles/‎): يضيف ثلاثة أزرار أسفل زر الشراء.',
+                '– يقود EGData (قاعدة بيانات للأسعار وسجل العروض) إلى ذلك العرض بعينه، لا إلى بحث.',
+                '– يبحث GG.deals عن العنوان بين العروض ذات حماية Epic، من دون الحد الأدنى الافتراضي لتقييم المتاجر، ويبحث عنه PCGamingWiki من ناحية التوافق والإصلاحات. كلاهما بحث بالعنوان وقد يخطئ؛ ويوضّح كلٌّ منهما ذلك في تلميحه.',
+                '– مجموعة أزرار لكل زر شراء: للحزم زرّان (الشريط العلوي وقسم «Buy …»)، ويحصل كلٌّ منهما على مجموعته.',
+                '– التنقل داخل المتجر إلى منتج أو حزمة يعيد تحميل الصفحة. فـ Epic تطبيق ذو صفحة واحدة ولم يكن البرنامج النصي نشطًا في الصفحة الرئيسية ولا في البحث ولا في التصفح؛ وإعادة التحميل هذه هي ما يضمن ظهور الزر.',
+                '• في قائمة رغباتك (‎/wishlist‎) يضيف شريطًا بثلاث أدوات:',
+                '– المخفَّضة فقط: يمرّر تلقائيًا خلال القائمة كاملة (تحمّلها Epic على دفعات أثناء التمرير) للعثور على كل الألعاب وعرض المخفَّضة منها فقط، مع الحفاظ على الترتيب الذي اخترته في Epic. يُكتشف التخفيض من شارة النسبة المئوية أو من السعر الأصلي المشطوب. ويُحفَظ هذا الخيار وحده سواء كان «تذكّر الترتيب وعوامل التصفية» مفعَّلًا أم لا.',
+                '– تذكّر الترتيب وعوامل التصفية: يحفظ الترتيب وعوامل تصفية الشريط الجانبي التي تختارها في Epic ويعيد تطبيقها عند عودتك.',
+                '– نسخ الرابط مع عوامل التصفية: ينشئ رابطًا يعيد عند فتحه ترتيبك وعوامل تصفيتك وحالة «المخفَّضة فقط». وإذا منع المتصفح الحافظة، يعرض الرابط في مربع حوار لنسخه يدويًا.',
+                'تجري كل المعالجة في متصفحك (وتُحفَظ في localStorage)؛ ولا تُرسَل أي بيانات إلى أي خادم.',
+            ],
+        },
+        hi: {
+            remember: 'क्रम और फ़िल्टर याद रखें',
+            onlyDiscount: 'केवल छूट वाले',
+            copyLink: '🔗 फ़िल्टर सहित लिंक कॉपी करें',
+            copied: '✔ लिंक कॉपी हो गया',
+            copyPrompt: 'यह लिंक कॉपी करें:',
+            about: 'ℹ️ और जानें',
+            close: 'बंद करें',
+            rememberTip: 'Epic में चुने गए क्रम और फ़िल्टर सहेजता है और जब भी आप इच्छा-सूची पर लौटते हैं, उन्हें अपने आप फिर से लागू कर देता है।',
+            onlyDiscountTip: 'आपकी पूरी सूची स्क्रॉल करता है (स्क्रॉल करने पर Epic उसे बैचों में लोड करता है) ताकि सभी गेम पहचाने जा सकें और जो छूट पर नहीं हैं उन्हें छिपाया जा सके। Epic में चुना गया क्रम बना रहता है। छूट प्रतिशत बैज या काटे गए मूल मूल्य से पहचानी जाती है।',
+            copyLinkTip: 'ऐसा URL बनाता है जो स्क्रिप्ट इंस्टॉल होने पर खोलने से आपका मौजूदा क्रम और फ़िल्टर ("केवल छूट वाले" सहित) दोबारा लागू कर देता है।',
+            ggTip: 'GG.deals पर Epic DRM फ़िल्टर के साथ शीर्षक खोजता है। यह शीर्षक से खोज है, इसलिए हो सकता है कि सही गेम न मिले।',
+            pcgwTip: 'PCGamingWiki पर शीर्षक खोजता है (संगतता और सुधार)। यह शीर्षक से खोज है, इसलिए हो सकता है कि सही लेख न मिले।',
+            aboutTip: 'यह स्क्रिप्ट जो कुछ करती है, सब देखें।',
+            aboutTitle: 'यह स्क्रिप्ट क्या करती है?',
+            aboutBody: [
+                'यह स्क्रिप्ट Epic Games Store को EGData से जोड़ती है और आपकी इच्छा-सूची को बेहतर बनाती है।',
+                '• उत्पाद (/p/) और बंडल (/bundles/) पृष्ठों पर: खरीद बटन के नीचे तीन बटन जोड़ती है।',
+                '– EGData (कीमतों और छूट-इतिहास का डेटाबेस) खोज पर नहीं, ठीक उसी ऑफ़र पर ले जाता है।',
+                '– GG.deals शीर्षक को Epic DRM वाले ऑफ़रों में खोजता है, बिना उस डिफ़ॉल्ट न्यूनतम स्टोर रेटिंग के, और PCGamingWiki उसे संगतता तथा सुधारों के लिए खोजता है। दोनों शीर्षक से खोज हैं, इसलिए चूक सकते हैं; हर एक अपने टूलटिप में यह बताता है।',
+                '– हर खरीद बटन के लिए बटनों का एक सेट: बंडलों में दो होते हैं (ऊपर की पट्टी और "Buy …" अनुभाग) और दोनों को अपना-अपना मिलता है।',
+                '– स्टोर के भीतर किसी उत्पाद या बंडल पर जाने से पृष्ठ फिर से लोड होता है। Epic एक सिंगल-पेज ऐप है और स्क्रिप्ट होम, खोज या ब्राउज़ पर सक्रिय नहीं थी; वही रीलोड बटन के दिखने की गारंटी देता है।',
+                '• आपकी इच्छा-सूची (/wishlist) पर तीन औज़ारों वाली एक पट्टी जोड़ती है:',
+                '– केवल छूट वाले: पूरी सूची अपने आप स्क्रॉल करता है (स्क्रॉल करने पर Epic उसे बैचों में लोड करता है) ताकि सभी गेम पहचाने जा सकें और केवल छूट वाले दिखें, Epic में चुने गए क्रम को बनाए रखते हुए। छूट प्रतिशत बैज या काटे गए मूल मूल्य से पहचानी जाती है। यह अपने आप याद रहता है, चाहे "क्रम और फ़िल्टर याद रखें" चालू हो या न हो।',
+                '– क्रम और फ़िल्टर याद रखें: Epic में चुने गए क्रम और साइडबार फ़िल्टर सहेजता है और लौटने पर उन्हें फिर से लागू करता है।',
+                '– फ़िल्टर सहित लिंक कॉपी करें: ऐसा URL बनाता है जो खोलने पर आपका क्रम, आपके फ़िल्टर और "केवल छूट वाले" की स्थिति दोबारा लागू कर देता है। यदि ब्राउज़र क्लिपबोर्ड रोक दे, तो URL एक संवाद में दिखाया जाता है ताकि आप हाथ से कॉपी कर सकें।',
+                'सब कुछ आपके ब्राउज़र में चलता है (localStorage में सहेजा जाता है); किसी सर्वर पर कोई डेटा नहीं भेजा जाता।',
+            ],
+        },
+        id: {
+            remember: 'Ingat urutan dan filter',
+            onlyDiscount: 'Hanya yang diskon',
+            copyLink: '🔗 Salin tautan dengan filter',
+            copied: '✔ Tautan disalin',
+            copyPrompt: 'Salin tautan ini:',
+            about: 'ℹ️ Pelajari lebih lanjut',
+            close: 'Tutup',
+            rememberTip: 'Menyimpan urutan dan filter yang Anda pilih di Epic dan menerapkannya kembali secara otomatis setiap kali Anda kembali ke daftar keinginan.',
+            onlyDiscountTip: 'Menggulir SELURUH daftar Anda (Epic memuatnya bertahap saat digulir) untuk menemukan semua gim dan menyembunyikan yang tidak sedang diskon. Urutan yang Anda pilih di Epic tetap dipertahankan. Diskon dikenali dari lencana persentase atau dari harga asli yang dicoret.',
+            copyLinkTip: 'Membuat URL yang, saat dibuka dengan skrip terpasang, memulihkan urutan dan filter Anda saat ini (termasuk "hanya yang diskon").',
+            ggTip: 'Mencari judul di GG.deals dengan filter DRM Epic. Karena ini pencarian berdasarkan judul, hasilnya mungkin bukan gim yang tepat.',
+            pcgwTip: 'Mencari judul di PCGamingWiki (kompatibilitas dan perbaikan). Karena ini pencarian berdasarkan judul, hasilnya mungkin bukan artikel yang tepat.',
+            aboutTip: 'Lihat semua yang dilakukan skrip ini.',
+            aboutTitle: 'Apa yang dilakukan skrip ini?',
+            aboutBody: [
+                'Skrip ini menghubungkan Epic Games Store dengan EGData dan menyempurnakan daftar keinginan Anda.',
+                '• Di halaman produk (/p/) dan bundel (/bundles/): menambahkan tiga tombol di bawah tombol pembelian.',
+                '– EGData (basis data harga dan riwayat penawaran) menautkan tepat ke penawaran itu, bukan ke sebuah pencarian.',
+                '– GG.deals mencari judul di antara penawaran ber-DRM Epic, tanpa batas minimum rating toko yang berlaku secara bawaan, dan PCGamingWiki mencarinya untuk kompatibilitas dan perbaikan. Keduanya pencarian berdasarkan judul sehingga bisa meleset; masing-masing menyebutkannya di tooltip-nya.',
+                '– Satu set tombol per tombol pembelian: bundel punya dua (bilah di atas dan bagian "Buy …") dan keduanya mendapat miliknya.',
+                '– Menavigasi di dalam toko menuju produk atau bundel akan memuat ulang halaman. Epic adalah aplikasi satu halaman dan skrip tidak aktif di beranda, pencarian, maupun katalog; pemuatan ulang itulah yang menjamin tombol muncul.',
+                '• Di daftar keinginan Anda (/wishlist) ditambahkan bilah dengan tiga alat:',
+                '– Hanya yang diskon: menggulir seluruh daftar secara otomatis (Epic memuatnya bertahap saat digulir) untuk menemukan SEMUA gim dan hanya menampilkan yang sedang diskon, dengan mempertahankan urutan yang Anda pilih di Epic. Diskon dikenali dari lencana persentase atau dari harga asli yang dicoret. Ini diingat tersendiri, terlepas dari apakah "Ingat urutan dan filter" aktif atau tidak.',
+                '– Ingat urutan dan filter: menyimpan urutan dan filter bilah sisi yang Anda pilih di Epic dan menerapkannya kembali saat Anda kembali.',
+                '– Salin tautan dengan filter: membuat URL yang saat dibuka memulihkan urutan, filter, dan status "hanya yang diskon". Jika peramban memblokir papan klip, URL ditampilkan dalam dialog agar bisa disalin manual.',
+                'Semuanya diproses di peramban Anda (disimpan di localStorage); tidak ada data yang dikirim ke server mana pun.',
+            ],
+        },
+        ms: {
+            remember: 'Ingat susunan dan penapis',
+            onlyDiscount: 'Hanya yang didiskaun',
+            copyLink: '🔗 Salin pautan dengan penapis',
+            copied: '✔ Pautan disalin',
+            copyPrompt: 'Salin pautan ini:',
+            about: 'ℹ️ Ketahui lebih lanjut',
+            close: 'Tutup',
+            rememberTip: 'Menyimpan susunan dan penapis yang anda pilih di Epic dan menggunakannya semula secara automatik setiap kali anda kembali ke senarai hajat.',
+            onlyDiscountTip: 'Menatal SELURUH senarai anda (Epic memuatkannya secara berkelompok semasa menatal) untuk mengesan semua permainan dan menyembunyikan yang tidak dijual murah. Susunan yang anda pilih di Epic dikekalkan. Diskaun dikesan melalui lencana peratusan atau harga asal yang dipotong.',
+            copyLinkTip: 'Membina URL yang, apabila dibuka dengan skrip dipasang, memulihkan susunan dan penapis semasa anda (termasuk "hanya yang didiskaun").',
+            ggTip: 'Mencari tajuk di GG.deals dengan penapis DRM Epic. Oleh kerana ini carian mengikut tajuk, ia mungkin tidak menemui permainan yang tepat.',
+            pcgwTip: 'Mencari tajuk di PCGamingWiki (keserasian dan pembetulan). Oleh kerana ini carian mengikut tajuk, ia mungkin tidak menemui artikel yang tepat.',
+            aboutTip: 'Lihat semua yang dilakukan skrip ini.',
+            aboutTitle: 'Apakah yang dilakukan skrip ini?',
+            aboutBody: [
+                'Skrip ini menghubungkan Epic Games Store dengan EGData dan menambah baik senarai hajat anda.',
+                '• Pada halaman produk (/p/) dan pakej (/bundles/): menambah tiga butang di bawah butang pembelian.',
+                '– EGData (pangkalan data harga dan sejarah tawaran) memaut terus ke tawaran itu, bukan ke carian.',
+                '– GG.deals mencari tajuk dalam kalangan tawaran ber-DRM Epic, tanpa penarafan minimum kedai yang digunakan secara lalai, dan PCGamingWiki mencarinya untuk keserasian dan pembetulan. Kedua-duanya carian mengikut tajuk, jadi boleh tersasar; masing-masing menyatakannya dalam tip alatnya.',
+                '– Satu set butang bagi setiap butang pembelian: pakej mempunyai dua (bar di atas dan bahagian "Buy …") dan kedua-duanya mendapat set masing-masing.',
+                '– Menavigasi di dalam kedai ke sesuatu produk atau pakej akan memuat semula halaman. Epic ialah aplikasi satu halaman dan skrip tidak aktif di laman utama, carian atau katalog; muat semula itulah yang menjamin butang muncul.',
+                '• Pada senarai hajat anda (/wishlist) ditambah satu bar dengan tiga alat:',
+                '– Hanya yang didiskaun: menatal seluruh senarai secara automatik (Epic memuatkannya secara berkelompok semasa menatal) untuk mengesan SEMUA permainan dan hanya menunjukkan yang dijual murah, sambil mengekalkan susunan yang anda pilih di Epic. Diskaun dikesan melalui lencana peratusan atau harga asal yang dipotong. Ia diingat secara berasingan, sama ada "Ingat susunan dan penapis" dihidupkan atau tidak.',
+                '– Ingat susunan dan penapis: menyimpan susunan dan penapis bar sisi yang anda pilih di Epic dan menggunakannya semula apabila anda kembali.',
+                '– Salin pautan dengan penapis: membina URL yang apabila dibuka memulihkan susunan, penapis dan keadaan "hanya yang didiskaun". Jika pelayar menyekat papan keratan, URL dipaparkan dalam dialog untuk disalin secara manual.',
+                'Semuanya diproses dalam pelayar anda (disimpan dalam localStorage); tiada data dihantar ke mana-mana pelayan.',
+            ],
+        },
+        fil: {
+            remember: 'Tandaan ang pagkakasunod at mga filter',
+            onlyDiscount: 'May diskuwento lamang',
+            copyLink: '🔗 Kopyahin ang link na may filter',
+            copied: '✔ Nakopya ang link',
+            copyPrompt: 'Kopyahin ang link na ito:',
+            about: 'ℹ️ Alamin pa',
+            close: 'Isara',
+            rememberTip: 'Ini-save ang pagkakasunod at mga filter na pipiliin mo sa Epic at awtomatikong inilalapat muli ang mga ito sa tuwing babalik ka sa wishlist.',
+            onlyDiscountTip: 'Ini-scroll ang BUONG listahan mo (paunti-unti itong nilo-load ng Epic habang nagsi-scroll) para matukoy ang lahat ng laro at itago ang mga hindi naka-sale. Pinapanatili ang pagkakasunod na pinili mo sa Epic. Natutukoy ang diskuwento sa pamamagitan ng badge ng porsiyento o ng nakaekis na orihinal na presyo.',
+            copyLinkTip: 'Gumagawa ng URL na, kapag binuksan habang naka-install ang script, ibinabalik ang kasalukuyan mong pagkakasunod at mga filter (kasama ang "may diskuwento lamang").',
+            ggTip: 'Hinahanap ang pamagat sa GG.deals gamit ang Epic DRM filter. Dahil paghahanap ito sa pamagat, maaaring hindi ito tumama sa eksaktong laro.',
+            pcgwTip: 'Hinahanap ang pamagat sa PCGamingWiki (compatibility at mga fix). Dahil paghahanap ito sa pamagat, maaaring hindi ito tumama sa eksaktong artikulo.',
+            aboutTip: 'Tingnan ang lahat ng ginagawa ng script na ito.',
+            aboutTitle: 'Ano ang ginagawa ng script na ito?',
+            aboutBody: [
+                'Iniuugnay ng script na ito ang Epic Games Store sa EGData at pinapaganda ang wishlist mo.',
+                '• Sa mga pahina ng produkto (/p/) at bundle (/bundles/): nagdaragdag ng tatlong button sa ilalim ng button ng pagbili.',
+                '– Ang EGData (database ng mga presyo at kasaysayan ng deal) ay tumuturo mismo sa alok na iyon, hindi sa isang paghahanap.',
+                '– Hinahanap ng GG.deals ang pamagat sa mga deal na may Epic DRM, nang walang default na pinakamababang rating ng tindahan, at hinahanap naman ito ng PCGamingWiki para sa compatibility at mga fix. Pareho silang paghahanap sa pamagat kaya puwedeng sumablay; sinasabi ito ng bawat isa sa tooltip nito.',
+                '– Isang set ng button bawat button ng pagbili: may dalawa ang mga bundle (ang bar sa itaas at ang seksiyong "Buy …") at parehong may sariling set.',
+                '– Ang pag-navigate sa loob ng tindahan patungo sa isang produkto o bundle ay nagre-reload ng pahina. Single-page app ang Epic at hindi aktibo ang script sa home, paghahanap o browse; ang reload na iyon ang tumitiyak na lilitaw ang button.',
+                '• Sa wishlist mo (/wishlist) may idinaragdag na bar na may tatlong kasangkapan:',
+                '– May diskuwento lamang: awtomatikong ini-scroll ang buong listahan (paunti-unti itong nilo-load ng Epic habang nagsi-scroll) para matukoy ang LAHAT ng laro at ipakita lamang ang mga naka-sale, habang pinapanatili ang pagkakasunod na pinili mo sa Epic. Natutukoy ang diskuwento sa pamamagitan ng badge ng porsiyento o ng nakaekis na orihinal na presyo. Hiwalay itong naaalala, nakabukas man o hindi ang "Tandaan ang pagkakasunod at mga filter".',
+                '– Tandaan ang pagkakasunod at mga filter: ini-save ang pagkakasunod at ang mga filter sa sidebar na pipiliin mo sa Epic at inilalapat muli pagbalik mo.',
+                '– Kopyahin ang link na may filter: gumagawa ng URL na kapag binuksan ay ibinabalik ang pagkakasunod, mga filter at ang estado ng "may diskuwento lamang". Kung hinaharangan ng browser ang clipboard, ipinapakita ang URL sa isang dialog para makopya nang manu-mano.',
+                'Lahat ay pinoproseso sa browser mo (naka-save sa localStorage); walang datos na ipinapadala sa anumang server.',
+            ],
+        },
+        th: {
+            remember: 'จำการเรียงลำดับและตัวกรอง',
+            onlyDiscount: 'เฉพาะที่ลดราคา',
+            copyLink: '🔗 คัดลอกลิงก์พร้อมตัวกรอง',
+            copied: '✔ คัดลอกลิงก์แล้ว',
+            copyPrompt: 'คัดลอกลิงก์นี้:',
+            about: 'ℹ️ ดูเพิ่มเติม',
+            close: 'ปิด',
+            rememberTip: 'บันทึกการเรียงลำดับและตัวกรองที่คุณเลือกใน Epic แล้วนำกลับมาใช้โดยอัตโนมัติทุกครั้งที่คุณกลับมายังรายการที่อยากได้',
+            onlyDiscountTip: 'เลื่อนผ่านรายการของคุณทั้งหมด (Epic โหลดเป็นชุด ๆ ขณะเลื่อน) เพื่อตรวจหาเกมทุกเกมและซ่อนเกมที่ไม่ได้ลดราคา โดยคงการเรียงลำดับที่คุณเลือกใน Epic ไว้ ส่วนลดตรวจจับได้จากป้ายเปอร์เซ็นต์หรือราคาเดิมที่ถูกขีดฆ่า',
+            copyLinkTip: 'สร้าง URL ที่เมื่อเปิดขณะติดตั้งสคริปต์ไว้ จะคืนค่าการเรียงลำดับและตัวกรองปัจจุบันของคุณ (รวมถึง "เฉพาะที่ลดราคา")',
+            ggTip: 'ค้นหาชื่อเกมบน GG.deals ด้วยตัวกรอง DRM ของ Epic เนื่องจากเป็นการค้นหาด้วยชื่อ จึงอาจไม่ตรงกับเกมที่ต้องการพอดี',
+            pcgwTip: 'ค้นหาชื่อเกมบน PCGamingWiki (ความเข้ากันได้และการแก้ไข) เนื่องจากเป็นการค้นหาด้วยชื่อ จึงอาจไม่ตรงกับบทความที่ต้องการพอดี',
+            aboutTip: 'ดูทุกอย่างที่สคริปต์นี้ทำ',
+            aboutTitle: 'สคริปต์นี้ทำอะไร?',
+            aboutBody: [
+                'สคริปต์นี้เชื่อม Epic Games Store เข้ากับ EGData และปรับปรุงรายการที่อยากได้ของคุณ',
+                '• ในหน้าสินค้า (/p/) และหน้าชุดรวม (/bundles/): เพิ่มปุ่มสามปุ่มไว้ใต้ปุ่มซื้อ',
+                '– EGData (ฐานข้อมูลราคาและประวัติข้อเสนอ) ลิงก์ไปยังข้อเสนอนั้นโดยตรง ไม่ใช่ไปยังหน้าค้นหา',
+                '– GG.deals ค้นหาชื่อเกมในบรรดาข้อเสนอที่ใช้ DRM ของ Epic โดยไม่ใช้เกณฑ์คะแนนร้านค้าขั้นต่ำที่ตั้งไว้เป็นค่าเริ่มต้น ส่วน PCGamingWiki ค้นหาเพื่อดูความเข้ากันได้และการแก้ไข ทั้งคู่เป็นการค้นหาด้วยชื่อจึงอาจพลาดได้ และแต่ละปุ่มระบุเรื่องนี้ไว้ในคำแนะนำของตน',
+                '– ปุ่มหนึ่งชุดต่อปุ่มซื้อหนึ่งปุ่ม: ชุดรวมมีสองปุ่ม (แถบด้านบนและส่วน "Buy …") และทั้งสองจะได้ชุดของตัวเอง',
+                '– การเปลี่ยนหน้าไปยังสินค้าหรือชุดรวมภายในร้านจะทำให้หน้าโหลดใหม่ Epic เป็นแอปหน้าเดียวและสคริปต์ไม่ได้ทำงานอยู่ที่หน้าแรก หน้าค้นหา หรือหน้าเรียกดู การโหลดใหม่นี้เองที่รับประกันว่าปุ่มจะปรากฏ',
+                '• ในรายการที่อยากได้ (/wishlist) จะเพิ่มแถบเครื่องมือสามอย่าง:',
+                '– เฉพาะที่ลดราคา: เลื่อนผ่านรายการทั้งหมดโดยอัตโนมัติ (Epic โหลดเป็นชุด ๆ ขณะเลื่อน) เพื่อตรวจหาเกมทุกเกมและแสดงเฉพาะที่ลดราคา โดยคงการเรียงลำดับที่คุณเลือกใน Epic ไว้ ส่วนลดตรวจจับได้จากป้ายเปอร์เซ็นต์หรือราคาเดิมที่ถูกขีดฆ่า ค่านี้ถูกจดจำแยกต่างหาก ไม่ว่าจะเปิด "จำการเรียงลำดับและตัวกรอง" ไว้หรือไม่',
+                '– จำการเรียงลำดับและตัวกรอง: บันทึกการเรียงลำดับและตัวกรองในแถบข้างที่คุณเลือกใน Epic แล้วนำกลับมาใช้เมื่อคุณกลับมา',
+                '– คัดลอกลิงก์พร้อมตัวกรอง: สร้าง URL ที่เมื่อเปิดแล้วจะคืนค่าการเรียงลำดับ ตัวกรอง และสถานะ "เฉพาะที่ลดราคา" หากเบราว์เซอร์บล็อกคลิปบอร์ด จะแสดง URL ในกล่องโต้ตอบเพื่อให้คัดลอกเอง',
+                'ทุกอย่างประมวลผลในเบราว์เซอร์ของคุณ (เก็บไว้ใน localStorage) ไม่มีการส่งข้อมูลไปยังเซิร์ฟเวอร์ใด ๆ',
+            ],
+        },
+        vi: {
+            remember: 'Ghi nhớ sắp xếp và bộ lọc',
+            onlyDiscount: 'Chỉ hàng giảm giá',
+            copyLink: '🔗 Sao chép liên kết kèm bộ lọc',
+            copied: '✔ Đã sao chép liên kết',
+            copyPrompt: 'Sao chép liên kết này:',
+            about: 'ℹ️ Tìm hiểu thêm',
+            close: 'Đóng',
+            rememberTip: 'Lưu cách sắp xếp và các bộ lọc bạn chọn trên Epic rồi tự động áp dụng lại mỗi khi bạn quay lại danh sách mong muốn.',
+            onlyDiscountTip: 'Cuộn qua TOÀN BỘ danh sách của bạn (Epic tải theo từng đợt khi cuộn) để phát hiện mọi trò chơi và ẩn những trò không giảm giá. Cách sắp xếp bạn chọn trên Epic được giữ nguyên. Mức giảm được nhận biết qua nhãn phần trăm hoặc giá gốc bị gạch ngang.',
+            copyLinkTip: 'Tạo một URL mà khi mở với tập lệnh đã cài sẽ khôi phục cách sắp xếp và bộ lọc hiện tại của bạn (bao gồm "chỉ hàng giảm giá").',
+            ggTip: 'Tìm tựa đề trên GG.deals với bộ lọc DRM của Epic. Vì là tìm theo tên, kết quả có thể không phải trò chơi chính xác.',
+            pcgwTip: 'Tìm tựa đề trên PCGamingWiki (khả năng tương thích và bản sửa lỗi). Vì là tìm theo tên, kết quả có thể không phải bài viết chính xác.',
+            aboutTip: 'Xem mọi thứ tập lệnh này làm.',
+            aboutTitle: 'Tập lệnh này làm gì?',
+            aboutBody: [
+                'Tập lệnh này kết nối Epic Games Store với EGData và cải thiện danh sách mong muốn của bạn.',
+                '• Trên trang sản phẩm (/p/) và gói (/bundles/): thêm ba nút bên dưới nút mua.',
+                '– EGData (cơ sở dữ liệu giá và lịch sử khuyến mãi) dẫn đúng tới ưu đãi đó, không phải tới một trang tìm kiếm.',
+                '– GG.deals tìm tựa đề trong các ưu đãi có DRM của Epic, không áp mức đánh giá cửa hàng tối thiểu mặc định, còn PCGamingWiki tìm nó về khả năng tương thích và bản sửa lỗi. Cả hai đều là tìm theo tên nên có thể trượt; mỗi nút đều nói rõ điều đó trong chú giải của mình.',
+                '– Một bộ nút cho mỗi nút mua: các gói có hai nút mua (thanh trên cùng và mục "Buy …") và cả hai đều có bộ riêng.',
+                '– Điều hướng trong cửa hàng tới một sản phẩm hoặc gói sẽ tải lại trang. Epic là ứng dụng một trang và tập lệnh không hoạt động ở trang chủ, trang tìm kiếm hay trang duyệt; chính lần tải lại đó bảo đảm nút xuất hiện.',
+                '• Trên danh sách mong muốn (/wishlist), tập lệnh thêm một thanh với ba công cụ:',
+                '– Chỉ hàng giảm giá: tự động cuộn qua toàn bộ danh sách (Epic tải theo từng đợt khi cuộn) để phát hiện TẤT CẢ trò chơi và chỉ hiển thị những trò đang giảm giá, giữ nguyên cách sắp xếp bạn đã chọn trên Epic. Mức giảm được nhận biết qua nhãn phần trăm hoặc giá gốc bị gạch ngang. Tùy chọn này được ghi nhớ riêng, bất kể "Ghi nhớ sắp xếp và bộ lọc" có bật hay không.',
+                '– Ghi nhớ sắp xếp và bộ lọc: lưu cách sắp xếp và các bộ lọc ở thanh bên bạn chọn trên Epic rồi áp dụng lại khi bạn quay lại.',
+                '– Sao chép liên kết kèm bộ lọc: tạo một URL mà khi mở sẽ khôi phục cách sắp xếp, bộ lọc và trạng thái "chỉ hàng giảm giá". Nếu trình duyệt chặn bảng tạm, URL sẽ hiện trong hộp thoại để bạn tự sao chép.',
+                'Mọi thứ được xử lý trong trình duyệt của bạn (lưu trong localStorage); không có dữ liệu nào được gửi tới máy chủ nào.',
+            ],
+        },
+        ja: {
+            remember: '並び順とフィルターを記憶',
+            onlyDiscount: 'セール中のみ',
+            copyLink: '🔗 フィルター付きリンクをコピー',
+            copied: '✔ リンクをコピーしました',
+            copyPrompt: 'このリンクをコピーしてください:',
+            about: 'ℹ️ 詳細',
+            close: '閉じる',
+            rememberTip: 'Epic で選んだ並び順とフィルターを保存し、ウィッシュリストに戻るたびに自動的に再適用します。',
+            onlyDiscountTip: 'リスト全体をスクロールし（Epic はスクロールに応じて分割読み込みします）、すべてのゲームを検出してセール中でないものを隠します。Epic で選んだ並び順は維持されます。割引はパーセント表示のバッジ、または取り消し線付きの元価格から判定します。',
+            copyLinkTip: 'スクリプトを入れた状態で開くと現在の並び順とフィルター（「セール中のみ」を含む）を再現する URL を生成します。',
+            ggTip: 'GG.deals で Epic の DRM フィルターを使ってタイトルを検索します。タイトル検索のため、目的のゲームに正確に一致しない場合があります。',
+            pcgwTip: 'PCGamingWiki でタイトルを検索します（互換性と修正）。タイトル検索のため、目的の記事に正確に一致しない場合があります。',
+            aboutTip: 'このスクリプトの機能をすべて見る。',
+            aboutTitle: 'このスクリプトは何をしますか？',
+            aboutBody: [
+                'このスクリプトは Epic Games Store と EGData をつなぎ、ウィッシュリストを使いやすくします。',
+                '• 製品ページ（/p/）とバンドルページ（/bundles/）: 購入ボタンの下にボタンを3つ追加します。',
+                '– EGData（価格とセール履歴のデータベース）は検索ではなく、そのオファーそのものにリンクします。',
+                '– GG.deals は既定で適用されるストア評価の下限なしに、Epic の DRM が付いたセールの中からタイトルを検索し、PCGamingWiki は互換性と修正について検索します。どちらもタイトル検索なので外れることがあり、それぞれのツールチップに明記しています。',
+                '– 購入ボタン1つにつきボタン一式。バンドルには購入ボタンが2つあり（上部のバーと「Buy …」セクション）、その両方に付きます。',
+                '– ストア内から製品やバンドルへ移動するとページが再読み込みされます。Epic はシングルページアプリで、ホーム・検索・ブラウズではスクリプトが動作していません。この再読み込みこそがボタンの表示を保証します。',
+                '• ウィッシュリスト（/wishlist）にはツールが3つ入ったバーを追加します:',
+                '– セール中のみ: リスト全体を自動でスクロールし（Epic はスクロールに応じて分割読み込みします）、すべてのゲームを検出したうえで、Epic で選んだ並び順を保ったままセール中のものだけを表示します。割引はパーセント表示のバッジ、または取り消し線付きの元価格から判定します。この設定は「並び順とフィルターを記憶」のオン・オフに関わらず、単独で記憶されます。',
+                '– 並び順とフィルターを記憶: Epic で選んだ並び順とサイドバーのフィルターを保存し、戻ったときに再適用します。',
+                '– フィルター付きリンクをコピー: 開くと並び順・フィルター・「セール中のみ」の状態を再現する URL を生成します。ブラウザーがクリップボードを拒否した場合は、手動でコピーできるようダイアログに URL を表示します。',
+                'すべてブラウザー内で処理され（localStorage に保存）、サーバーにデータは送信されません。',
+            ],
+        },
+        ko: {
+            remember: '정렬과 필터 기억',
+            onlyDiscount: '할인 중인 항목만',
+            copyLink: '🔗 필터가 포함된 링크 복사',
+            copied: '✔ 링크가 복사됨',
+            copyPrompt: '이 링크를 복사하세요:',
+            about: 'ℹ️ 자세히 알아보기',
+            close: '닫기',
+            rememberTip: 'Epic에서 선택한 정렬과 필터를 저장하고, 위시리스트로 돌아올 때마다 자동으로 다시 적용합니다.',
+            onlyDiscountTip: '목록 전체를 스크롤하여(Epic은 스크롤에 따라 나눠서 불러옵니다) 모든 게임을 찾아내고 할인 중이 아닌 항목을 숨깁니다. Epic에서 선택한 정렬 순서는 유지됩니다. 할인은 퍼센트 배지나 취소선이 그어진 원래 가격으로 판별합니다.',
+            copyLinkTip: '스크립트가 설치된 상태에서 열면 현재 정렬과 필터("할인 중인 항목만" 포함)를 그대로 재현하는 URL을 만듭니다.',
+            ggTip: 'GG.deals에서 Epic DRM 필터로 제목을 검색합니다. 제목 검색이므로 정확한 게임을 찾지 못할 수 있습니다.',
+            pcgwTip: 'PCGamingWiki에서 제목을 검색합니다(호환성 및 수정). 제목 검색이므로 정확한 문서를 찾지 못할 수 있습니다.',
+            aboutTip: '이 스크립트가 하는 모든 것을 확인하세요.',
+            aboutTitle: '이 스크립트는 무엇을 하나요?',
+            aboutBody: [
+                '이 스크립트는 Epic Games Store를 EGData와 연결하고 위시리스트를 개선합니다.',
+                '• 제품(/p/) 및 번들(/bundles/) 페이지: 구매 버튼 아래에 버튼 세 개를 추가합니다.',
+                '– EGData(가격 및 할인 이력 데이터베이스)는 검색이 아니라 바로 그 상품 페이지로 연결됩니다.',
+                '– GG.deals는 기본으로 적용되는 상점 평점 하한 없이 Epic DRM 할인 중에서 제목을 검색하고, PCGamingWiki는 호환성과 수정 사항을 찾아 검색합니다. 둘 다 제목 검색이라 빗나갈 수 있으며, 각각 툴팁에 그렇게 적혀 있습니다.',
+                '– 구매 버튼마다 버튼 한 세트: 번들에는 구매 버튼이 둘(상단 바와 "Buy …" 섹션) 있으며 각각 자기 세트를 받습니다.',
+                '– 상점 안에서 제품이나 번들로 이동하면 페이지가 새로 로드됩니다. Epic은 단일 페이지 앱이고 홈, 검색, 둘러보기에서는 스크립트가 활성화되지 않았습니다. 바로 그 새로고침이 버튼이 나타나도록 보장합니다.',
+                '• 위시리스트(/wishlist)에는 도구 세 개가 담긴 막대를 추가합니다:',
+                '– 할인 중인 항목만: 목록 전체를 자동으로 스크롤하여(Epic은 스크롤에 따라 나눠서 불러옵니다) 모든 게임을 찾아내고, Epic에서 선택한 정렬을 유지한 채 할인 중인 항목만 보여줍니다. 할인은 퍼센트 배지나 취소선이 그어진 원래 가격으로 판별합니다. 이 설정은 "정렬과 필터 기억"의 켜짐 여부와 상관없이 따로 기억됩니다.',
+                '– 정렬과 필터 기억: Epic에서 선택한 정렬과 사이드바 필터를 저장하고 돌아왔을 때 다시 적용합니다.',
+                '– 필터가 포함된 링크 복사: 열면 정렬, 필터, "할인 중인 항목만" 상태를 재현하는 URL을 만듭니다. 브라우저가 클립보드를 막으면 직접 복사할 수 있도록 대화 상자에 URL을 표시합니다.',
+                '모든 처리는 브라우저에서 이루어지며(localStorage에 저장) 어떤 서버로도 데이터를 보내지 않습니다.',
+            ],
+        },
+        'zh-cn': {
+            remember: '记住排序和筛选',
+            onlyDiscount: '仅显示打折',
+            copyLink: '🔗 复制带筛选的链接',
+            copied: '✔ 链接已复制',
+            copyPrompt: '复制此链接：',
+            about: 'ℹ️ 了解更多',
+            close: '关闭',
+            rememberTip: '保存你在 Epic 中选择的排序和筛选条件，每次回到愿望单时自动重新应用。',
+            onlyDiscountTip: '滚动浏览你的整个列表（Epic 会在滚动时分批加载），以便找出所有游戏并隐藏未打折的。会保留你在 Epic 中选择的排序。折扣通过百分比标签或带删除线的原价识别。',
+            copyLinkTip: '生成一个网址，在装有本脚本的情况下打开即可还原你当前的排序和筛选条件（包括“仅显示打折”）。',
+            ggTip: '在 GG.deals 上按 Epic DRM 筛选搜索该标题。由于是按标题搜索，可能无法精确匹配到该游戏。',
+            pcgwTip: '在 PCGamingWiki 上搜索该标题（兼容性与修复）。由于是按标题搜索，可能无法精确匹配到对应条目。',
+            aboutTip: '查看此脚本的全部功能。',
+            aboutTitle: '这个脚本有什么用？',
+            aboutBody: [
+                '本脚本将 Epic Games Store 与 EGData 连接起来，并改进你的愿望单。',
+                '• 在商品页（/p/）和捆绑包页（/bundles/）：在购买按钮下方添加三个按钮。',
+                '– EGData（价格与优惠历史数据库）直接链接到该商品本身，而不是搜索结果。',
+                '– GG.deals 在带 Epic DRM 的优惠中搜索该标题，并去掉默认的商店评分下限；PCGamingWiki 则用于查询兼容性与修复。两者都是按标题搜索，可能不准，各自的提示中都有说明。',
+                '– 每个购买按钮配一组按钮：捆绑包有两个购买按钮（顶部的横栏和“Buy …”区块），两个都会各配一组。',
+                '– 在商店内跳转到商品或捆绑包会重新加载页面。Epic 是单页应用，脚本在首页、搜索和浏览页并未运行；正是这次重新加载保证了按钮会出现。',
+                '• 在愿望单（/wishlist）中添加一个含三个工具的工具栏：',
+                '– 仅显示打折：自动滚动浏览整个列表（Epic 会在滚动时分批加载），找出所有游戏并只显示正在促销的，同时保留你在 Epic 中选择的排序。折扣通过百分比标签或带删除线的原价识别。无论“记住排序和筛选”是否开启，此项都会单独记住。',
+                '– 记住排序和筛选：保存你在 Epic 中选择的排序和侧边栏筛选条件，返回时重新应用。',
+                '– 复制带筛选的链接：生成一个网址，打开后即可还原你的排序、筛选条件和“仅显示打折”的状态。如果浏览器阻止访问剪贴板，会用对话框显示网址供手动复制。',
+                '所有处理都在你的浏览器中完成（保存在 localStorage）；不会向任何服务器发送数据。',
+            ],
+        },
+        'zh-tw': {
+            remember: '記住排序與篩選',
+            onlyDiscount: '僅顯示特價',
+            copyLink: '🔗 複製含篩選的連結',
+            copied: '✔ 連結已複製',
+            copyPrompt: '複製此連結：',
+            about: 'ℹ️ 瞭解更多',
+            close: '關閉',
+            rememberTip: '儲存你在 Epic 中選擇的排序與篩選條件，每次回到願望清單時自動重新套用。',
+            onlyDiscountTip: '捲動瀏覽你的整份清單（Epic 會在捲動時分批載入），以找出所有遊戲並隱藏未特價的。會保留你在 Epic 中選擇的排序。折扣以百分比標籤或帶刪除線的原價判斷。',
+            copyLinkTip: '產生一個網址，在已安裝本腳本的情況下開啟即可還原你目前的排序與篩選條件（包含「僅顯示特價」）。',
+            ggTip: '在 GG.deals 上以 Epic DRM 篩選搜尋該標題。由於是以標題搜尋，可能無法精確對應到該遊戲。',
+            pcgwTip: '在 PCGamingWiki 上搜尋該標題（相容性與修正）。由於是以標題搜尋，可能無法精確對應到該條目。',
+            aboutTip: '查看此腳本的全部功能。',
+            aboutTitle: '這個腳本有什麼用？',
+            aboutBody: [
+                '本腳本將 Epic Games Store 與 EGData 連結起來，並改進你的願望清單。',
+                '• 在商品頁（/p/）與組合包頁（/bundles/）：在購買按鈕下方加入三個按鈕。',
+                '– EGData（價格與優惠歷史資料庫）直接連到該商品本身，而不是搜尋結果。',
+                '– GG.deals 在帶 Epic DRM 的優惠中搜尋該標題，並去除預設的商店評分下限；PCGamingWiki 則用於查詢相容性與修正。兩者都是以標題搜尋，可能不準，各自的提示中都有說明。',
+                '– 每個購買按鈕配一組按鈕：組合包有兩個購買按鈕（頂端的橫列與「Buy …」區塊），兩個都會各配一組。',
+                '– 在商店內跳轉到商品或組合包會重新載入頁面。Epic 是單頁應用程式，腳本在首頁、搜尋與瀏覽頁並未運作；正是這次重新載入保證了按鈕會出現。',
+                '• 在願望清單（/wishlist）中加入一個含三項工具的工具列：',
+                '– 僅顯示特價：自動捲動瀏覽整份清單（Epic 會在捲動時分批載入），找出所有遊戲並只顯示特價中的，同時保留你在 Epic 中選擇的排序。折扣以百分比標籤或帶刪除線的原價判斷。無論「記住排序與篩選」是否開啟，此項都會單獨記住。',
+                '– 記住排序與篩選：儲存你在 Epic 中選擇的排序與側邊欄篩選條件，返回時重新套用。',
+                '– 複製含篩選的連結：產生一個網址，開啟後即可還原你的排序、篩選條件與「僅顯示特價」的狀態。若瀏覽器阻擋剪貼簿，會以對話框顯示網址供手動複製。',
+                '所有處理都在你的瀏覽器中完成（儲存在 localStorage）；不會向任何伺服器傳送資料。',
+            ],
+        },
     };
-    const t = I18N[LANG];
+
+    // Familias donde la VARIANTE cambia el texto y no basta con el idioma base.
+    // Existe para no depender de la forma exacta que escriba Epic en la URL o en
+    // el lang: da igual 'zh-Hant' que 'zh-TW', o 'es-MX' que 'es-419'. Lo no
+    // previsto se reduce a la base ('fr-CA' -> 'fr').
+    const LANG_ALIASES = {
+        'zh': 'zh-cn', 'zh-hans': 'zh-cn', 'zh-chs': 'zh-cn', 'zh-sg': 'zh-cn',
+        'zh-hant': 'zh-tw', 'zh-cht': 'zh-tw', 'zh-hk': 'zh-tw', 'zh-mo': 'zh-tw',
+        'pt-pt': 'pt',
+        'es-la': 'es-419', 'es-mx': 'es-419', 'es-ar': 'es-419', 'es-cl': 'es-419',
+        'es-co': 'es-419', 'es-pe': 'es-419', 'es-us': 'es-419',
+        'nb': 'no', 'nn': 'no',
+        'tl': 'fil'
+    };
+
+    // Reduce un código BCP-47 a una clave de I18N probando de más específico a
+    // menos: 'zh-Hant-TW' -> 'zh-hant' (alias) -> 'zh-tw'. Devuelve '' si no hay
+    // nada, para que la cascada pase al siguiente paso.
+    function normalizeLang(raw) {
+        const code = (raw || '').trim().toLowerCase().replace(/_/g, '-');
+        if (!code) return '';
+        const parts = code.split('-');
+        for (let n = parts.length; n >= 1; n--) {
+            const candidate = parts.slice(0, n).join('-');
+            if (LANG_ALIASES[candidate]) return LANG_ALIASES[candidate];
+            if (I18N[candidate]) return candidate;
+        }
+        return '';
+    }
+
+    // Cascada, de la señal más fiel a la menos. Devuelve además si la respuesta
+    // vino DEL SITIO o solo del navegador, que es lo que decide si hay que seguir
+    // reintentando (ver dict()).
+    //   1) ?lang= de la URL: es el mecanismo con que Epic cambia de idioma, así
+    //      que cuando está es una elección explícita, y es lo único legible en
+    //      document-start.
+    //   2) La opción marcada en el menú de idioma: el idioma activo es el único
+    //      <epic-wf-menu-item> con starticon="check" y, a diferencia del resto,
+    //      SIN hreftemplate (los demás llevan el ?lang= al que te mandarían).
+    //   3) <html lang>, que React escribe al hidratar.
+    //   4) navigator.languages.  5) inglés.
+    // NO se mira el segmento de la ruta: Epic ya no lo usa, y leer uno viejo
+    // llegado por un enlace guardado daría el idioma equivocado si la página se
+    // está mostrando en otro.
+    const LOCALE_MENU_SELECTOR = '#nav-locale-menu epic-wf-menu-item[starticon="check"]';
+
+    function detectLangEx() {
+        try {
+            const q = normalizeLang(new URLSearchParams(location.search).get('lang'));
+            if (q) return { lang: q, fromSite: true };
+        } catch (e) { /* URL rara: seguimos con el resto */ }
+
+        const checked = document.querySelector(LOCALE_MENU_SELECTOR);
+        const fromMenu = normalizeLang(checked && (checked.getAttribute('locale') || checked.getAttribute('lang')));
+        if (fromMenu) return { lang: fromMenu, fromSite: true };
+
+        const fromDoc = normalizeLang(document.documentElement.getAttribute('lang'));
+        if (fromDoc) return { lang: fromDoc, fromSite: true };
+
+        for (const l of [navigator.language, ...(navigator.languages || [])]) {
+            const n = normalizeLang(l);
+            if (n) return { lang: n, fromSite: false };
+        }
+        return { lang: 'en', fromSite: false };
+    }
+
+    function detectLang() { return detectLangEx().lang; }
+
+    // Idiomas de escritura derecha-a-izquierda. Del catálogo de Epic solo el árabe
+    // lo es. Los contenedores que INYECTA el script se crean sueltos y heredarían
+    // el dir de la página, que Epic no siempre pone; por eso se marca explícito.
+    // El texto en sí ya va bien: el navegador aplica el algoritmo bidi solo.
+    const RTL_LANGS = ['ar'];
+
+    // Diccionario resuelto PEREZOSAMENTE. En document-start no hay idioma que
+    // detectar (ver la nota de arriba), así que en vez de congelar `t` al cargar
+    // se resuelve la primera vez que alguien lee una cadena — es decir, al pintar,
+    // ya con React hidratado. Se memoiza por idioma: solo recalcula si cambia.
+    // El merge sobre `en` hace que una clave ausente caiga al inglés en vez de
+    // quedar en undefined, así que un idioma incompleto no rompe nada.
+    let _lang = null;
+    let _dict = null;
+    let _settled = false; // true en cuanto el idioma lo dijo EL SITIO, no el navegador
+    function dict() {
+        // Mientras la respuesta venga solo del navegador se vuelve a intentar en
+        // cada lectura, porque la página puede acabar de hidratarse. En cuanto una
+        // señal del sitio contesta, se fija y ya no se consulta más el DOM.
+        if (!_settled) {
+            const r = detectLangEx();
+            if (r.lang !== _lang) {
+                _lang = r.lang;
+                _dict = { ...I18N.en, ...(I18N[r.lang] || {}) };
+            }
+            _settled = r.fromSite;
+        }
+        return _dict;
+    }
+    function dir() {
+        dict();
+        return RTL_LANGS.includes(_lang) ? 'rtl' : 'ltr';
+    }
+
+    // Proxy para no tocar los 18 puntos donde ya se lee `t.clave`. Solo se usan
+    // lecturas de propiedad; aun así se implementan has/ownKeys por si alguna vez
+    // alguien hace `in` o un spread sobre él.
+    const t = new Proxy({}, {
+        get(_target, key) { return dict()[key]; },
+        has(_target, key) { return key in dict(); },
+        ownKeys() { return Reflect.ownKeys(dict()); },
+        getOwnPropertyDescriptor(_target, key) {
+            return { value: dict()[key], enumerable: true, configurable: true };
+        }
+    });
 
     // =============================================
     // CONSTANTES
@@ -99,7 +1090,7 @@
     const LINK_ATTR = 'data-egs2egd-link';
     const STYLES_ID = 'egs2egd-styles';
     // Sincronizar con @version del encabezado en cada bump.
-    const SCRIPT_VERSION = '1.6.0';
+    const SCRIPT_VERSION = '1.7.0';
 
     // GG.deals filtra por DRM con un bitmask numérico en la query, no por nombre:
     // 1 Steam, 8 GOG, 16 sin DRM, 32 otros, 128 Microsoft Store, 1024 Epic. Aquí
@@ -1111,6 +2102,7 @@
         if (document.getElementById('egs2egd-about-overlay')) return;
         const overlay = document.createElement('div');
         overlay.id = 'egs2egd-about-overlay';
+        overlay.dir = dir(); // en árabe el panel se alinea a la derecha
         Object.assign(overlay.style, {
             position: 'fixed', inset: '0', width: '100%', height: '100%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1196,6 +2188,7 @@
 
         const bar = document.createElement('div');
         bar.id = WL_TOOLBAR_ID;
+        bar.dir = dir(); // en árabe la barra se ordena de derecha a izquierda
         bar.style.cssText = 'display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:8px 0;font-size:13px;color:inherit;';
 
         // Toggle "Recordar orden y filtros"
