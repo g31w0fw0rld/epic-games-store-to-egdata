@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.7.1
+// @version      1.7.2
 // @description  Adds EGData, GG.deals and PCGamingWiki buttons below every purchase button on Epic Games Store product and bundle pages — bundles have two, and both get the trio. EGData links to that exact offer; the other two search by title, GG.deals among Epic-DRM deals with no store-rating floor, and each says so in the store's own tooltip. On your wishlist it adds an 'only discounted' filter that first loads the whole list, remembered sort and filters, and a shareable link that reproduces them.
 // @author       g31w0fw0rld
 // @license      MIT
@@ -1090,7 +1090,7 @@
     const LINK_ATTR = 'data-egs2egd-link';
     const STYLES_ID = 'egs2egd-styles';
     // Sincronizar con @version del encabezado en cada bump.
-    const SCRIPT_VERSION = '1.7.1';
+    const SCRIPT_VERSION = '1.7.2';
 
     // GG.deals filtra por DRM con un bitmask numérico en la query, no por nombre:
     // 1 Steam, 8 GOG, 16 sin DRM, 32 otros, 128 Microsoft Store, 1024 Epic. Aquí
@@ -1688,11 +1688,17 @@
     }
 
     /**
-     * Cuelga el tooltip de la tienda de un botón, por hover y por foco (Radix hace
+     * Cuelga el tooltip de la tienda de un elemento, por hover y por foco (Radix hace
      * las dos). El clic no se toca: lo único que el botón tiene que hacer es abrirse.
-     * Si el CSS de Epic ya no reconoce sus clases, no monta nada y el botón se queda
+     * Si el CSS de Epic ya no reconoce sus clases, no monta nada y el elemento se queda
      * con el `title`, que es lo que trae puesto.
-     * @param {HTMLAnchorElement} anchor - El botón.
+     *
+     * El foco se escucha con focusin/focusout y no con focus/blur porque estos no
+     * burbujean: en la barra de la lista de deseos el tooltip cuelga de un <label> y
+     * quien recibe el foco es la casilla de dentro, así que con focus/blur el aviso
+     * nunca saldría por teclado. Para un <a> —los botones de ficha— las dos parejas
+     * hacen lo mismo, porque no tienen nada enfocable dentro.
+     * @param {HTMLElement} anchor - El botón o control.
      * @param {string} text - El texto del aviso.
      */
     function attachEpicTooltip(anchor, text) {
@@ -1703,9 +1709,9 @@
             epicTipTimer = setTimeout(() => showEpicTooltip(anchor, text), EPIC_TIP_DELAY_MS);
         };
         anchor.addEventListener('mouseenter', open);
-        anchor.addEventListener('focus', open);
+        anchor.addEventListener('focusin', open);
         anchor.addEventListener('mouseleave', hideEpicTooltip);
-        anchor.addEventListener('blur', hideEpicTooltip);
+        anchor.addEventListener('focusout', hideEpicTooltip);
 
         anchor.removeAttribute('title');  // si no, se verían los dos
     }
@@ -2388,10 +2394,17 @@
         bar.dir = dir(); // en árabe la barra se ordena de derecha a izquierda
         bar.style.cssText = 'display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:8px 0;font-size:13px;color:inherit;';
 
+        // Los cuatro controles llevan el tooltip de la tienda, el mismo que los botones
+        // de ficha: aquí el aviso no es opcional —explican comportamiento invisible,
+        // que es lo que justifica el tooltip— y con el `title` del navegador quedaban
+        // peor vistos que el resto del script. El `title` se pone siempre igual:
+        // attachEpicTooltip() lo retira solo si consigue montar el de Epic.
+
         // Toggle "Recordar orden y filtros"
         const remLabel = document.createElement('label');
         remLabel.style.cssText = 'display:inline-flex;align-items:center;gap:6px;cursor:pointer;';
         remLabel.title = t.rememberTip;
+        attachEpicTooltip(remLabel, t.rememberTip);
         const remChk = document.createElement('input');
         remChk.type = 'checkbox';
         remChk.checked = !!settings.remember;
@@ -2411,6 +2424,7 @@
         const discLabel = document.createElement('label');
         discLabel.style.cssText = 'display:inline-flex;align-items:center;gap:6px;cursor:pointer;';
         discLabel.title = t.onlyDiscountTip;
+        attachEpicTooltip(discLabel, t.onlyDiscountTip);
         const discChk = document.createElement('input');
         discChk.type = 'checkbox';
         discChk.checked = !!settings.onlyDiscount;
@@ -2437,6 +2451,7 @@
         copyBtn.type = 'button';
         copyBtn.textContent = t.copyLink;
         copyBtn.title = t.copyLinkTip;
+        attachEpicTooltip(copyBtn, t.copyLinkTip);
         copyBtn.style.cssText = 'background:#000;color:#fff;border:none;border-radius:4px;padding:6px 10px;cursor:pointer;font-size:13px;';
         copyBtn.addEventListener('click', async () => {
             const url = wlBuildUrl(wlCaptureState());
@@ -2452,6 +2467,7 @@
         aboutBtn.type = 'button';
         aboutBtn.textContent = t.about;
         aboutBtn.title = t.aboutTip;
+        attachEpicTooltip(aboutBtn, t.aboutTip);
         aboutBtn.style.cssText = 'background:transparent;color:inherit;border:1px solid currentColor;border-radius:4px;padding:6px 10px;cursor:pointer;font-size:13px;opacity:0.85;';
         aboutBtn.addEventListener('click', wlShowAboutModal);
 
