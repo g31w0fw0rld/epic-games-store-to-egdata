@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.7.0
-// @description  Adds EGData, GG.deals and PCGamingWiki buttons below every purchase button on Epic Games Store product and bundle pages — bundles have two, and both get the trio. EGData links to that exact offer; the other two search by title, GG.deals among Epic-DRM deals with no store-rating floor, and each says so in its tooltip. On your wishlist it adds an 'only discounted' filter that first loads the whole list, remembered sort and filters, and a shareable link that reproduces them.
+// @version      1.7.1
+// @description  Adds EGData, GG.deals and PCGamingWiki buttons below every purchase button on Epic Games Store product and bundle pages — bundles have two, and both get the trio. EGData links to that exact offer; the other two search by title, GG.deals among Epic-DRM deals with no store-rating floor, and each says so in the store's own tooltip. On your wishlist it adds an 'only discounted' filter that first loads the whole list, remembered sort and filters, and a shareable link that reproduces them.
 // @author       g31w0fw0rld
 // @license      MIT
 // @match        https://store.epicgames.com/*
@@ -1090,7 +1090,7 @@
     const LINK_ATTR = 'data-egs2egd-link';
     const STYLES_ID = 'egs2egd-styles';
     // Sincronizar con @version del encabezado en cada bump.
-    const SCRIPT_VERSION = '1.7.0';
+    const SCRIPT_VERSION = '1.7.1';
 
     // GG.deals filtra por DRM con un bitmask numérico en la query, no por nombre:
     // 1 Steam, 8 GOG, 16 sin DRM, 32 otros, 128 Microsoft Store, 1024 Epic. Aquí
@@ -1388,7 +1388,7 @@
         const style = document.createElement('style');
         style.id = STYLES_ID;
         style.textContent = `
-            button[${DATA_ATTR}="true"] {
+            a[${DATA_ATTR}="true"] {
                 display: inline-flex !important;
                 align-items: center !important;
                 gap: 8px !important;
@@ -1397,13 +1397,17 @@
                 border: none !important;
                 padding: 8px 12px !important;
                 cursor: pointer !important;
+                /* Ahora es un <a>: sin esto llevaría el subrayado del navegador,
+                   que el <button> no tenía. Mismo motivo en la fila de abajo. */
+                text-decoration: none !important;
                 transition: background 200ms ease, transform 120ms ease;
             }
-            button[${DATA_ATTR}="true"]:hover {
+            a[${DATA_ATTR}="true"]:hover {
                 background: #757575 !important;
                 transform: translateY(-1px);
+                text-decoration: none !important;
             }
-            button[${DATA_ATTR}="true"] .egs2egd-icon {
+            a[${DATA_ATTR}="true"] .egs2egd-icon {
                 width: 24px;
                 height: 24px;
                 object-fit: contain;
@@ -1411,11 +1415,11 @@
                 vertical-align: middle;
                 filter: none;
             }
-            button[${DATA_ATTR}="true"] .egs2egd-text-outer,
-            button[${DATA_ATTR}="true"] .egs2egd-text-inner {
+            a[${DATA_ATTR}="true"] .egs2egd-text-outer,
+            a[${DATA_ATTR}="true"] .egs2egd-text-inner {
                 color: inherit !important;
             }
-            button[${DATA_ATTR}="true"]:focus {
+            a[${DATA_ATTR}="true"]:focus {
                 outline: 2px solid #fff3 !important;
                 outline-offset: 2px !important;
             }
@@ -1483,19 +1487,26 @@
      * Crea un botón EGData individual con icono y texto.
      * @param {string} slug - ID de la oferta en EGData.
      * @param {string} className - Clase CSS a aplicar (hereda del botón de compra).
-     * @returns {HTMLButtonElement} El botón creado.
+     * @returns {HTMLAnchorElement} El botón creado.
      */
     function buildButton(slug, className) {
         const egDataLink = `${EGDATA_BASE_URL}${slug}`;
-        const button = document.createElement('button');
-        button.type = 'button';
+        // Es un <a> de verdad, no un <button> con onclick: así funcionan el clic
+        // central, "abrir en pestaña nueva" y "copiar dirección del enlace", igual
+        // que en los dos enlaces de la fila de abajo. El aspecto no depende de las
+        // clases heredadas del botón de compra —que se conservan—, sino del CSS de
+        // injectStyles(), que lo fija todo con !important; por eso el cambio de
+        // elemento no lo toca.
+        const button = document.createElement('a');
         button.className = className;
+        button.href = egDataLink;
+        button.target = '_blank';
+        button.rel = 'nofollow noopener external';
         button.style.display = 'inline-flex';
         button.style.alignItems = 'center';
         button.style.gap = '8px';
         button.setAttribute(DATA_ATTR, 'true');
         button.setAttribute('data-egs2egd-slug', slug);
-        button.onclick = () => window.open(egDataLink, '_blank');
 
         // Icono de EGData
         const img = document.createElement('img');
@@ -1516,10 +1527,195 @@
         return button;
     }
 
+    // =========================================================================
+    // TOOLTIP NATIVO DE LA TIENDA
+    // =========================================================================
+    // El tooltip de Epic (el de "Agregar al carrito", por ejemplo) no es un
+    // componente suyo: es Radix Tooltip, que monta la caja en un portal al final del
+    // <body> —un div con data-radix-popper-content-wrapper, colocado con position
+    // fixed— y la viste con las clases de su design system, las eds_*. No hay API
+    // pública que llamar: Radix vive dentro de su bundle de React. Así que se replica
+    // su DOM y se reutiliza su CSS, que es lo que de verdad da el aspecto.
+    //
+    // Las clases eds_* son hashes de compilación: si Epic toca ese componente,
+    // cambian y aquí dejarían de pintar. Por eso NO se dan por buenas: se monta un
+    // ejemplar y se comprueba que siga teniendo fondo. Si no lo tiene, no se monta
+    // nada y los botones se quedan con su `title`, que es la caída de siempre.
+    // Verificadas contra el DOM real de la tienda el 2026-08-13.
+    const EPIC_TIP_WRAPPER_ATTR = 'data-radix-popper-content-wrapper';
+    const EPIC_TIP_CLASSES = ['eds_o3n6et0', 'eds_1ypbntdd', 'eds_xd1k8g0'];
+    const EPIC_TIP_ARROW_CLASS = 'eds_o3n6et1';
+    const EPIC_TIP_Z_INDEX = '1100';
+    // Medidas de la flecha, tal cual las emite Radix (10x5 sobre un viewBox 0 0 30 10).
+    const EPIC_TIP_ARROW_W = 10;
+    const EPIC_TIP_ARROW_H = 5;
+    const EPIC_TIP_DELAY_MS = 300;   // retardo antes de aparecer
+    const EPIC_TIP_EDGE_MARGIN = 8;  // margen que se respeta al borde de la ventana
+
+    // Un único tooltip para todos los botones: nunca hay dos visibles a la vez.
+    let epicTipWrapper = null;
+    let epicTipBox = null;
+    let epicTipText = null;
+    let epicTipArrow = null;
+    let epicTipSrText = null;
+    let epicTipLive = null;
+    let epicTipTimer = null;
+
+    /**
+     * Construye el DOM que emite Radix: wrapper posicionado, caja con las clases del
+     * tema, la flecha en un span propio y una copia del texto solo para lectores de
+     * pantalla (role="tooltip"), que es lo que hace la tienda.
+     * @returns {HTMLDivElement} El wrapper, todavía fuera del documento.
+     */
+    function buildEpicTooltipNode() {
+        const wrapper = document.createElement('div');
+        wrapper.setAttribute(EPIC_TIP_WRAPPER_ATTR, '');
+        // Radix lo coloca con transform sobre left/top a cero; aquí left/top directos
+        // hacen lo mismo y se leen mejor.
+        wrapper.style.cssText = `position: fixed; z-index: ${EPIC_TIP_Z_INDEX}; min-width: max-content; pointer-events: none;`;
+
+        const box = document.createElement('div');
+        box.className = EPIC_TIP_CLASSES.join(' ');
+        box.setAttribute('data-side', 'top');
+        box.setAttribute('data-align', 'center');
+        box.setAttribute('data-state', 'delayed-open');
+
+        const text = document.createTextNode('');
+        box.appendChild(text);
+
+        const arrow = document.createElement('span');
+        arrow.style.position = 'absolute';
+        arrow.innerHTML = `<svg class="${EPIC_TIP_ARROW_CLASS}" width="${EPIC_TIP_ARROW_W}" height="${EPIC_TIP_ARROW_H}" viewBox="0 0 30 10" preserveAspectRatio="none" style="display:block"><polygon points="0,0 30,0 15,10"></polygon></svg>`;
+        box.appendChild(arrow);
+
+        const sr = document.createElement('span');
+        sr.setAttribute('role', 'tooltip');
+        sr.style.cssText = 'position:absolute;border:0;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;overflow-wrap:normal';
+        box.appendChild(sr);
+
+        wrapper.appendChild(box);
+        epicTipBox = box;
+        epicTipText = text;
+        epicTipArrow = arrow;
+        epicTipSrText = sr;
+        return wrapper;
+    }
+
+    /**
+     * Comprueba que las clases del tema sigan vistiendo la caja, montándola fuera de
+     * la vista y mirando si tiene fondo. Es lo que separa un tooltip de la tienda de
+     * un párrafo suelto flotando sobre la página.
+     * @returns {boolean} true si el CSS de Epic sigue reconociendo esas clases.
+     */
+    function epicTooltipIsLive() {
+        if (epicTipLive !== null) return epicTipLive;
+
+        const wrapper = buildEpicTooltipNode();
+        epicTipText.nodeValue = 'x';
+        wrapper.style.left = '-9999px';
+        wrapper.style.top = '0px';
+        document.body.appendChild(wrapper);
+        const bg = getComputedStyle(epicTipBox).backgroundColor;
+        wrapper.remove();
+
+        epicTipLive = !!bg && bg !== 'transparent' && !/^rgba\(.*,\s*0\)$/.test(bg);
+        if (epicTipLive) {
+            epicTipWrapper = wrapper;
+            // Con la página en movimiento el tooltip quedaría flotando fuera de sitio:
+            // Radix lo reposiciona, aquí basta con cerrarlo. Van aquí, una sola vez,
+            // y no por botón: hay un juego de botones por cada botón de compra.
+            window.addEventListener('scroll', hideEpicTooltip, { passive: true, capture: true });
+            window.addEventListener('resize', hideEpicTooltip, { passive: true });
+        } else {
+            epicTipWrapper = epicTipBox = epicTipText = epicTipArrow = epicTipSrText = null;
+        }
+        return epicTipLive;
+    }
+
+    /**
+     * Coloca el tooltip centrado sobre el botón, o debajo si no cabe arriba, y apunta
+     * la flecha al centro del botón aunque la caja se haya tenido que desplazar para
+     * no salirse de la ventana.
+     * @param {HTMLElement} anchor - El botón al que se ancla.
+     */
+    function positionEpicTooltip(anchor) {
+        const rect = anchor.getBoundingClientRect();
+        const width = epicTipWrapper.offsetWidth;
+        const height = epicTipWrapper.offsetHeight;
+
+        let side = 'top';
+        let top = rect.top - height - EPIC_TIP_ARROW_H;
+        if (top < EPIC_TIP_EDGE_MARGIN) {
+            side = 'bottom';
+            top = rect.bottom + EPIC_TIP_ARROW_H;
+        }
+
+        const maxLeft = document.documentElement.clientWidth - width - EPIC_TIP_EDGE_MARGIN;
+        const left = Math.max(EPIC_TIP_EDGE_MARGIN, Math.min(rect.left + rect.width / 2 - width / 2, maxLeft));
+
+        epicTipWrapper.style.left = `${left}px`;
+        epicTipWrapper.style.top = `${top}px`;
+        epicTipBox.setAttribute('data-side', side);
+
+        // La flecha va pegada al borde de la caja que mira al botón, y se gira cuando
+        // el tooltip pasa debajo para que siga apuntando hacia él.
+        const arrowLeft = rect.left + rect.width / 2 - left - EPIC_TIP_ARROW_W / 2;
+        epicTipArrow.style.left = `${arrowLeft}px`;
+        if (side === 'top') {
+            epicTipArrow.style.top = '';
+            epicTipArrow.style.bottom = '0';
+            epicTipArrow.style.transform = 'translateY(100%)';
+        } else {
+            epicTipArrow.style.bottom = '';
+            epicTipArrow.style.top = '0';
+            epicTipArrow.style.transform = 'translateY(-100%) rotate(180deg)';
+        }
+    }
+
+    /** Muestra el tooltip de un botón. */
+    function showEpicTooltip(anchor, text) {
+        if (!anchor.isConnected) return;  // la SPA se llevó el botón mientras esperábamos
+        epicTipText.nodeValue = text;
+        epicTipSrText.textContent = text;
+        if (!epicTipWrapper.isConnected) document.body.appendChild(epicTipWrapper);
+        positionEpicTooltip(anchor);
+    }
+
+    /** Lo retira; volver a entrar en un botón lo vuelve a montar. */
+    function hideEpicTooltip() {
+        clearTimeout(epicTipTimer);
+        if (epicTipWrapper && epicTipWrapper.isConnected) epicTipWrapper.remove();
+    }
+
+    /**
+     * Cuelga el tooltip de la tienda de un botón, por hover y por foco (Radix hace
+     * las dos). El clic no se toca: lo único que el botón tiene que hacer es abrirse.
+     * Si el CSS de Epic ya no reconoce sus clases, no monta nada y el botón se queda
+     * con el `title`, que es lo que trae puesto.
+     * @param {HTMLAnchorElement} anchor - El botón.
+     * @param {string} text - El texto del aviso.
+     */
+    function attachEpicTooltip(anchor, text) {
+        if (!epicTooltipIsLive()) return;
+
+        const open = () => {
+            clearTimeout(epicTipTimer);
+            epicTipTimer = setTimeout(() => showEpicTooltip(anchor, text), EPIC_TIP_DELAY_MS);
+        };
+        anchor.addEventListener('mouseenter', open);
+        anchor.addEventListener('focus', open);
+        anchor.addEventListener('mouseleave', hideEpicTooltip);
+        anchor.addEventListener('blur', hideEpicTooltip);
+
+        anchor.removeAttribute('title');  // si no, se verían los dos
+    }
+
     /**
      * Crea un enlace externo con el aspecto del botón de EGData, con el icono
      * dentro y a la izquierda de la etiqueta. Es un <a> real, así que funcionan el
      * clic central y "copiar dirección del enlace".
+     * El `title` se pone siempre: es la caída para cuando el tooltip de la tienda no
+     * se pueda montar. attachEpicTooltip() lo retira cuando sí lo monta.
      * @param {{ label: string, url: string, iconSvg?: string, iconUrl?: string, tooltip: string }} opts
      * @returns {HTMLAnchorElement} El enlace listo para insertar.
      */
@@ -1530,6 +1726,7 @@
         a.target = '_blank';
         a.rel = 'nofollow noopener external';
         a.title = tooltip;
+        attachEpicTooltip(a, tooltip);
 
         if (iconSvg) {
             const box = document.createElement('span');
@@ -1605,7 +1802,7 @@
      * @param {HTMLButtonElement} purchaseButton - Botón de compra de referencia.
      * @param {string} slug - ID de la oferta en EGData.
      * @param {boolean} withMargin - Añade separación superior (para botones extra).
-     * @returns {HTMLButtonElement|null} El botón insertado, el existente, o null.
+     * @returns {HTMLAnchorElement|null} El botón insertado, el existente, o null.
      */
     function insertNextToPurchase(purchaseButton, slug, withMargin) {
         // Dedup POR BOTÓN DE COMPRA (no por contenedor). En los bundles los dos
@@ -1654,7 +1851,7 @@
      * @param {string} slug - ID de la oferta en EGData.
      * @param {string} urlType - Tipo de página ("product" o "bundle").
      * @param {string} gameTitle - Título del juego (para log).
-     * @returns {HTMLButtonElement|null} El primer botón creado/encontrado, o null.
+     * @returns {HTMLAnchorElement|null} El primer botón creado/encontrado, o null.
      */
     function createEGDataButton(slug, urlType, gameTitle) {
         try {
