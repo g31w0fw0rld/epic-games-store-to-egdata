@@ -36,7 +36,7 @@ Tampermonkey userscript for the Epic Games Store: EGData, GG.deals and PCGamingW
 - **Copy link with filters:** builds a URL that reproduces your sort, your filters and the "only discounted" state when opened with the script installed — shareable and bookmarkable. If the browser blocks clipboard access, it shows the URL in a dialog so you can copy it by hand.
 - **"Learn more"** button with the full explanation inside the page, and a tooltip on every control.
 
-**Language:** automatic Spanish / English detection, following the language Epic serves the page in. It covers the wishlist toolbar and the two search tooltips; the button labels are brand names and stay as they are.
+**Language:** **31 languages** — English, Spanish, German, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Polish, Russian, Ukrainian, Czech, Danish, Finnish, Swedish, Norwegian, Hungarian, Romanian, Bulgarian, Turkish, Arabic, Hindi, Indonesian, Malay, Filipino, Thai, Vietnamese, Japanese, Korean, Simplified Chinese and Traditional Chinese. It follows the language Epic is actually showing: the `?lang=` in the URL first, since that is how Epic switches language; then the option ticked in Epic's own language menu; then `<html lang>`, which React writes on hydration; then your browser, falling back to English. It covers the wishlist toolbar and the two search tooltips; the button labels are brand names and stay as they are.
 
 **Install:**
 1. Install [Tampermonkey](https://www.tampermonkey.net/).
@@ -64,7 +64,7 @@ Tampermonkey userscript for the Epic Games Store: EGData, GG.deals and PCGamingW
 - **Copiar enlace con filtros:** genera una URL que, al abrirla con el script instalado, reproduce tu orden, tus filtros y el estado de "solo con descuento" — se puede compartir y guardar en marcadores. Si el navegador bloquea el portapapeles, muestra la URL en un diálogo para copiarla a mano.
 - Botón **"Saber más"** con la explicación completa dentro de la página, y un tooltip en cada control.
 
-**Idioma:** detección automática español / inglés, siguiendo el idioma con el que Epic sirve la página. Cubre la barra de la lista de deseos y los dos tooltips de búsqueda; las etiquetas de los botones son marcas y se quedan como están.
+**Idioma:** **31 idiomas** —inglés, español, alemán, francés, italiano, neerlandés, portugués, portugués de Brasil, polaco, ruso, ucraniano, checo, danés, finés, sueco, noruego, húngaro, rumano, búlgaro, turco, árabe, hindi, indonesio, malayo, filipino, tailandés, vietnamita, japonés, coreano, chino simplificado y chino tradicional—. Sigue el idioma en que Epic está mostrando la página de verdad: primero el `?lang=` de la URL, que es el mecanismo con que Epic cambia de idioma; luego la opción marcada en el propio menú de idioma de Epic; luego el `<html lang>`, que React escribe al hidratar; luego el navegador, con inglés como respaldo. Cubre la barra de la lista de deseos y los dos tooltips de búsqueda; las etiquetas de los botones son marcas y se quedan como están.
 
 **Instalación:**
 1. Instala [Tampermonkey](https://www.tampermonkey.net/).
