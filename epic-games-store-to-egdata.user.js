@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.7.2
+// @version      1.7.3
 // @description  Adds EGData, GG.deals and PCGamingWiki buttons below every purchase button on Epic Games Store product and bundle pages — bundles have two, and both get the trio. EGData links to that exact offer; the other two search by title, GG.deals among Epic-DRM deals with no store-rating floor, and each says so in the store's own tooltip. On your wishlist it adds an 'only discounted' filter that first loads the whole list, remembered sort and filters, and a shareable link that reproduces them.
 // @author       g31w0fw0rld
 // @license      MIT
@@ -52,6 +52,9 @@
             pcgwTip: 'Searches the title on PCGamingWiki (compatibility and fixes). Being a title search, it may not hit the exact article.',
             aboutTip: 'See everything this script does.',
             aboutTitle: 'What does this script do?',
+            aboutName: 'Name:',
+            aboutVersion: 'Version:',
+            aboutAuthor: 'Author:',
             aboutBody: [
                 'This script links Epic Games Store with EGData and enhances your wishlist.',
                 '• On product (/p/) and bundle (/bundles/) pages: adds three buttons below the purchase button.',
@@ -81,6 +84,9 @@
             pcgwTip: 'Busca el título en PCGamingWiki (compatibilidad y arreglos). Al buscar por nombre, puede no dar con el artículo exacto.',
             aboutTip: 'Ver qué hace este script en su totalidad.',
             aboutTitle: '¿Qué hace este script?',
+            aboutName: 'Nombre:',
+            aboutVersion: 'Versión:',
+            aboutAuthor: 'Autor:',
             aboutBody: [
                 'Este script conecta Epic Games Store con EGData y mejora tu lista de deseos.',
                 '• En páginas de producto (/p/) y de bundle (/bundles/): añade tres botones bajo el botón de compra.',
@@ -110,6 +116,9 @@
             pcgwTip: 'Busca el título en PCGamingWiki (compatibilidad y arreglos). Al buscar por nombre, puede que no encuentre el artículo exacto.',
             aboutTip: 'Ver todo lo que hace este script.',
             aboutTitle: '¿Qué hace este script?',
+            aboutName: 'Nombre:',
+            aboutVersion: 'Versión:',
+            aboutAuthor: 'Autor:',
             aboutBody: [
                 'Este script conecta Epic Games Store con EGData y mejora tu lista de deseos.',
                 '• En páginas de producto (/p/) y de paquete (/bundles/): agrega tres botones debajo del botón de compra.',
@@ -139,6 +148,9 @@
             pcgwTip: 'Sucht den Titel auf PCGamingWiki (Kompatibilität und Fixes). Da es eine Titelsuche ist, wird nicht immer der exakte Artikel getroffen.',
             aboutTip: 'Alles ansehen, was dieses Skript macht.',
             aboutTitle: 'Was macht dieses Skript?',
+            aboutName: 'Name:',
+            aboutVersion: 'Version:',
+            aboutAuthor: 'Autor:',
             aboutBody: [
                 'Dieses Skript verbindet den Epic Games Store mit EGData und verbessert deine Wunschliste.',
                 '• Auf Produkt- (/p/) und Bundle-Seiten (/bundles/): fügt drei Schaltflächen unter der Kaufschaltfläche ein.',
@@ -168,6 +180,9 @@
             pcgwTip: 'Recherche le titre sur PCGamingWiki (compatibilité et correctifs). S’agissant d’une recherche par titre, l’article exact peut ne pas être trouvé.',
             aboutTip: 'Voir tout ce que fait ce script.',
             aboutTitle: 'Que fait ce script ?',
+            aboutName: 'Nom :',
+            aboutVersion: 'Version :',
+            aboutAuthor: 'Auteur :',
             aboutBody: [
                 'Ce script relie l’Epic Games Store à EGData et améliore votre liste de souhaits.',
                 '• Sur les pages produit (/p/) et bundle (/bundles/) : ajoute trois boutons sous le bouton d’achat.',
@@ -197,6 +212,9 @@
             pcgwTip: 'Cerca il titolo su PCGamingWiki (compatibilità e correzioni). Trattandosi di una ricerca per titolo, potrebbe non trovare la voce esatta.',
             aboutTip: 'Vedi tutto quello che fa questo script.',
             aboutTitle: 'Che cosa fa questo script?',
+            aboutName: 'Nome:',
+            aboutVersion: 'Versione:',
+            aboutAuthor: 'Autore:',
             aboutBody: [
                 'Questo script collega l’Epic Games Store a EGData e migliora la tua lista dei desideri.',
                 '• Nelle pagine di prodotto (/p/) e di bundle (/bundles/): aggiunge tre pulsanti sotto il pulsante di acquisto.',
@@ -226,6 +244,9 @@
             pcgwTip: 'Zoekt de titel op PCGamingWiki (compatibiliteit en fixes). Omdat het een titelzoekopdracht is, wordt niet altijd het exacte artikel gevonden.',
             aboutTip: 'Bekijk alles wat dit script doet.',
             aboutTitle: 'Wat doet dit script?',
+            aboutName: 'Naam:',
+            aboutVersion: 'Versie:',
+            aboutAuthor: 'Auteur:',
             aboutBody: [
                 'Dit script verbindt de Epic Games Store met EGData en verbetert je verlanglijst.',
                 '• Op product- (/p/) en bundelpagina’s (/bundles/): voegt drie knoppen toe onder de koopknop.',
@@ -255,6 +276,9 @@
             pcgwTip: 'Procura o título no PCGamingWiki (compatibilidade e correções). Sendo uma pesquisa por título, pode não encontrar o artigo exato.',
             aboutTip: 'Ver tudo o que este script faz.',
             aboutTitle: 'O que faz este script?',
+            aboutName: 'Nome:',
+            aboutVersion: 'Versão:',
+            aboutAuthor: 'Autor:',
             aboutBody: [
                 'Este script liga a Epic Games Store ao EGData e melhora a sua lista de desejos.',
                 '• Em páginas de produto (/p/) e de pacote (/bundles/): acrescenta três botões por baixo do botão de compra.',
@@ -284,6 +308,9 @@
             pcgwTip: 'Busca o título no PCGamingWiki (compatibilidade e correções). Por ser uma busca por título, pode não encontrar o artigo exato.',
             aboutTip: 'Ver tudo o que este script faz.',
             aboutTitle: 'O que este script faz?',
+            aboutName: 'Nome:',
+            aboutVersion: 'Versão:',
+            aboutAuthor: 'Autor:',
             aboutBody: [
                 'Este script conecta a Epic Games Store ao EGData e melhora sua lista de desejos.',
                 '• Em páginas de produto (/p/) e de pacote (/bundles/): adiciona três botões abaixo do botão de compra.',
@@ -313,6 +340,9 @@
             pcgwTip: 'Wyszukuje tytuł w PCGamingWiki (zgodność i poprawki). Ponieważ to wyszukiwanie po tytule, może nie trafić w dokładny artykuł.',
             aboutTip: 'Zobacz wszystko, co robi ten skrypt.',
             aboutTitle: 'Co robi ten skrypt?',
+            aboutName: 'Nazwa:',
+            aboutVersion: 'Wersja:',
+            aboutAuthor: 'Autor:',
             aboutBody: [
                 'Ten skrypt łączy Epic Games Store z EGData i ulepsza twoją listę życzeń.',
                 '• Na stronach produktu (/p/) i pakietu (/bundles/): dodaje trzy przyciski pod przyciskiem zakupu.',
@@ -342,6 +372,9 @@
             pcgwTip: 'Ищет название на PCGamingWiki (совместимость и исправления). Это поиск по названию, поэтому нужная статья может не найтись.',
             aboutTip: 'Посмотреть всё, что делает этот скрипт.',
             aboutTitle: 'Что делает этот скрипт?',
+            aboutName: 'Название:',
+            aboutVersion: 'Версия:',
+            aboutAuthor: 'Автор:',
             aboutBody: [
                 'Этот скрипт связывает Epic Games Store с EGData и улучшает ваш список желаемого.',
                 '• На страницах товара (/p/) и комплекта (/bundles/): добавляет три кнопки под кнопкой покупки.',
@@ -371,6 +404,9 @@
             pcgwTip: 'Шукає назву на PCGamingWiki (сумісність і виправлення). Це пошук за назвою, тож потрібна стаття може не знайтися.',
             aboutTip: 'Переглянути все, що робить цей скрипт.',
             aboutTitle: 'Що робить цей скрипт?',
+            aboutName: 'Назва:',
+            aboutVersion: 'Версія:',
+            aboutAuthor: 'Автор:',
             aboutBody: [
                 'Цей скрипт пов’язує Epic Games Store з EGData і покращує ваш список бажаного.',
                 '• На сторінках товару (/p/) і комплекту (/bundles/): додає три кнопки під кнопкою купівлі.',
@@ -400,6 +436,9 @@
             pcgwTip: 'Vyhledá název na PCGamingWiki (kompatibilita a opravy). Protože jde o vyhledávání podle názvu, nemusí najít přesný článek.',
             aboutTip: 'Zobrazit vše, co tento skript dělá.',
             aboutTitle: 'Co tento skript dělá?',
+            aboutName: 'Název:',
+            aboutVersion: 'Verze:',
+            aboutAuthor: 'Autor:',
             aboutBody: [
                 'Tento skript propojuje Epic Games Store s EGData a vylepšuje váš seznam přání.',
                 '• Na stránkách produktu (/p/) a balíčku (/bundles/): přidává tři tlačítka pod tlačítko nákupu.',
@@ -429,6 +468,9 @@
             pcgwTip: 'Søger efter titlen på PCGamingWiki (kompatibilitet og rettelser). Da det er en titelsøgning, rammer den ikke altid den præcise artikel.',
             aboutTip: 'Se alt, hvad dette script gør.',
             aboutTitle: 'Hvad gør dette script?',
+            aboutName: 'Navn:',
+            aboutVersion: 'Version:',
+            aboutAuthor: 'Forfatter:',
             aboutBody: [
                 'Dette script forbinder Epic Games Store med EGData og forbedrer din ønskeliste.',
                 '• På produkt- (/p/) og bundtsider (/bundles/): tilføjer tre knapper under købsknappen.',
@@ -458,6 +500,9 @@
             pcgwTip: 'Hakee nimen PCGamingWikistä (yhteensopivuus ja korjaukset). Koska kyseessä on nimihaku, se ei aina osu täsmälleen oikeaan artikkeliin.',
             aboutTip: 'Katso kaikki, mitä tämä skripti tekee.',
             aboutTitle: 'Mitä tämä skripti tekee?',
+            aboutName: 'Nimi:',
+            aboutVersion: 'Versio:',
+            aboutAuthor: 'Tekijä:',
             aboutBody: [
                 'Tämä skripti yhdistää Epic Games Storen EGDataan ja parantaa toivelistaasi.',
                 '• Tuote- (/p/) ja kokoelmasivuilla (/bundles/): lisää kolme painiketta ostopainikkeen alle.',
@@ -487,6 +532,9 @@
             pcgwTip: 'Söker efter titeln på PCGamingWiki (kompatibilitet och fixar). Eftersom det är en titelsökning hittas inte alltid exakt rätt artikel.',
             aboutTip: 'Se allt som det här skriptet gör.',
             aboutTitle: 'Vad gör det här skriptet?',
+            aboutName: 'Namn:',
+            aboutVersion: 'Version:',
+            aboutAuthor: 'Författare:',
             aboutBody: [
                 'Det här skriptet kopplar ihop Epic Games Store med EGData och förbättrar din önskelista.',
                 '• På produkt- (/p/) och paketsidor (/bundles/): lägger till tre knappar under köpknappen.',
@@ -516,6 +564,9 @@
             pcgwTip: 'Søker etter tittelen på PCGamingWiki (kompatibilitet og fikser). Siden det er et tittelsøk, treffer det ikke alltid den eksakte artikkelen.',
             aboutTip: 'Se alt dette skriptet gjør.',
             aboutTitle: 'Hva gjør dette skriptet?',
+            aboutName: 'Navn:',
+            aboutVersion: 'Versjon:',
+            aboutAuthor: 'Forfatter:',
             aboutBody: [
                 'Dette skriptet kobler Epic Games Store til EGData og forbedrer ønskelisten din.',
                 '• På produkt- (/p/) og pakkesider (/bundles/): legger til tre knapper under kjøpsknappen.',
@@ -545,6 +596,9 @@
             pcgwTip: 'Megkeresi a címet a PCGamingWikin (kompatibilitás és javítások). Mivel cím szerinti keresés, előfordulhat, hogy nem a pontos szócikket találja meg.',
             aboutTip: 'Nézd meg mindazt, amit ez a szkript csinál.',
             aboutTitle: 'Mit csinál ez a szkript?',
+            aboutName: 'Név:',
+            aboutVersion: 'Verzió:',
+            aboutAuthor: 'Szerző:',
             aboutBody: [
                 'Ez a szkript összeköti az Epic Games Store-t az EGDatával, és feljavítja a kívánságlistádat.',
                 '• Termék- (/p/) és csomagoldalakon (/bundles/): három gombot ad a vásárlás gomb alá.',
@@ -574,6 +628,9 @@
             pcgwTip: 'Caută titlul pe PCGamingWiki (compatibilitate și remedieri). Fiind o căutare după titlu, este posibil să nu găsească articolul exact.',
             aboutTip: 'Vezi tot ce face acest script.',
             aboutTitle: 'Ce face acest script?',
+            aboutName: 'Nume:',
+            aboutVersion: 'Versiune:',
+            aboutAuthor: 'Autor:',
             aboutBody: [
                 'Acest script conectează Epic Games Store cu EGData și îți îmbunătățește lista de dorințe.',
                 '• Pe paginile de produs (/p/) și de pachet (/bundles/): adaugă trei butoane sub butonul de cumpărare.',
@@ -603,6 +660,9 @@
             pcgwTip: 'Търси заглавието в PCGamingWiki (съвместимост и поправки). Тъй като е търсене по заглавие, може да не намери точната статия.',
             aboutTip: 'Вижте всичко, което прави този скрипт.',
             aboutTitle: 'Какво прави този скрипт?',
+            aboutName: 'Име:',
+            aboutVersion: 'Версия:',
+            aboutAuthor: 'Автор:',
             aboutBody: [
                 'Този скрипт свързва Epic Games Store с EGData и подобрява списъка ви с желания.',
                 '• На страници на продукт (/p/) и на пакет (/bundles/): добавя три бутона под бутона за покупка.',
@@ -632,6 +692,9 @@
             pcgwTip: 'Başlığı PCGamingWiki üzerinde arar (uyumluluk ve düzeltmeler). Başlığa göre arama olduğu için tam olarak aradığınız makaleyi bulamayabilir.',
             aboutTip: 'Bu betiğin yaptığı her şeyi görün.',
             aboutTitle: 'Bu betik ne yapar?',
+            aboutName: 'Ad:',
+            aboutVersion: 'Sürüm:',
+            aboutAuthor: 'Yazar:',
             aboutBody: [
                 'Bu betik Epic Games Store’u EGData ile birleştirir ve istek listenizi geliştirir.',
                 '• Ürün (/p/) ve paket (/bundles/) sayfalarında: satın alma düğmesinin altına üç düğme ekler.',
@@ -661,6 +724,9 @@
             pcgwTip: 'يبحث عن العنوان في PCGamingWiki (التوافق والإصلاحات). لأنه بحث بالعنوان، قد لا يصل إلى المقالة المطلوبة بالضبط.',
             aboutTip: 'اطّلع على كل ما يفعله هذا البرنامج النصي.',
             aboutTitle: 'ماذا يفعل هذا البرنامج النصي؟',
+            aboutName: 'الاسم:',
+            aboutVersion: 'الإصدار:',
+            aboutAuthor: 'المؤلف:',
             aboutBody: [
                 'يربط هذا البرنامج النصي متجر Epic Games بـ EGData ويحسّن قائمة رغباتك.',
                 '• في صفحات المنتج (‎/p/‎) والحزم (‎/bundles/‎): يضيف ثلاثة أزرار أسفل زر الشراء.',
@@ -690,6 +756,9 @@
             pcgwTip: 'PCGamingWiki पर शीर्षक खोजता है (संगतता और सुधार)। यह शीर्षक से खोज है, इसलिए हो सकता है कि सही लेख न मिले।',
             aboutTip: 'यह स्क्रिप्ट जो कुछ करती है, सब देखें।',
             aboutTitle: 'यह स्क्रिप्ट क्या करती है?',
+            aboutName: 'नाम:',
+            aboutVersion: 'संस्करण:',
+            aboutAuthor: 'लेखक:',
             aboutBody: [
                 'यह स्क्रिप्ट Epic Games Store को EGData से जोड़ती है और आपकी इच्छा-सूची को बेहतर बनाती है।',
                 '• उत्पाद (/p/) और बंडल (/bundles/) पृष्ठों पर: खरीद बटन के नीचे तीन बटन जोड़ती है।',
@@ -719,6 +788,9 @@
             pcgwTip: 'Mencari judul di PCGamingWiki (kompatibilitas dan perbaikan). Karena ini pencarian berdasarkan judul, hasilnya mungkin bukan artikel yang tepat.',
             aboutTip: 'Lihat semua yang dilakukan skrip ini.',
             aboutTitle: 'Apa yang dilakukan skrip ini?',
+            aboutName: 'Nama:',
+            aboutVersion: 'Versi:',
+            aboutAuthor: 'Penulis:',
             aboutBody: [
                 'Skrip ini menghubungkan Epic Games Store dengan EGData dan menyempurnakan daftar keinginan Anda.',
                 '• Di halaman produk (/p/) dan bundel (/bundles/): menambahkan tiga tombol di bawah tombol pembelian.',
@@ -748,6 +820,9 @@
             pcgwTip: 'Mencari tajuk di PCGamingWiki (keserasian dan pembetulan). Oleh kerana ini carian mengikut tajuk, ia mungkin tidak menemui artikel yang tepat.',
             aboutTip: 'Lihat semua yang dilakukan skrip ini.',
             aboutTitle: 'Apakah yang dilakukan skrip ini?',
+            aboutName: 'Nama:',
+            aboutVersion: 'Versi:',
+            aboutAuthor: 'Penulis:',
             aboutBody: [
                 'Skrip ini menghubungkan Epic Games Store dengan EGData dan menambah baik senarai hajat anda.',
                 '• Pada halaman produk (/p/) dan pakej (/bundles/): menambah tiga butang di bawah butang pembelian.',
@@ -777,6 +852,9 @@
             pcgwTip: 'Hinahanap ang pamagat sa PCGamingWiki (compatibility at mga fix). Dahil paghahanap ito sa pamagat, maaaring hindi ito tumama sa eksaktong artikulo.',
             aboutTip: 'Tingnan ang lahat ng ginagawa ng script na ito.',
             aboutTitle: 'Ano ang ginagawa ng script na ito?',
+            aboutName: 'Pangalan:',
+            aboutVersion: 'Bersyon:',
+            aboutAuthor: 'May-akda:',
             aboutBody: [
                 'Iniuugnay ng script na ito ang Epic Games Store sa EGData at pinapaganda ang wishlist mo.',
                 '• Sa mga pahina ng produkto (/p/) at bundle (/bundles/): nagdaragdag ng tatlong button sa ilalim ng button ng pagbili.',
@@ -806,6 +884,9 @@
             pcgwTip: 'ค้นหาชื่อเกมบน PCGamingWiki (ความเข้ากันได้และการแก้ไข) เนื่องจากเป็นการค้นหาด้วยชื่อ จึงอาจไม่ตรงกับบทความที่ต้องการพอดี',
             aboutTip: 'ดูทุกอย่างที่สคริปต์นี้ทำ',
             aboutTitle: 'สคริปต์นี้ทำอะไร?',
+            aboutName: 'ชื่อ:',
+            aboutVersion: 'เวอร์ชัน:',
+            aboutAuthor: 'ผู้เขียน:',
             aboutBody: [
                 'สคริปต์นี้เชื่อม Epic Games Store เข้ากับ EGData และปรับปรุงรายการที่อยากได้ของคุณ',
                 '• ในหน้าสินค้า (/p/) และหน้าชุดรวม (/bundles/): เพิ่มปุ่มสามปุ่มไว้ใต้ปุ่มซื้อ',
@@ -835,6 +916,9 @@
             pcgwTip: 'Tìm tựa đề trên PCGamingWiki (khả năng tương thích và bản sửa lỗi). Vì là tìm theo tên, kết quả có thể không phải bài viết chính xác.',
             aboutTip: 'Xem mọi thứ tập lệnh này làm.',
             aboutTitle: 'Tập lệnh này làm gì?',
+            aboutName: 'Tên:',
+            aboutVersion: 'Phiên bản:',
+            aboutAuthor: 'Tác giả:',
             aboutBody: [
                 'Tập lệnh này kết nối Epic Games Store với EGData và cải thiện danh sách mong muốn của bạn.',
                 '• Trên trang sản phẩm (/p/) và gói (/bundles/): thêm ba nút bên dưới nút mua.',
@@ -864,6 +948,9 @@
             pcgwTip: 'PCGamingWiki でタイトルを検索します（互換性と修正）。タイトル検索のため、目的の記事に正確に一致しない場合があります。',
             aboutTip: 'このスクリプトの機能をすべて見る。',
             aboutTitle: 'このスクリプトは何をしますか？',
+            aboutName: '名前:',
+            aboutVersion: 'バージョン:',
+            aboutAuthor: '作者:',
             aboutBody: [
                 'このスクリプトは Epic Games Store と EGData をつなぎ、ウィッシュリストを使いやすくします。',
                 '• 製品ページ（/p/）とバンドルページ（/bundles/）: 購入ボタンの下にボタンを3つ追加します。',
@@ -893,6 +980,9 @@
             pcgwTip: 'PCGamingWiki에서 제목을 검색합니다(호환성 및 수정). 제목 검색이므로 정확한 문서를 찾지 못할 수 있습니다.',
             aboutTip: '이 스크립트가 하는 모든 것을 확인하세요.',
             aboutTitle: '이 스크립트는 무엇을 하나요?',
+            aboutName: '이름:',
+            aboutVersion: '버전:',
+            aboutAuthor: '작성자:',
             aboutBody: [
                 '이 스크립트는 Epic Games Store를 EGData와 연결하고 위시리스트를 개선합니다.',
                 '• 제품(/p/) 및 번들(/bundles/) 페이지: 구매 버튼 아래에 버튼 세 개를 추가합니다.',
@@ -922,6 +1012,9 @@
             pcgwTip: '在 PCGamingWiki 上搜索该标题（兼容性与修复）。由于是按标题搜索，可能无法精确匹配到对应条目。',
             aboutTip: '查看此脚本的全部功能。',
             aboutTitle: '这个脚本有什么用？',
+            aboutName: '名称：',
+            aboutVersion: '版本：',
+            aboutAuthor: '作者：',
             aboutBody: [
                 '本脚本将 Epic Games Store 与 EGData 连接起来，并改进你的愿望单。',
                 '• 在商品页（/p/）和捆绑包页（/bundles/）：在购买按钮下方添加三个按钮。',
@@ -951,6 +1044,9 @@
             pcgwTip: '在 PCGamingWiki 上搜尋該標題（相容性與修正）。由於是以標題搜尋，可能無法精確對應到該條目。',
             aboutTip: '查看此腳本的全部功能。',
             aboutTitle: '這個腳本有什麼用？',
+            aboutName: '名稱：',
+            aboutVersion: '版本：',
+            aboutAuthor: '作者：',
             aboutBody: [
                 '本腳本將 Epic Games Store 與 EGData 連結起來，並改進你的願望清單。',
                 '• 在商品頁（/p/）與組合包頁（/bundles/）：在購買按鈕下方加入三個按鈕。',
@@ -1090,7 +1186,7 @@
     const LINK_ATTR = 'data-egs2egd-link';
     const STYLES_ID = 'egs2egd-styles';
     // Sincronizar con @version del encabezado en cada bump.
-    const SCRIPT_VERSION = '1.7.2';
+    const SCRIPT_VERSION = '1.7.3';
 
     // GG.deals filtra por DRM con un bitmask numérico en la query, no por nombre:
     // 1 Steam, 8 GOG, 16 sin DRM, 32 otros, 128 Microsoft Store, 1024 Epic. Aquí
@@ -2301,87 +2397,228 @@
     }
 
     // --- Modal "Saber más" (autocontenido, sin dependencias) --------------------
+    // Tres bandas: cabecera fija (título + ficha), cuerpo scrollable y botón fijo,
+    // como el modal de información de los scripts de Twitch y Kick. Antes scrolleaba
+    // la caja ENTERA, y con un cuerpo de una docena larga de párrafos eso se llevaba
+    // el título fuera de vista y dejaba el botón de cerrar al final del scroll: se
+    // abría un panel sin encabezado del que no era evidente cómo salir.
+    const ABOUT_ID = 'egs2egd-about-overlay';
+    const ABOUT_NAME = 'Epic Games Store to EGData Button';
+    const ABOUT_REPO = 'g31w0fw0rld/epic-games-store-to-egdata';
+    // Paleta del modal: el gris casi negro de la tienda y el azul de EGData.
+    const ABOUT_BG = '#101014';
+    const ABOUT_FG = '#f5f5f5';
+    const ABOUT_ACCENT = '#26bbff';
+    const ABOUT_BTN_FG = '#001018';
+    const ABOUT_LINE = '#2a2a32';
+    const ABOUT_MUTED = '#a0a0ad';
+    const ABOUT_ITEM = '#d5d5dd';
+
+    // El separador de las etiquetas ("Nombre:" / "Nom :" / "名称：") se toma de una
+    // ya traducida, para que "GitHub" y "Ko-fi" —que no se traducen— no contradigan
+    // la puntuación del idioma activo.
+    function aboutColon() {
+        const m = String(t.aboutVersion || ':').match(/\s*[:：]\s*$/);
+        return m ? m[0] : ':';
+    }
+
+    // Marca inerte el resto de la página mientras el modal está abierto, y guarda lo
+    // que hubiera para devolverlo tal cual al cerrar. Sin esto el tabulador se pasea
+    // por la tienda que hay detrás del overlay, que no se ve pero sigue ahí.
+    function aboutSetInert(overlay, on) {
+        if (on) {
+            const saved = [];
+            Array.from(document.body.children).forEach((el) => {
+                if (el === overlay) return;
+                saved.push({ el, ariaHidden: el.getAttribute('aria-hidden') });
+                try { el.setAttribute('aria-hidden', 'true'); el.inert = true; } catch (e) { /* noop */ }
+            });
+            overlay._savedInert = saved;
+        } else {
+            (overlay._savedInert || []).forEach((s) => {
+                try {
+                    if (s.ariaHidden === null) s.el.removeAttribute('aria-hidden');
+                    else s.el.setAttribute('aria-hidden', s.ariaHidden);
+                    s.el.inert = false;
+                } catch (e) { /* noop */ }
+            });
+            overlay._savedInert = null;
+        }
+    }
+
+    // Una fila del cuerpo. Los marcadores del texto ('•' grupo, '–' subpunto) son
+    // ESTRUCTURA, no texto: se consumen y se traducen a jerarquía visual. La sangría
+    // es francesa (padding + text-indent negativo) para que al partirse la línea la
+    // segunda no vuelva al margen y el marcador siga marcando columna; va en
+    // propiedades lógicas porque en árabe la columna está a la derecha.
+    function aboutRow(raw, prevKind) {
+        const text = String(raw).replace(/^\s+/, '');
+        const row = document.createElement('div');
+        let kind = 'plain';
+        if (text.startsWith('•')) {
+            kind = 'group';
+            row.textContent = text.slice(1).trim();
+            Object.assign(row.style, {
+                color: ABOUT_ACCENT, fontWeight: '600', marginBottom: '8px',
+                marginTop: prevKind ? '18px' : '0'
+            });
+        } else if (text.startsWith('–')) {
+            kind = 'item';
+            row.textContent = text;
+            Object.assign(row.style, {
+                paddingInlineStart: '30px', textIndent: '-16px', marginBottom: '7px', color: ABOUT_ITEM
+            });
+        } else {
+            row.textContent = text;
+            row.style.marginBottom = '10px';
+            // Un párrafo suelto detrás de una lista es la coda del bloque, no otro
+            // punto de la lista: sin este respiro se lee pegado al último subpunto.
+            if (prevKind && prevKind !== 'plain') row.style.marginTop = '16px';
+        }
+        return { row, kind };
+    }
+
     function wlShowAboutModal() {
-        if (document.getElementById('egs2egd-about-overlay')) return;
+        if (document.getElementById(ABOUT_ID)) return;
         const overlay = document.createElement('div');
-        overlay.id = 'egs2egd-about-overlay';
+        overlay.id = ABOUT_ID;
         overlay.dir = dir(); // en árabe el panel se alinea a la derecha
         Object.assign(overlay.style, {
             position: 'fixed', inset: '0', width: '100%', height: '100%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
+            // El padding reserva el hueco contra el que se acota la caja (maxHeight
+            // al 100%), y de paso evita que quede pegada a los bordes de la ventana.
+            padding: '24px', boxSizing: 'border-box',
             background: 'rgba(0,0,0,0.6)', zIndex: '2147483647',
             transition: 'opacity 180ms ease', opacity: '0',
         });
         const box = document.createElement('div');
         Object.assign(box.style, {
-            background: '#101014', color: '#f5f5f5', borderRadius: '14px',
-            padding: '26px 30px', minWidth: '320px', maxWidth: '560px',
-            maxHeight: '80vh', overflowY: 'auto', boxSizing: 'border-box',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.5)', border: '1px solid #2a2a32',
-            fontFamily: 'Inter, system-ui, sans-serif', fontSize: '14px', lineHeight: '1.5',
+            background: ABOUT_BG, color: ABOUT_FG, borderRadius: '14px',
+            padding: '26px 30px', minWidth: 'min(340px, 100%)', maxWidth: '560px',
+            maxHeight: '100%', boxSizing: 'border-box',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)', border: `1px solid ${ABOUT_LINE}`,
+            fontFamily: 'Inter, system-ui, sans-serif', fontSize: '14px', lineHeight: '1.55',
+            // Flex en columna con overflow oculto: scrollea solo la banda del medio.
+            display: 'flex', flexDirection: 'column', overflow: 'hidden',
             transform: 'translateY(8px) scale(0.98)', opacity: '0',
             transition: 'transform 180ms ease, opacity 180ms ease',
         });
 
+        const hairline = () => {
+            const hr = document.createElement('div');
+            Object.assign(hr.style, {
+                height: '1px', background: ABOUT_LINE, margin: '14px 0', flexShrink: '0'
+            });
+            return hr;
+        };
+
+        // --- Cabecera fija: título y ficha ---
+        const head = document.createElement('div');
+        head.style.flexShrink = '0';
+
         const title = document.createElement('div');
         title.textContent = t.aboutTitle;
-        title.style.cssText = 'font-weight:bold;font-size:17px;margin-bottom:14px;';
-        box.appendChild(title);
+        title.style.cssText = `font-weight:bold;font-size:17px;margin-bottom:12px;color:${ABOUT_ACCENT};`;
+        head.appendChild(title);
 
-        (t.aboutBody || []).forEach((p) => {
-            const row = document.createElement('div');
-            const trimmed = String(p).replace(/^\s+/, '');
-            row.textContent = trimmed;
-            row.style.marginBottom = '8px';
-            if (trimmed.startsWith('–')) row.style.paddingLeft = '22px';
-            else if (trimmed.startsWith('•')) row.style.paddingLeft = '10px';
-            box.appendChild(row);
+        // Ficha en rejilla de dos columnas: así los cinco valores quedan alineados
+        // en vez de escalonados según lo que mida cada etiqueta.
+        const meta = document.createElement('div');
+        Object.assign(meta.style, {
+            display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr)',
+            columnGap: '10px', rowGap: '5px', fontSize: '13px'
         });
+        const colon = aboutColon();
+        [
+            { label: t.aboutName, value: ABOUT_NAME },
+            { label: t.aboutVersion, value: SCRIPT_VERSION },
+            { label: t.aboutAuthor, value: 'g31w0fw0rld' },
+            { label: 'GitHub' + colon, value: 'github.com/' + ABOUT_REPO, isLink: true },
+            { label: '☕ Ko-fi' + colon, value: 'ko-fi.com/g31w0fw0rld', isLink: true }
+        ].forEach((r) => {
+            const label = document.createElement('div');
+            label.textContent = r.label;
+            Object.assign(label.style, { fontWeight: '600', color: ABOUT_MUTED, whiteSpace: 'nowrap' });
+            meta.appendChild(label);
+            const val = document.createElement('div');
+            // Sin esto la URL no parte y estira la caja más allá de su maxWidth.
+            Object.assign(val.style, { minWidth: '0', overflowWrap: 'anywhere' });
+            if (r.isLink) {
+                const a = document.createElement('a');
+                a.href = 'https://' + r.value;
+                a.textContent = r.value;
+                a.target = '_blank'; a.rel = 'noopener noreferrer';
+                a.style.color = ABOUT_ACCENT;
+                a.style.textDecoration = 'underline';
+                val.appendChild(a);
+            } else {
+                val.textContent = r.value;
+            }
+            meta.appendChild(val);
+        });
+        head.appendChild(meta);
+        head.appendChild(hairline());
+        box.appendChild(head);
 
-        const gh = document.createElement('a');
-        gh.href = 'https://github.com/g31w0fw0rld/epic-games-store-to-egdata';
-        gh.target = '_blank';
-        gh.rel = 'noopener';
-        gh.textContent = 'github.com/g31w0fw0rld/epic-games-store-to-egdata';
-        gh.style.cssText = 'display:inline-block;margin-top:6px;color:#26bbff;text-decoration:underline;font-size:12px;';
-        box.appendChild(gh);
-        const kofi = document.createElement('a');
-        kofi.href = 'https://ko-fi.com/g31w0fw0rld';
-        kofi.target = '_blank'; kofi.rel = 'noopener';
-        kofi.textContent = '☕ Apóyame en Ko-fi / Support me on Ko-fi';
-        kofi.style.cssText = 'display:block;margin-top:8px;color:#26bbff;text-decoration:underline;font-size:12px;';
-        box.appendChild(kofi);
+        // --- Cuerpo scrollable ---
+        const body = document.createElement('div');
+        Object.assign(body.style, {
+            overflowY: 'auto', minHeight: '0', paddingInlineEnd: '4px'
+        });
+        // `prevKind` arranca en null a propósito: marca "no hay nada encima", que es
+        // lo que distingue al primer párrafo (pegado a la línea divisoria de la
+        // cabecera, sin margen extra) de los demás.
+        let prevKind = null;
+        (t.aboutBody || []).forEach((p) => {
+            const { row, kind } = aboutRow(p, prevKind);
+            body.appendChild(row);
+            prevKind = kind;
+        });
+        box.appendChild(body);
+        box.appendChild(hairline());
 
-        const foot = document.createElement('div');
-        foot.textContent = 'v' + SCRIPT_VERSION + ' · g31w0fw0rld';
-        foot.style.cssText = 'margin-top:2px;font-size:12px;opacity:0.7;';
-        box.appendChild(foot);
-
+        // --- Botón fijo ---
         const closeBtn = document.createElement('button');
         closeBtn.type = 'button';
         closeBtn.textContent = t.close;
-        closeBtn.style.cssText = 'display:block;margin-top:16px;padding:8px 14px;background:#26bbff;color:#001018;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:13px;';
+        closeBtn.style.cssText = `flex-shrink:0;align-self:center;padding:8px 18px;background:${ABOUT_ACCENT};color:${ABOUT_BTN_FG};border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:13px;`;
+        closeBtn.addEventListener('mouseenter', () => { closeBtn.style.opacity = '0.85'; });
+        closeBtn.addEventListener('mouseleave', () => { closeBtn.style.opacity = '1'; });
         box.appendChild(closeBtn);
 
+        // El listener de Escape vive en document —el modal no tiene por qué tener el
+        // foco dentro cuando llega la tecla—, así que hay que quitarlo SIEMPRE al
+        // cerrar, también desde el botón: si no, se acumula uno por cada apertura.
         const closeIt = () => {
+            document.removeEventListener('keydown', onKey);
+            overlay.removeEventListener('click', onClick);
             overlay.style.opacity = '0';
             box.style.opacity = '0';
             box.style.transform = 'translateY(8px) scale(0.98)';
-            document.removeEventListener('keydown', onKey);
-            setTimeout(() => overlay.remove(), 180);
+            setTimeout(() => {
+                aboutSetInert(overlay, false);
+                overlay.remove();
+            }, 180);
         };
         const onKey = (e) => { if (e.key === 'Escape') closeIt(); };
+        // Solo el fondo: un clic dentro de la caja no debe cerrar.
+        const onClick = (e) => { if (e.target === overlay) closeIt(); };
         closeBtn.addEventListener('click', closeIt);
-        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeIt(); });
+        overlay.addEventListener('click', onClick);
         document.addEventListener('keydown', onKey);
 
         overlay.appendChild(box);
         document.body.appendChild(overlay);
+        aboutSetInert(overlay, true);
         setTimeout(() => {
             overlay.style.opacity = '1';
             box.style.transform = 'translateY(0) scale(1)';
             box.style.opacity = '1';
         }, 10);
+        // Sin esto el foco se queda en el ℹ️ de la barra, que aboutSetInert acaba de
+        // marcar inert, y se cae a <body>.
+        setTimeout(() => { try { closeBtn.focus(); } catch (e) { /* noop */ } }, 120);
     }
 
     // --- UI (barra junto al "Ordenar por:") -------------------------------------
