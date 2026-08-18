@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.8.0
+// @version      1.8.1
 // @description  Adds EGData, GG.deals and PCGamingWiki buttons below every purchase button on Epic Games Store product and bundle pages — bundles have two, and both get the trio. EGData links to that exact offer; the other two search by the English name, looked up by offer id because Epic translates game names and both sites index in English, and each says so in the store's own tooltip. On your wishlist it adds an 'only discounted' filter, remembered sort and filters, and a shareable link.
 // @author       g31w0fw0rld
 // @license      MIT
@@ -1186,7 +1186,7 @@
     const LINK_ATTR = 'data-egs2egd-link';
     const STYLES_ID = 'egs2egd-styles';
     // Sincronizar con @version del encabezado en cada bump.
-    const SCRIPT_VERSION = '1.8.0';
+    const SCRIPT_VERSION = '1.8.1';
 
     // GG.deals filtra por DRM con un bitmask numérico en la query, no por nombre:
     // 1 Steam, 8 GOG, 16 sin DRM, 32 otros, 128 Microsoft Store, 1024 Epic. Aquí
@@ -1255,6 +1255,12 @@
     // tiene páginas por edición. "Definitive", "Anniversary", "Remastered" y "Game
     // of the Year" NO se tocan: ahí sí suelen ser lanzamientos con página propia.
     const SKU_EDITION_REGEX = /[\s:–—-]+(?:digital\s+)?(?:standard|deluxe|premium|ultimate|gold|platinum|complete|collector'?s|founder'?s)\s+edition\s*$/i;
+
+    // Reintento de la fila de enlaces cuando el título todavía no es legible. Es una
+    // vigilancia aparte del polling de arriba porque llega DESPUÉS de que el botón de
+    // compra quede marcado como procesado: sin ella la fila se perdería para siempre.
+    const LINKS_RETRY_INTERVAL_MS = 250;
+    const LINKS_RETRY_MAX = 40;   // ~10 s
 
     // Intervalos y límites de polling
     const POLL_INTERVAL_MS = 400;
@@ -2073,18 +2079,68 @@
 
     /**
      * Copia a la fila de enlaces la altura y el radio de esquina del botón hermano,
-     * midiéndolos ya en el DOM. Silencioso si no se puede medir (se queda con los
-     * valores por defecto del CSS).
+     * midiéndolos ya en el DOM. Silencioso si no se puede medir: la fila se queda con
+     * los valores por defecto del CSS.
+     *
+     * Mide al insertar y CADA VEZ que el botón cambie de tamaño, porque una sola
+     * medida no basta. El primer juego de botones de la página se inserta antes de que
+     * Epic haya maquetado su botón de compra —del que EGData hereda el aspecto—, así
+     * que `offsetHeight` vale 0 y la fila se quedaba con el respaldo: 40 px contra los
+     * 48 reales del hermano. Se veía solo en el primero, y de ahí que costara ver:
+     * el segundo lo pinta el observer con el layout ya asentado y ahí sí cuadraba.
+     * Verificado en la ficha del bundle de GTA Trilogy, donde la primera fila salía a
+     * 40 y la segunda a 48. Es el mismo enfoque que ya usa el script de Microsoft
+     * Store para copiar el tamaño del botón de la tienda.
      * @param {HTMLElement} links - Fila de enlaces externos.
      * @param {HTMLElement} sibling - Botón de EGData, del que se copian las medidas.
      */
     function matchSibling(links, sibling) {
-        try {
-            const h = sibling.offsetHeight;
-            if (h > 0) links.style.setProperty('--egs2egd-h', `${h}px`);
-            const r = getComputedStyle(sibling).borderRadius;
-            if (r && r !== '0px') links.style.setProperty('--egs2egd-r', r);
-        } catch (e) { /* sin medidas: mandan los valores por defecto del CSS */ }
+        let observer = null;
+        const apply = () => {
+            try {
+                // Al navegar dentro de la SPA la fila desaparece; seguir observando su
+                // botón sería dejar un observer colgado por cada ficha visitada.
+                if (!links.isConnected) {
+                    if (observer) { observer.disconnect(); observer = null; }
+                    return;
+                }
+                const h = sibling.offsetHeight;
+                if (h > 0) links.style.setProperty('--egs2egd-h', `${h}px`);
+                const r = getComputedStyle(sibling).borderRadius;
+                if (r && r !== '0px') links.style.setProperty('--egs2egd-r', r);
+            } catch (e) { /* sin medidas: mandan los valores por defecto del CSS */ }
+        };
+
+        apply();
+        if (typeof ResizeObserver === 'function') {
+            try {
+                observer = new ResizeObserver(apply);
+                observer.observe(sibling);
+            } catch (e) { observer = null; }
+        }
+    }
+
+    /**
+     * Reintenta la fila de enlaces mientras el título no sea legible, y la inserta en
+     * cuanto lo sea. Se rinde a los ~10 s o si el bloque deja de estar en el documento
+     * (navegación dentro de la SPA). Silencioso: sin título, queda solo EGData, que es
+     * mejor que dos enlaces a una búsqueda vacía.
+     * @param {HTMLElement} box - El div que ya contiene el botón de EGData.
+     * @param {HTMLElement} button - El botón de EGData, del que se copian las medidas.
+     * @param {string} slug - ID de la oferta.
+     */
+    function watchForExternalLinks(box, button, slug) {
+        let tries = 0;
+        const iv = setInterval(() => {
+            tries++;
+            if (!box.isConnected || tries > LINKS_RETRY_MAX) { clearInterval(iv); return; }
+            if (box.querySelector('.egs2egd-links')) { clearInterval(iv); return; }
+            const links = buildExternalLinks(slug);
+            if (!links) return;
+            clearInterval(iv);
+            box.appendChild(links);
+            matchSibling(links, button);
+        }, LINKS_RETRY_INTERVAL_MS);
     }
 
     /**
@@ -2132,6 +2188,14 @@
         host.appendChild(div);
         // Medir después de insertar: antes el botón no tiene alto ni estilo aplicado.
         if (links) matchSibling(links, button);
+        // Sin fila hay que reintentar, y aquí está el único punto donde se puede: el
+        // botón de compra ya quedó marcado como procesado unas líneas arriba, así que
+        // el observer no volverá a pasar por él y la fila se perdería para siempre —el
+        // botón de EGData se quedaría solo, que es el síntoma que se veía de vez en
+        // cuando en los bundles—. Pasa cuando `document.title` todavía no trae el
+        // nombre del producto: Epic es una SPA y lo actualiza cuando le toca, no antes
+        // de que aparezca el botón de compra.
+        if (!links) watchForExternalLinks(div, button, slug);
         return button;
     }
 
