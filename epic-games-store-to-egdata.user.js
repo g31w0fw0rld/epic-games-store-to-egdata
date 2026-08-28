@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.8.1
+// @version      1.8.2
 // @description  Adds EGData, GG.deals and PCGamingWiki buttons below every purchase button on Epic Games Store product and bundle pages — bundles have two, and both get the trio. EGData links to that exact offer; the other two search by the English name, looked up by offer id because Epic translates game names and both sites index in English, and each says so in the store's own tooltip. On your wishlist it adds an 'only discounted' filter, remembered sort and filters, and a shareable link.
 // @author       g31w0fw0rld
 // @license      MIT
@@ -1182,11 +1182,14 @@
     const EGDATA_BASE_URL = 'https://egdata.app/offers/';
     const EGDATA_ICON_URL = 'https://cdn.egdata.app/logo_simple_white_clean.png';
     const PURCHASE_BUTTON_SELECTOR = '[data-testid="purchase-cta-button"]';
+    // El <h1> de la ficha. Es el título del producto a secas, sin los añadidos que
+    // Epic le pone al de la página.
+    const PDP_TITLE_SELECTOR = '[data-testid="pdp-title"]';
     const DATA_ATTR = 'data-egs2egd';
     const LINK_ATTR = 'data-egs2egd-link';
     const STYLES_ID = 'egs2egd-styles';
     // Sincronizar con @version del encabezado en cada bump.
-    const SCRIPT_VERSION = '1.8.1';
+    const SCRIPT_VERSION = '1.8.2';
 
     // GG.deals filtra por DRM con un bitmask numérico en la query, no por nombre:
     // 1 Steam, 8 GOG, 16 sin DRM, 32 otros, 128 Microsoft Store, 1024 Epic. Aquí
@@ -1491,11 +1494,23 @@
     }
 
     /**
-     * Extrae el título del juego desde el título de la página,
-     * eliminando el sufijo de Epic Games Store.
+     * Título del juego: el <h1> de la ficha, y si no lo hay, el título de la página
+     * sin el sufijo de Epic Games Store.
+     *
+     * El <h1> va primero porque el título de la página no siempre es solo el nombre:
+     * en las fichas de precompra lleva delante un «Precompra y preordena» traducido a
+     * la lengua de la tienda, y ese prefijo se colaba en las búsquedas de GG.deals y
+     * PCGamingWiki. Normalmente lo corregiría el nombre en inglés de EGData, pero en
+     * precompras su API todavía no conoce la oferta —verificado en Petit Planet, que
+     * responde 404—, así que el título malo era el definitivo.
+     *
+     * La caída a document.title deja igual que antes los casos sin <h1>, los bundles
+     * entre ellos.
      * @returns {string} El título limpio del juego.
      */
     function getGameTitle() {
+        const heading = document.querySelector(PDP_TITLE_SELECTOR)?.textContent?.trim();
+        if (heading) return heading;
         const rawTitle = document.title || '';
         return rawTitle.replace(/\s*-\s*Epic Games Store.*$/i, '').trim().split('|')[0].trim();
     }
@@ -2144,6 +2159,37 @@
     }
 
     /**
+     * Encaja el bloque insertado cuando el contenedor de compra es una FILA.
+     *
+     * En las fichas de precompra/prerregistro Epic maqueta ese contenedor con
+     * `flex-direction: row` (y `flex-wrap: wrap`) en vez de la columna de siempre, así
+     * que el bloque entra como un hermano más y se encoge a su contenido: EGData y la
+     * fila de enlaces salían más estrechos que el botón de compra, y la etiqueta
+     * "PCGamingWiki" se desbordaba de su pastilla. Con `flex-basis: 100%` el bloque se
+     * lleva una línea entera y recupera el ancho de la columna.
+     *
+     * Y si esa fila ya separa a sus hijos con `gap`, se quita el margen superior del
+     * botón: gap y margen se sumarían, dejando el hueco de arriba del doble que el de
+     * abajo. Verificado en la ficha de precompra de Petit Planet, donde el gap del
+     * contenedor es 0.625rem, exactamente el mismo margen que ponemos nosotros.
+     *
+     * Cuando el host es la columna de siempre no toca nada.
+     * @param {HTMLElement} host - Contenedor del que cuelga el bloque.
+     * @param {HTMLElement} block - Bloque insertado (botón de EGData + fila de enlaces).
+     * @param {HTMLElement} button - Botón de EGData.
+     */
+    function fitToRowHost(host, block, button) {
+        try {
+            const cs = getComputedStyle(host);
+            if (!/(^|-)flex$/.test(cs.display)) return;
+            if (!cs.flexDirection.startsWith('row')) return;
+            block.style.flex = '1 1 100%';
+            block.style.minWidth = '0';
+            if (parseFloat(cs.rowGap) > 0) button.style.marginTop = '0px';
+        } catch (e) { /* sin medidas: el bloque se queda como estaba */ }
+    }
+
+    /**
      * Inserta el botón EGData colgando del contenedor 3 niveles arriba del botón
      * de compra dado (misma colocación original que ya funcionaba en productos).
      * @param {HTMLButtonElement} purchaseButton - Botón de compra de referencia.
@@ -2186,6 +2232,9 @@
         if (links) div.appendChild(links);
 
         host.appendChild(div);
+        // Después de colgarlo: el ancho del bloque depende de cómo maquete el host,
+        // y eso solo se puede leer con el bloque ya dentro.
+        fitToRowHost(host, div, button);
         // Medir después de insertar: antes el botón no tiene alto ni estilo aplicado.
         if (links) matchSibling(links, button);
         // Sin fila hay que reintentar, y aquí está el único punto donde se puede: el
