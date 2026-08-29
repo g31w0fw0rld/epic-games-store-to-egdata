@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.8.4
+// @version      1.8.5
 // @description  Adds EGData, GG.deals and PCGamingWiki buttons below every purchase button on Epic Games Store product and bundle pages — bundles have two, and both get the trio. EGData links to that exact offer; the other two search by the English name, looked up by offer id because Epic translates game names and both sites index in English, and each says so in the store's own tooltip. On your wishlist it adds an 'only discounted' filter, remembered sort and filters, and a shareable link.
 // @author       g31w0fw0rld
 // @license      MIT
@@ -59,7 +59,7 @@
                 'This script links Epic Games Store with EGData and enhances your wishlist.',
                 '• On product (/p/) and bundle (/bundles/) pages: adds three buttons below the purchase button.',
                 '– EGData (a price and deal-history database) links to that exact offer, not to a search.',
-                '– GG.deals searches among Epic-DRM deals, with none of the default store-rating floor, and PCGamingWiki searches for compatibility and fixes. Both use the English name, looked up by offer id, because Epic translates game names; and whenever the offer belongs to a game — a DLC, an edition, a currency pack — PCGamingWiki searches that game instead. Each says in its tooltip that it searches by name and can miss. On a mobile-only page the PCGamingWiki button is not drawn at all: the wiki documents PC games.',
+                '– GG.deals searches among Epic-DRM deals, with none of the default store-rating floor, and PCGamingWiki searches for compatibility and fixes. Both use the English name, looked up by offer id, because Epic translates game names; and whenever the offer belongs to a game — a DLC, an edition, a currency pack — PCGamingWiki searches that game instead. Each says in its tooltip that it searches by name and can miss. On a mobile-only page neither the GG.deals nor the PCGamingWiki button is drawn: the wiki documents PC games and GG.deals tracks PC stores.',
                 '– One set of buttons per purchase button: bundles have two (the bar at the top and the "Buy …" section) and both get theirs.',
                 '– Navigating inside the store to a product or a bundle reloads the page. Epic is a single-page app and the script was not active on the home, search or browse view; that reload is what guarantees the button appears.',
                 '• On your wishlist (/wishlist) it adds a toolbar with three tools:',
@@ -91,7 +91,7 @@
                 'Este script conecta Epic Games Store con EGData y mejora tu lista de deseos.',
                 '• En páginas de producto (/p/) y de bundle (/bundles/): añade tres botones bajo el botón de compra.',
                 '– EGData (base de datos de precios e historial de ofertas) enlaza a esa oferta concreta, no a una búsqueda.',
-                '– GG.deals busca entre las ofertas con DRM de Epic, sin el mínimo de valoración de tienda que trae por defecto, y PCGamingWiki busca compatibilidad y arreglos. Los dos usan el nombre en inglés, pedido por el id de la oferta, porque Epic traduce los nombres de los juegos; y siempre que la oferta pertenezca a un juego —un DLC, una edición, un paquete de monedas—, PCGamingWiki busca ese juego. Cada uno avisa en su tooltip de que busca por nombre y puede no acertar. En una ficha solo de móvil, el de PCGamingWiki no se pinta: la wiki documenta juegos de PC.',
+                '– GG.deals busca entre las ofertas con DRM de Epic, sin el mínimo de valoración de tienda que trae por defecto, y PCGamingWiki busca compatibilidad y arreglos. Los dos usan el nombre en inglés, pedido por el id de la oferta, porque Epic traduce los nombres de los juegos; y siempre que la oferta pertenezca a un juego —un DLC, una edición, un paquete de monedas—, PCGamingWiki busca ese juego. Cada uno avisa en su tooltip de que busca por nombre y puede no acertar. En una ficha solo de móvil no se pintan ni el de GG.deals ni el de PCGamingWiki: la wiki documenta juegos de PC y GG.deals sigue tiendas de PC.',
                 '– Un juego de botones por cada botón de compra: los bundles tienen dos (la barra de arriba y la sección "Buy …") y ambos reciben el suyo.',
                 '– Al navegar dentro de la tienda hacia un producto o un bundle, la página se recarga. Epic es una SPA y el script no estaba activo en el home, la búsqueda ni el browse; esa recarga es lo que garantiza que el botón aparezca.',
                 '• En tu lista de deseos (/wishlist) añade una barra con tres herramientas:',
@@ -123,7 +123,7 @@
                 'Este script conecta Epic Games Store con EGData y mejora tu lista de deseos.',
                 '• En páginas de producto (/p/) y de paquete (/bundles/): agrega tres botones debajo del botón de compra.',
                 '– EGData (base de datos de precios e historial de ofertas) enlaza a esa oferta concreta, no a una búsqueda.',
-                '– GG.deals busca entre las ofertas con DRM de Epic, sin el mínimo de valoración de tienda que trae por defecto, y PCGamingWiki busca compatibilidad y arreglos. Los dos usan el nombre en inglés, pedido por el id de la oferta, porque Epic traduce los nombres de los juegos; y siempre que la oferta pertenezca a un juego —un DLC, una edición, un paquete de monedas—, PCGamingWiki busca ese juego. Cada uno lo avisa en su información emergente: busca por nombre y puede fallar. En una ficha solo de móvil, el de PCGamingWiki no se pinta: la wiki documenta juegos de PC.',
+                '– GG.deals busca entre las ofertas con DRM de Epic, sin el mínimo de valoración de tienda que trae por defecto, y PCGamingWiki busca compatibilidad y arreglos. Los dos usan el nombre en inglés, pedido por el id de la oferta, porque Epic traduce los nombres de los juegos; y siempre que la oferta pertenezca a un juego —un DLC, una edición, un paquete de monedas—, PCGamingWiki busca ese juego. Cada uno lo avisa en su información emergente: busca por nombre y puede fallar. En una ficha solo de móvil no se pintan ni el de GG.deals ni el de PCGamingWiki: la wiki documenta juegos de PC y GG.deals sigue tiendas de PC.',
                 '– Un juego de botones por cada botón de compra: los paquetes tienen dos (la barra de arriba y la sección "Buy …") y ambos reciben el suyo.',
                 '– Al navegar dentro de la tienda hacia un producto o un paquete, la página se recarga. Epic es una SPA y el script no estaba activo en el inicio, la búsqueda ni el catálogo; esa recarga es lo que garantiza que el botón aparezca.',
                 '• En tu lista de deseos (/wishlist) agrega una barra con tres herramientas:',
@@ -155,7 +155,7 @@
                 'Dieses Skript verbindet den Epic Games Store mit EGData und verbessert deine Wunschliste.',
                 '• Auf Produkt- (/p/) und Bundle-Seiten (/bundles/): fügt drei Schaltflächen unter der Kaufschaltfläche ein.',
                 '– EGData (eine Datenbank für Preise und Angebotsverlauf) verlinkt genau auf dieses Angebot, nicht auf eine Suche.',
-                '– GG.deals sucht unter den Angeboten mit Epic-DRM, ohne die standardmäßige Mindestbewertung der Shops, und PCGamingWiki sucht nach Kompatibilität und Fixes. Beide verwenden den englischen Namen, über die Angebots-ID abgefragt, weil Epic Spieltitel übersetzt; wenn das Angebot zu einem Spiel gehört – ein DLC, eine Edition, ein Währungspaket –, sucht PCGamingWiki stattdessen dieses Spiel. Jeder Button sagt in seinem Tooltip, dass er nach dem Namen sucht und danebenliegen kann. Auf einer reinen Mobil-Seite wird der PCGamingWiki-Button gar nicht erst gezeichnet: Das Wiki dokumentiert PC-Spiele.',
+                '– GG.deals sucht unter den Angeboten mit Epic-DRM, ohne die standardmäßige Mindestbewertung der Shops, und PCGamingWiki sucht nach Kompatibilität und Fixes. Beide verwenden den englischen Namen, über die Angebots-ID abgefragt, weil Epic Spieltitel übersetzt; wenn das Angebot zu einem Spiel gehört – ein DLC, eine Edition, ein Währungspaket –, sucht PCGamingWiki stattdessen dieses Spiel. Jeder Button sagt in seinem Tooltip, dass er nach dem Namen sucht und danebenliegen kann. Auf einer reinen Mobil-Seite werden weder der GG.deals- noch der PCGamingWiki-Button gezeichnet: Das Wiki dokumentiert PC-Spiele und GG.deals verfolgt PC-Shops.',
                 '– Ein Satz Schaltflächen pro Kaufschaltfläche: Bundles haben zwei (die Leiste oben und der Abschnitt „Buy …“) und beide bekommen ihren.',
                 '– Wer innerhalb des Shops zu einem Produkt oder Bundle navigiert, löst einen Seiten-Neuladevorgang aus. Epic ist eine Single-Page-App und das Skript war auf Startseite, Suche und Katalog nicht aktiv; genau dieses Neuladen sorgt dafür, dass die Schaltfläche erscheint.',
                 '• Auf deiner Wunschliste (/wishlist) kommt eine Leiste mit drei Werkzeugen dazu:',
@@ -187,7 +187,7 @@
                 'Ce script relie l’Epic Games Store à EGData et améliore votre liste de souhaits.',
                 '• Sur les pages produit (/p/) et bundle (/bundles/) : ajoute trois boutons sous le bouton d’achat.',
                 '– EGData (base de données de prix et d’historique des promotions) pointe vers cette offre précise, pas vers une recherche.',
-                '– GG.deals cherche parmi les offres avec DRM Epic, sans le minimum de note de boutique par défaut, et PCGamingWiki cherche compatibilité et correctifs. Les deux utilisent le nom anglais, obtenu par l\'identifiant de l\'offre, car Epic traduit les noms des jeux ; et dès que l\'offre appartient à un jeu — un DLC, une édition, un pack de monnaie —, PCGamingWiki cherche ce jeu. Chacun indique dans son infobulle qu\'il cherche par nom et peut se tromper. Sur une fiche uniquement mobile, le bouton PCGamingWiki n\'est pas affiché : le wiki documente les jeux PC.',
+                '– GG.deals cherche parmi les offres avec DRM Epic, sans le minimum de note de boutique par défaut, et PCGamingWiki cherche compatibilité et correctifs. Les deux utilisent le nom anglais, obtenu par l\'identifiant de l\'offre, car Epic traduit les noms des jeux ; et dès que l\'offre appartient à un jeu — un DLC, une édition, un pack de monnaie —, PCGamingWiki cherche ce jeu. Chacun indique dans son infobulle qu\'il cherche par nom et peut se tromper. Sur une fiche uniquement mobile, ni le bouton GG.deals ni celui de PCGamingWiki ne sont affichés : le wiki documente les jeux PC et GG.deals suit les boutiques PC.',
                 '– Un jeu de boutons par bouton d’achat : les bundles en ont deux (la barre du haut et la section « Buy … ») et chacun reçoit le sien.',
                 '– Naviguer dans la boutique vers un produit ou un bundle recharge la page. Epic est une application monopage et le script n’était pas actif sur l’accueil, la recherche ou le catalogue ; c’est ce rechargement qui garantit l’apparition du bouton.',
                 '• Sur votre liste de souhaits (/wishlist), il ajoute une barre avec trois outils :',
@@ -219,7 +219,7 @@
                 'Questo script collega l’Epic Games Store a EGData e migliora la tua lista dei desideri.',
                 '• Nelle pagine di prodotto (/p/) e di bundle (/bundles/): aggiunge tre pulsanti sotto il pulsante di acquisto.',
                 '– EGData (database di prezzi e storico delle offerte) rimanda a quella offerta precisa, non a una ricerca.',
-                '– GG.deals cerca tra le offerte con DRM di Epic, senza il minimo di valutazione dei negozi predefinito, e PCGamingWiki cerca compatibilità e correzioni. Entrambi usano il nome inglese, richiesto tramite l\'id dell\'offerta, perché Epic traduce i nomi dei giochi; e ogni volta che l\'offerta appartiene a un gioco — un DLC, un\'edizione, un pacchetto di valuta — PCGamingWiki cerca quel gioco. Ognuno avverte nel suo tooltip che cerca per nome e può sbagliare. In una scheda solo per dispositivi mobili il pulsante di PCGamingWiki non viene disegnato: la wiki documenta giochi per PC.',
+                '– GG.deals cerca tra le offerte con DRM di Epic, senza il minimo di valutazione dei negozi predefinito, e PCGamingWiki cerca compatibilità e correzioni. Entrambi usano il nome inglese, richiesto tramite l\'id dell\'offerta, perché Epic traduce i nomi dei giochi; e ogni volta che l\'offerta appartiene a un gioco — un DLC, un\'edizione, un pacchetto di valuta — PCGamingWiki cerca quel gioco. Ognuno avverte nel suo tooltip che cerca per nome e può sbagliare. In una scheda solo per dispositivi mobili non vengono disegnati né il pulsante di GG.deals né quello di PCGamingWiki: la wiki documenta giochi per PC e GG.deals segue negozi PC.',
                 '– Un gruppo di pulsanti per ogni pulsante di acquisto: i bundle ne hanno due (la barra in alto e la sezione «Buy …») ed entrambi ricevono il proprio.',
                 '– Navigando dentro il negozio verso un prodotto o un bundle la pagina si ricarica. Epic è una single-page app e lo script non era attivo su home, ricerca o catalogo; è proprio quel ricaricamento a garantire che il pulsante compaia.',
                 '• Nella tua lista dei desideri (/wishlist) aggiunge una barra con tre strumenti:',
@@ -251,7 +251,7 @@
                 'Dit script verbindt de Epic Games Store met EGData en verbetert je verlanglijst.',
                 '• Op product- (/p/) en bundelpagina’s (/bundles/): voegt drie knoppen toe onder de koopknop.',
                 '– EGData (een database met prijzen en aanbiedingsgeschiedenis) linkt naar precies die aanbieding, niet naar een zoekopdracht.',
-                '– GG.deals zoekt tussen de aanbiedingen met Epic-DRM, zonder de standaard minimumwaardering van winkels, en PCGamingWiki zoekt compatibiliteit en fixes. Beide gebruiken de Engelse naam, opgevraagd via het aanbod-id, omdat Epic spelnamen vertaalt; en zodra het aanbod bij een spel hoort — een DLC, een editie, een valutapakket — zoekt PCGamingWiki dat spel. Elk zegt in zijn tooltip dat het op naam zoekt en ernaast kan zitten. Op een pagina die alleen mobiel is, wordt de PCGamingWiki-knop niet getekend: de wiki documenteert pc-spellen.',
+                '– GG.deals zoekt tussen de aanbiedingen met Epic-DRM, zonder de standaard minimumwaardering van winkels, en PCGamingWiki zoekt compatibiliteit en fixes. Beide gebruiken de Engelse naam, opgevraagd via het aanbod-id, omdat Epic spelnamen vertaalt; en zodra het aanbod bij een spel hoort — een DLC, een editie, een valutapakket — zoekt PCGamingWiki dat spel. Elk zegt in zijn tooltip dat het op naam zoekt en ernaast kan zitten. Op een pagina die alleen mobiel is, worden noch de GG.deals- noch de PCGamingWiki-knop getekend: de wiki documenteert pc-spellen en GG.deals volgt pc-winkels.',
                 '– Eén set knoppen per koopknop: bundels hebben er twee (de balk bovenaan en de sectie "Buy …") en beide krijgen de hunne.',
                 '– Binnen de winkel naar een product of bundel navigeren herlaadt de pagina. Epic is een single-page app en het script was niet actief op home, zoeken of bladeren; juist die herlaadactie zorgt dat de knop verschijnt.',
                 '• Op je verlanglijst (/wishlist) komt een balk met drie hulpmiddelen bij:',
@@ -283,7 +283,7 @@
                 'Este script liga a Epic Games Store ao EGData e melhora a sua lista de desejos.',
                 '• Em páginas de produto (/p/) e de pacote (/bundles/): acrescenta três botões por baixo do botão de compra.',
                 '– O EGData (base de dados de preços e histórico de promoções) liga a essa oferta concreta, não a uma pesquisa.',
-                '– O GG.deals procura entre as ofertas com DRM da Epic, sem o mínimo de avaliação de loja predefinido, e o PCGamingWiki procura compatibilidade e correções. Ambos usam o nome em inglês, pedido pelo id da oferta, porque a Epic traduz os nomes dos jogos; e sempre que a oferta pertencer a um jogo — um DLC, uma edição, um pacote de moeda —, o PCGamingWiki procura esse jogo. Cada um avisa na sua dica que procura por nome e pode falhar. Numa página só para telemóvel, o botão do PCGamingWiki não é desenhado: a wiki documenta jogos de PC.',
+                '– O GG.deals procura entre as ofertas com DRM da Epic, sem o mínimo de avaliação de loja predefinido, e o PCGamingWiki procura compatibilidade e correções. Ambos usam o nome em inglês, pedido pelo id da oferta, porque a Epic traduz os nomes dos jogos; e sempre que a oferta pertencer a um jogo — um DLC, uma edição, um pacote de moeda —, o PCGamingWiki procura esse jogo. Cada um avisa na sua dica que procura por nome e pode falhar. Numa página só para telemóvel não são desenhados nem o botão do GG.deals nem o do PCGamingWiki: a wiki documenta jogos de PC e o GG.deals segue lojas de PC.',
                 '– Um conjunto de botões por cada botão de compra: os pacotes têm dois (a barra de cima e a secção "Buy …") e ambos recebem o seu.',
                 '– Navegar dentro da loja até um produto ou pacote recarrega a página. A Epic é uma aplicação de página única e o script não estava ativo na página inicial, na pesquisa nem no catálogo; é esse recarregamento que garante que o botão aparece.',
                 '• Na sua lista de desejos (/wishlist) acrescenta uma barra com três ferramentas:',
@@ -315,7 +315,7 @@
                 'Este script conecta a Epic Games Store ao EGData e melhora sua lista de desejos.',
                 '• Em páginas de produto (/p/) e de pacote (/bundles/): adiciona três botões abaixo do botão de compra.',
                 '– O EGData (banco de dados de preços e histórico de ofertas) leva a essa oferta específica, não a uma busca.',
-                '– O GG.deals busca entre as ofertas com DRM da Epic, sem o mínimo de avaliação de loja padrão, e o PCGamingWiki busca compatibilidade e correções. Os dois usam o nome em inglês, pedido pelo id da oferta, porque a Epic traduz os nomes dos jogos; e sempre que a oferta pertencer a um jogo — uma DLC, uma edição, um pacote de moedas —, o PCGamingWiki busca esse jogo. Cada um avisa na sua dica que busca por nome e pode errar. Em uma página só para celular, o botão do PCGamingWiki não é desenhado: a wiki documenta jogos de PC.',
+                '– O GG.deals busca entre as ofertas com DRM da Epic, sem o mínimo de avaliação de loja padrão, e o PCGamingWiki busca compatibilidade e correções. Os dois usam o nome em inglês, pedido pelo id da oferta, porque a Epic traduz os nomes dos jogos; e sempre que a oferta pertencer a um jogo — uma DLC, uma edição, um pacote de moedas —, o PCGamingWiki busca esse jogo. Cada um avisa na sua dica que busca por nome e pode errar. Em uma página só para celular não são desenhados nem o botão do GG.deals nem o do PCGamingWiki: a wiki documenta jogos de PC e o GG.deals segue lojas de PC.',
                 '– Um conjunto de botões por botão de compra: os pacotes têm dois (a barra de cima e a seção "Buy …") e ambos recebem o seu.',
                 '– Navegar dentro da loja até um produto ou pacote recarrega a página. A Epic é um aplicativo de página única e o script não estava ativo na home, na busca nem no catálogo; é esse recarregamento que garante que o botão apareça.',
                 '• Na sua lista de desejos (/wishlist) adiciona uma barra com três ferramentas:',
@@ -347,7 +347,7 @@
                 'Ten skrypt łączy Epic Games Store z EGData i ulepsza twoją listę życzeń.',
                 '• Na stronach produktu (/p/) i pakietu (/bundles/): dodaje trzy przyciski pod przyciskiem zakupu.',
                 '– EGData (baza cen i historii promocji) prowadzi dokładnie do tej oferty, a nie do wyszukiwania.',
-                '– GG.deals szuka wśród ofert z DRM Epica, bez domyślnego progu oceny sklepów, a PCGamingWiki szuka zgodności i poprawek. Oba używają angielskiej nazwy, pobranej po id oferty, bo Epic tłumaczy nazwy gier; a gdy oferta należy do gry — DLC, edycja, pakiet waluty — PCGamingWiki szuka tej gry. Każdy uprzedza w swojej podpowiedzi, że szuka po nazwie i może nie trafić. Na stronie wyłącznie mobilnej przycisk PCGamingWiki w ogóle się nie pojawia: wiki opisuje gry na PC.',
+                '– GG.deals szuka wśród ofert z DRM Epica, bez domyślnego progu oceny sklepów, a PCGamingWiki szuka zgodności i poprawek. Oba używają angielskiej nazwy, pobranej po id oferty, bo Epic tłumaczy nazwy gier; a gdy oferta należy do gry — DLC, edycja, pakiet waluty — PCGamingWiki szuka tej gry. Każdy uprzedza w swojej podpowiedzi, że szuka po nazwie i może nie trafić. Na stronie wyłącznie mobilnej nie pojawiają się ani przycisk GG.deals, ani PCGamingWiki: wiki opisuje gry na PC, a GG.deals śledzi sklepy PC.',
                 '– Jeden zestaw przycisków na każdy przycisk zakupu: pakiety mają dwa (górny pasek i sekcja „Buy …”) i oba dostają swój.',
                 '– Przejście wewnątrz sklepu do produktu lub pakietu przeładowuje stronę. Epic to aplikacja jednostronicowa, a skrypt nie był aktywny na stronie głównej, w wyszukiwarce ani w katalogu; to właśnie to przeładowanie gwarantuje pojawienie się przycisku.',
                 '• Na twojej liście życzeń (/wishlist) dodaje pasek z trzema narzędziami:',
@@ -379,7 +379,7 @@
                 'Этот скрипт связывает Epic Games Store с EGData и улучшает ваш список желаемого.',
                 '• На страницах товара (/p/) и комплекта (/bundles/): добавляет три кнопки под кнопкой покупки.',
                 '– EGData (база цен и истории скидок) ведёт именно к этому предложению, а не к поиску.',
-                '– GG.deals ищет среди предложений с DRM Epic, без стандартного минимального рейтинга магазинов, а PCGamingWiki ищет совместимость и исправления. Оба используют английское название, полученное по id предложения, потому что Epic переводит названия игр; а если предложение относится к игре — DLC, издание, набор валюты — PCGamingWiki ищет эту игру. Каждый предупреждает в подсказке, что ищет по названию и может промахнуться. На странице только для мобильных кнопка PCGamingWiki вообще не рисуется: вики документирует игры для ПК.',
+                '– GG.deals ищет среди предложений с DRM Epic, без стандартного минимального рейтинга магазинов, а PCGamingWiki ищет совместимость и исправления. Оба используют английское название, полученное по id предложения, потому что Epic переводит названия игр; а если предложение относится к игре — DLC, издание, набор валюты — PCGamingWiki ищет эту игру. Каждый предупреждает в подсказке, что ищет по названию и может промахнуться. На странице только для мобильных не рисуются ни кнопка GG.deals, ни PCGamingWiki: вики документирует игры для ПК, а GG.deals следит за магазинами ПК.',
                 '– По одному набору кнопок на каждую кнопку покупки: у комплектов их две (верхняя панель и раздел «Buy …»), и каждая получает свой.',
                 '– Переход внутри магазина к товару или комплекту перезагружает страницу. Epic — одностраничное приложение, и на главной, в поиске и в каталоге скрипт не был активен; именно эта перезагрузка гарантирует появление кнопки.',
                 '• В списке желаемого (/wishlist) добавляется панель с тремя инструментами:',
@@ -411,7 +411,7 @@
                 'Цей скрипт пов’язує Epic Games Store з EGData і покращує ваш список бажаного.',
                 '• На сторінках товару (/p/) і комплекту (/bundles/): додає три кнопки під кнопкою купівлі.',
                 '– EGData (база цін та історії знижок) веде саме до цієї пропозиції, а не до пошуку.',
-                '– GG.deals шукає серед пропозицій із DRM Epic, без типового мінімального рейтингу магазинів, а PCGamingWiki шукає сумісність і виправлення. Обидва беруть англійську назву, отриману за id пропозиції, бо Epic перекладає назви ігор; а якщо пропозиція належить до гри — DLC, видання, набір валюти — PCGamingWiki шукає цю гру. Кожен попереджає у підказці, що шукає за назвою і може не влучити. На сторінці лише для мобільних кнопка PCGamingWiki взагалі не малюється: вікі документує ігри для ПК.',
+                '– GG.deals шукає серед пропозицій із DRM Epic, без типового мінімального рейтингу магазинів, а PCGamingWiki шукає сумісність і виправлення. Обидва беруть англійську назву, отриману за id пропозиції, бо Epic перекладає назви ігор; а якщо пропозиція належить до гри — DLC, видання, набір валюти — PCGamingWiki шукає цю гру. Кожен попереджає у підказці, що шукає за назвою і може не влучити. На сторінці лише для мобільних не малюються ні кнопка GG.deals, ні PCGamingWiki: вікі документує ігри для ПК, а GG.deals стежить за магазинами ПК.',
                 '– По одному набору кнопок на кожну кнопку купівлі: у комплектів їх дві (верхня панель і розділ «Buy …»), і кожна отримує свій.',
                 '– Перехід усередині магазину до товару чи комплекту перезавантажує сторінку. Epic — односторінковий застосунок, і на головній, у пошуку та в каталозі скрипт не був активним; саме це перезавантаження гарантує появу кнопки.',
                 '• У списку бажаного (/wishlist) додається панель із трьома інструментами:',
@@ -443,7 +443,7 @@
                 'Tento skript propojuje Epic Games Store s EGData a vylepšuje váš seznam přání.',
                 '• Na stránkách produktu (/p/) a balíčku (/bundles/): přidává tři tlačítka pod tlačítko nákupu.',
                 '– EGData (databáze cen a historie slev) odkazuje přesně na tuto nabídku, ne na vyhledávání.',
-                '– GG.deals hledá mezi nabídkami s DRM Epicu, bez výchozího minimálního hodnocení obchodů, a PCGamingWiki hledá kompatibilitu a opravy. Oba používají anglický název, získaný podle id nabídky, protože Epic názvy her překládá; a pokud nabídka patří ke hře — DLC, edice, balíček měny — hledá PCGamingWiki tuto hru. Každý ve své bublině upozorňuje, že hledá podle názvu a nemusí trefit. Na stránce jen pro mobily se tlačítko PCGamingWiki vůbec nevykreslí: wiki popisuje hry pro PC.',
+                '– GG.deals hledá mezi nabídkami s DRM Epicu, bez výchozího minimálního hodnocení obchodů, a PCGamingWiki hledá kompatibilitu a opravy. Oba používají anglický název, získaný podle id nabídky, protože Epic názvy her překládá; a pokud nabídka patří ke hře — DLC, edice, balíček měny — hledá PCGamingWiki tuto hru. Každý ve své bublině upozorňuje, že hledá podle názvu a nemusí trefit. Na stránce jen pro mobily se nevykreslí ani tlačítko GG.deals, ani PCGamingWiki: wiki popisuje hry pro PC a GG.deals sleduje PC obchody.',
                 '– Jedna sada tlačítek na každé tlačítko nákupu: balíčky mají dvě (horní lišta a sekce „Buy …“) a obě dostanou svou.',
                 '– Přechod uvnitř obchodu na produkt nebo balíček znovu načte stránku. Epic je jednostránková aplikace a skript nebyl aktivní na domovské stránce, ve vyhledávání ani v katalogu; právě toto načtení zaručí, že se tlačítko objeví.',
                 '• Na vašem seznamu přání (/wishlist) přidává lištu se třemi nástroji:',
@@ -475,7 +475,7 @@
                 'Dette script forbinder Epic Games Store med EGData og forbedrer din ønskeliste.',
                 '• På produkt- (/p/) og bundtsider (/bundles/): tilføjer tre knapper under købsknappen.',
                 '– EGData (en database over priser og tilbudshistorik) linker til præcis det tilbud, ikke til en søgning.',
-                '– GG.deals søger blandt tilbud med Epic-DRM, uden den forvalgte mindstevurdering af butikker, og PCGamingWiki søger efter kompatibilitet og rettelser. Begge bruger det engelske navn, hentet via tilbuddets id, fordi Epic oversætter spilnavne; og når tilbuddet hører til et spil — en DLC, en udgave, en valutapakke — søger PCGamingWiki det spil. Hver enkelt siger i sit værktøjstip, at den søger på navn og kan ramme forkert. På en side kun til mobil tegnes PCGamingWiki-knappen slet ikke: wikien dokumenterer pc-spil.',
+                '– GG.deals søger blandt tilbud med Epic-DRM, uden den forvalgte mindstevurdering af butikker, og PCGamingWiki søger efter kompatibilitet og rettelser. Begge bruger det engelske navn, hentet via tilbuddets id, fordi Epic oversætter spilnavne; og når tilbuddet hører til et spil — en DLC, en udgave, en valutapakke — søger PCGamingWiki det spil. Hver enkelt siger i sit værktøjstip, at den søger på navn og kan ramme forkert. På en side kun til mobil tegnes hverken GG.deals- eller PCGamingWiki-knappen: wikien dokumenterer pc-spil, og GG.deals følger pc-butikker.',
                 '– Ét sæt knapper pr. købsknap: bundter har to (bjælken øverst og afsnittet "Buy …"), og begge får deres.',
                 '– At navigere inde i butikken til et produkt eller et bundt genindlæser siden. Epic er en single-page-app, og scriptet var ikke aktivt på forsiden, i søgningen eller i katalogget; netop den genindlæsning sikrer, at knappen dukker op.',
                 '• På din ønskeliste (/wishlist) tilføjes en bjælke med tre værktøjer:',
@@ -507,7 +507,7 @@
                 'Tämä skripti yhdistää Epic Games Storen EGDataan ja parantaa toivelistaasi.',
                 '• Tuote- (/p/) ja kokoelmasivuilla (/bundles/): lisää kolme painiketta ostopainikkeen alle.',
                 '– EGData (hintojen ja tarjoushistorian tietokanta) vie juuri siihen tarjoukseen, ei hakuun.',
-                '– GG.deals hakee Epic-DRM:n tarjouksista ilman oletusarvoista kauppojen vähimmäisarvosanaa, ja PCGamingWiki hakee yhteensopivuutta ja korjauksia. Molemmat käyttävät englanninkielistä nimeä, joka haetaan tarjouksen id:llä, koska Epic kääntää pelien nimet; ja kun tarjous kuuluu peliin — DLC, laitos, valuuttapaketti — PCGamingWiki hakee sen pelin. Kumpikin kertoo vihjeessään hakevansa nimellä ja voivansa osua väärin. Pelkästään mobiilille tarkoitetulla sivulla PCGamingWiki-painiketta ei piirretä lainkaan: wiki dokumentoi PC-pelejä.',
+                '– GG.deals hakee Epic-DRM:n tarjouksista ilman oletusarvoista kauppojen vähimmäisarvosanaa, ja PCGamingWiki hakee yhteensopivuutta ja korjauksia. Molemmat käyttävät englanninkielistä nimeä, joka haetaan tarjouksen id:llä, koska Epic kääntää pelien nimet; ja kun tarjous kuuluu peliin — DLC, laitos, valuuttapaketti — PCGamingWiki hakee sen pelin. Kumpikin kertoo vihjeessään hakevansa nimellä ja voivansa osua väärin. Pelkästään mobiilille tarkoitetulla sivulla ei piirretä GG.deals- eikä PCGamingWiki-painiketta: wiki dokumentoi PC-pelejä ja GG.deals seuraa PC-kauppoja.',
                 '– Yksi painikesarja jokaista ostopainiketta kohden: kokoelmilla niitä on kaksi (ylapalkki ja "Buy …" -osio) ja molemmat saavat omansa.',
                 '– Kaupan sisällä tuotteeseen tai kokoelmaan siirtyminen lataa sivun uudelleen. Epic on yhden sivun sovellus eikä skripti ollut aktiivinen etusivulla, haussa tai selauksessa; juuri tuo uudelleenlataus takaa, että painike ilmestyy.',
                 '• Toivelistallesi (/wishlist) lisätään palkki, jossa on kolme työkalua:',
@@ -539,7 +539,7 @@
                 'Det här skriptet kopplar ihop Epic Games Store med EGData och förbättrar din önskelista.',
                 '• På produkt- (/p/) och paketsidor (/bundles/): lägger till tre knappar under köpknappen.',
                 '– EGData (en databas över priser och reahistorik) länkar till exakt det erbjudandet, inte till en sökning.',
-                '– GG.deals söker bland erbjudanden med Epic-DRM, utan standardgränsen för butiksbetyg, och PCGamingWiki söker efter kompatibilitet och fixar. Båda använder det engelska namnet, hämtat via erbjudandets id, eftersom Epic översätter spelnamn; och när erbjudandet hör till ett spel — en DLC, en utgåva, ett valutapaket — söker PCGamingWiki det spelet. Var och en säger i sin tooltip att den söker på namn och kan missa. På en sida som bara är för mobil ritas PCGamingWiki-knappen inte alls: wikin dokumenterar pc-spel.',
+                '– GG.deals söker bland erbjudanden med Epic-DRM, utan standardgränsen för butiksbetyg, och PCGamingWiki söker efter kompatibilitet och fixar. Båda använder det engelska namnet, hämtat via erbjudandets id, eftersom Epic översätter spelnamn; och när erbjudandet hör till ett spel — en DLC, en utgåva, ett valutapaket — söker PCGamingWiki det spelet. Var och en säger i sin tooltip att den söker på namn och kan missa. På en sida som bara är för mobil ritas varken GG.deals- eller PCGamingWiki-knappen: wikin dokumenterar pc-spel och GG.deals följer pc-butiker.',
                 '– En uppsättning knappar per köpknapp: paket har två (fältet högst upp och avsnittet "Buy …") och båda får sina.',
                 '– Att navigera inne i butiken till en produkt eller ett paket laddar om sidan. Epic är en ensidesapp och skriptet var inte aktivt på startsidan, i sökningen eller i katalogen; det är just den omladdningen som garanterar att knappen dyker upp.',
                 '• På din önskelista (/wishlist) läggs ett fält med tre verktyg till:',
@@ -571,7 +571,7 @@
                 'Dette skriptet kobler Epic Games Store til EGData og forbedrer ønskelisten din.',
                 '• På produkt- (/p/) og pakkesider (/bundles/): legger til tre knapper under kjøpsknappen.',
                 '– EGData (en database over priser og tilbudshistorikk) lenker til akkurat det tilbudet, ikke til et søk.',
-                '– GG.deals søker blant tilbud med Epic-DRM, uten standard minstekrav til butikkvurdering, og PCGamingWiki søker etter kompatibilitet og fikser. Begge bruker det engelske navnet, hentet via tilbudets id, fordi Epic oversetter spillnavn; og når tilbudet hører til et spill — en DLC, en utgave, en valutapakke — søker PCGamingWiki det spillet. Hver av dem sier i verktøytipset at den søker på navn og kan bomme. På en side som bare er for mobil, tegnes PCGamingWiki-knappen ikke i det hele tatt: wikien dokumenterer PC-spill.',
+                '– GG.deals søker blant tilbud med Epic-DRM, uten standard minstekrav til butikkvurdering, og PCGamingWiki søker etter kompatibilitet og fikser. Begge bruker det engelske navnet, hentet via tilbudets id, fordi Epic oversetter spillnavn; og når tilbudet hører til et spill — en DLC, en utgave, en valutapakke — søker PCGamingWiki det spillet. Hver av dem sier i verktøytipset at den søker på navn og kan bomme. På en side som bare er for mobil, tegnes verken GG.deals- eller PCGamingWiki-knappen: wikien dokumenterer PC-spill, og GG.deals følger PC-butikker.',
                 '– Ett sett knapper per kjøpsknapp: pakker har to (linjen øverst og delen "Buy …"), og begge får sine.',
                 '– Å navigere inne i butikken til et produkt eller en pakke laster siden på nytt. Epic er en ensides app, og skriptet var ikke aktivt på forsiden, i søket eller i katalogen; nettopp den innlastingen garanterer at knappen dukker opp.',
                 '• På ønskelisten din (/wishlist) legges det til en linje med tre verktøy:',
@@ -603,7 +603,7 @@
                 'Ez a szkript összeköti az Epic Games Store-t az EGDatával, és feljavítja a kívánságlistádat.',
                 '• Termék- (/p/) és csomagoldalakon (/bundles/): három gombot ad a vásárlás gomb alá.',
                 '– Az EGData (ár- és akciótörténeti adatbázis) pontosan arra az ajánlatra mutat, nem keresésre.',
-                '– A GG.deals az Epic DRM-es ajánlatai között keres, az alapértelmezett bolti minimumértékelés nélkül, a PCGamingWiki pedig kompatibilitást és javításokat keres. Mindkettő az angol nevet használja, az ajánlat azonosítója alapján lekérve, mert az Epic lefordítja a játékneveket; ha pedig az ajánlat egy játékhoz tartozik — DLC, kiadás, valutacsomag —, a PCGamingWiki azt a játékot keresi. Mindegyik jelzi a buboréksúgójában, hogy névre keres, és tévedhet. Csak mobilos oldalon a PCGamingWiki gombja meg sem jelenik: a wiki PC-játékokat dokumentál.',
+                '– A GG.deals az Epic DRM-es ajánlatai között keres, az alapértelmezett bolti minimumértékelés nélkül, a PCGamingWiki pedig kompatibilitást és javításokat keres. Mindkettő az angol nevet használja, az ajánlat azonosítója alapján lekérve, mert az Epic lefordítja a játékneveket; ha pedig az ajánlat egy játékhoz tartozik — DLC, kiadás, valutacsomag —, a PCGamingWiki azt a játékot keresi. Mindegyik jelzi a buboréksúgójában, hogy névre keres, és tévedhet. Csak mobilos oldalon sem a GG.deals, sem a PCGamingWiki gombja nem jelenik meg: a wiki PC-játékokat dokumentál, a GG.deals pedig PC-boltokat követ.',
                 '– Vásárlás gombonként egy gombkészlet: a csomagoknak kettő van (a felső sáv és a „Buy …” szakasz), és mindkettő megkapja a sajátját.',
                 '– Ha a bolton belül egy termékre vagy csomagra navigálsz, az oldal újratöltődik. Az Epic egyoldalas alkalmazás, és a szkript nem volt aktív a főoldalon, a keresésben vagy a katalógusban; éppen ez az újratöltés garantálja, hogy a gomb megjelenjen.',
                 '• A kívánságlistádon (/wishlist) egy háromeszközös sávot ad hozzá:',
@@ -635,7 +635,7 @@
                 'Acest script conectează Epic Games Store cu EGData și îți îmbunătățește lista de dorințe.',
                 '• Pe paginile de produs (/p/) și de pachet (/bundles/): adaugă trei butoane sub butonul de cumpărare.',
                 '– EGData (bază de date cu prețuri și istoric al reducerilor) duce exact la acea ofertă, nu la o căutare.',
-                '– GG.deals caută printre ofertele cu DRM Epic, fără pragul implicit de evaluare a magazinelor, iar PCGamingWiki caută compatibilitate și remedieri. Amândouă folosesc numele în engleză, cerut după id-ul ofertei, pentru că Epic traduce numele jocurilor; iar când oferta aparține unui joc — un DLC, o ediție, un pachet de monedă —, PCGamingWiki caută acel joc. Fiecare anunță în indiciul său că întreabă după nume și poate greși. Pe o pagină doar pentru mobil, butonul PCGamingWiki nici nu se desenează: wiki-ul documentează jocuri de PC.',
+                '– GG.deals caută printre ofertele cu DRM Epic, fără pragul implicit de evaluare a magazinelor, iar PCGamingWiki caută compatibilitate și remedieri. Amândouă folosesc numele în engleză, cerut după id-ul ofertei, pentru că Epic traduce numele jocurilor; iar când oferta aparține unui joc — un DLC, o ediție, un pachet de monedă —, PCGamingWiki caută acel joc. Fiecare anunță în indiciul său că întreabă după nume și poate greși. Pe o pagină doar pentru mobil nu se desenează nici butonul GG.deals, nici cel PCGamingWiki: wiki-ul documentează jocuri de PC, iar GG.deals urmărește magazine de PC.',
                 '– Un set de butoane pentru fiecare buton de cumpărare: pachetele au două (bara de sus și secțiunea „Buy …”) și fiecare îl primește pe al său.',
                 '– Navigarea în interiorul magazinului către un produs sau un pachet reîncarcă pagina. Epic este o aplicație cu o singură pagină, iar scriptul nu era activ pe pagina principală, în căutare sau în catalog; tocmai acea reîncărcare garantează apariția butonului.',
                 '• Pe lista ta de dorințe (/wishlist) adaugă o bară cu trei instrumente:',
@@ -667,7 +667,7 @@
                 'Този скрипт свързва Epic Games Store с EGData и подобрява списъка ви с желания.',
                 '• На страници на продукт (/p/) и на пакет (/bundles/): добавя три бутона под бутона за покупка.',
                 '– EGData (база данни с цени и история на промоциите) води точно до тази оферта, а не до търсене.',
-                '– GG.deals търси сред офертите с DRM на Epic, без подразбиращия се минимален рейтинг на магазините, а PCGamingWiki търси съвместимост и поправки. И двете използват името на английски, взето по id на офертата, защото Epic превежда имената на игрите; а когато офертата принадлежи на игра — DLC, издание, пакет с валута — PCGamingWiki търси тази игра. Всяко предупреждава в подсказката си, че търси по име и може да сбърка. На страница само за мобилни бутонът на PCGamingWiki изобщо не се показва: уикито документира игри за компютър.',
+                '– GG.deals търси сред офертите с DRM на Epic, без подразбиращия се минимален рейтинг на магазините, а PCGamingWiki търси съвместимост и поправки. И двете използват името на английски, взето по id на офертата, защото Epic превежда имената на игрите; а когато офертата принадлежи на игра — DLC, издание, пакет с валута — PCGamingWiki търси тази игра. Всяко предупреждава в подсказката си, че търси по име и може да сбърка. На страница само за мобилни не се показват нито бутонът на GG.deals, нито този на PCGamingWiki: уикито документира игри за компютър, а GG.deals следи магазини за компютър.',
                 '– По един набор бутони на всеки бутон за покупка: пакетите имат два (лентата отгоре и разделът „Buy …“) и всеки получава своя.',
                 '– Придвижването в магазина към продукт или пакет презарежда страницата. Epic е приложение с една страница и скриптът не беше активен на началната страница, в търсенето или в каталога; именно това презареждане гарантира появата на бутона.',
                 '• В списъка ви с желания (/wishlist) добавя лента с три инструмента:',
@@ -699,7 +699,7 @@
                 'Bu betik Epic Games Store’u EGData ile birleştirir ve istek listenizi geliştirir.',
                 '• Ürün (/p/) ve paket (/bundles/) sayfalarında: satın alma düğmesinin altına üç düğme ekler.',
                 '– EGData (fiyat ve indirim geçmişi veritabanı) bir aramaya değil, tam olarak o teklife bağlanır.',
-                '– GG.deals, Epic DRM\'li fırsatlar arasında, varsayılan asgari mağaza puanı olmadan arar; PCGamingWiki ise uyumluluk ve düzeltmeleri arar. İkisi de İngilizce adı kullanır — teklif kimliğiyle sorulur, çünkü Epic oyun adlarını çevirir — ve teklif bir oyuna aitse — DLC, sürüm, para paketi — PCGamingWiki o oyunu arar. Her biri ipucunda ada göre aradığını ve şaşabileceğini belirtir. Yalnızca mobile ait bir sayfada PCGamingWiki düğmesi hiç çizilmez: wiki PC oyunlarını belgeler.',
+                '– GG.deals, Epic DRM\'li fırsatlar arasında, varsayılan asgari mağaza puanı olmadan arar; PCGamingWiki ise uyumluluk ve düzeltmeleri arar. İkisi de İngilizce adı kullanır — teklif kimliğiyle sorulur, çünkü Epic oyun adlarını çevirir — ve teklif bir oyuna aitse — DLC, sürüm, para paketi — PCGamingWiki o oyunu arar. Her biri ipucunda ada göre aradığını ve şaşabileceğini belirtir. Yalnızca mobile ait bir sayfada ne GG.deals ne de PCGamingWiki düğmesi çizilir: wiki PC oyunlarını belgeler, GG.deals ise PC mağazalarını izler.',
                 '– Her satın alma düğmesi için bir düğme takımı: paketlerde iki tane vardır (üstteki çubuk ve "Buy …" bölümü) ve her ikisi de kendi takımını alır.',
                 '– Mağaza içinde bir ürüne veya pakete gitmek sayfayı yeniden yükler. Epic tek sayfalık bir uygulamadır ve betik ana sayfada, aramada veya katalogda etkin değildi; düğmenin görünmesini garantileyen tam da bu yeniden yüklemedir.',
                 '• İstek listenizde (/wishlist) üç araçlı bir çubuk ekler:',
@@ -731,7 +731,7 @@
                 'يربط هذا البرنامج النصي متجر Epic Games بـ EGData ويحسّن قائمة رغباتك.',
                 '• في صفحات المنتج (‎/p/‎) والحزم (‎/bundles/‎): يضيف ثلاثة أزرار أسفل زر الشراء.',
                 '– يقود EGData (قاعدة بيانات للأسعار وسجل العروض) إلى ذلك العرض بعينه، لا إلى بحث.',
-                '– يبحث GG.deals ضمن العروض ذات حماية Epic، دون الحد الأدنى الافتراضي لتقييم المتاجر، ويبحث PCGamingWiki عن التوافق والإصلاحات. كلاهما يستخدم الاسم الإنجليزي، المطلوب عبر معرّف العرض، لأن Epic تترجم أسماء الألعاب؛ وإذا كان العرض تابعًا للعبة (إضافة أو إصدار أو حزمة عملة) يبحث PCGamingWiki عن تلك اللعبة. وكل زر ينبّه في تلميحه إلى أنه يبحث بالاسم وقد يخطئ. وفي صفحة خاصة بالهواتف فقط لا يُرسم زر PCGamingWiki أصلًا، لأن الويكي يوثّق ألعاب الحاسوب.',
+                '– يبحث GG.deals ضمن العروض ذات حماية Epic، دون الحد الأدنى الافتراضي لتقييم المتاجر، ويبحث PCGamingWiki عن التوافق والإصلاحات. كلاهما يستخدم الاسم الإنجليزي، المطلوب عبر معرّف العرض، لأن Epic تترجم أسماء الألعاب؛ وإذا كان العرض تابعًا للعبة (إضافة أو إصدار أو حزمة عملة) يبحث PCGamingWiki عن تلك اللعبة. وكل زر ينبّه في تلميحه إلى أنه يبحث بالاسم وقد يخطئ. وفي صفحة خاصة بالهواتف فقط لا يُرسم زر GG.deals ولا زر PCGamingWiki، لأن الويكي يوثّق ألعاب الحاسوب و‏GG.deals يتابع متاجر الحاسوب.',
                 '– مجموعة أزرار لكل زر شراء: للحزم زرّان (الشريط العلوي وقسم «Buy …»)، ويحصل كلٌّ منهما على مجموعته.',
                 '– التنقل داخل المتجر إلى منتج أو حزمة يعيد تحميل الصفحة. فـ Epic تطبيق ذو صفحة واحدة ولم يكن البرنامج النصي نشطًا في الصفحة الرئيسية ولا في البحث ولا في التصفح؛ وإعادة التحميل هذه هي ما يضمن ظهور الزر.',
                 '• في قائمة رغباتك (‎/wishlist‎) يضيف شريطًا بثلاث أدوات:',
@@ -763,7 +763,7 @@
                 'यह स्क्रिप्ट Epic Games Store को EGData से जोड़ती है और आपकी इच्छा-सूची को बेहतर बनाती है।',
                 '• उत्पाद (/p/) और बंडल (/bundles/) पृष्ठों पर: खरीद बटन के नीचे तीन बटन जोड़ती है।',
                 '– EGData (कीमतों और छूट-इतिहास का डेटाबेस) खोज पर नहीं, ठीक उसी ऑफ़र पर ले जाता है।',
-                '– GG.deals, Epic DRM वाले ऑफ़रों में खोजता है, बिना डिफ़ॉल्ट स्टोर-रेटिंग सीमा के, और PCGamingWiki संगतता तथा सुधार खोजता है। दोनों अंग्रेज़ी नाम इस्तेमाल करते हैं, जो ऑफ़र आईडी से लिया जाता है, क्योंकि Epic गेम के नाम अनुवाद करता है; और अगर ऑफ़र किसी गेम का हिस्सा है — DLC, एडिशन, करेंसी पैक — तो PCGamingWiki उसी गेम को खोजता है। हर बटन अपने टूलटिप में बताता है कि वह नाम से खोजता है और चूक सकता है। सिर्फ़ मोबाइल वाले पेज पर PCGamingWiki का बटन बनता ही नहीं: यह विकी PC गेम्स का दस्तावेज़ रखती है।',
+                '– GG.deals, Epic DRM वाले ऑफ़रों में खोजता है, बिना डिफ़ॉल्ट स्टोर-रेटिंग सीमा के, और PCGamingWiki संगतता तथा सुधार खोजता है। दोनों अंग्रेज़ी नाम इस्तेमाल करते हैं, जो ऑफ़र आईडी से लिया जाता है, क्योंकि Epic गेम के नाम अनुवाद करता है; और अगर ऑफ़र किसी गेम का हिस्सा है — DLC, एडिशन, करेंसी पैक — तो PCGamingWiki उसी गेम को खोजता है। हर बटन अपने टूलटिप में बताता है कि वह नाम से खोजता है और चूक सकता है। सिर्फ़ मोबाइल वाले पेज पर न GG.deals का बटन बनता है और न PCGamingWiki का: यह विकी PC गेम्स का दस्तावेज़ रखती है और GG.deals PC स्टोर देखता है।',
                 '– हर खरीद बटन के लिए बटनों का एक सेट: बंडलों में दो होते हैं (ऊपर की पट्टी और "Buy …" अनुभाग) और दोनों को अपना-अपना मिलता है।',
                 '– स्टोर के भीतर किसी उत्पाद या बंडल पर जाने से पृष्ठ फिर से लोड होता है। Epic एक सिंगल-पेज ऐप है और स्क्रिप्ट होम, खोज या ब्राउज़ पर सक्रिय नहीं थी; वही रीलोड बटन के दिखने की गारंटी देता है।',
                 '• आपकी इच्छा-सूची (/wishlist) पर तीन औज़ारों वाली एक पट्टी जोड़ती है:',
@@ -795,7 +795,7 @@
                 'Skrip ini menghubungkan Epic Games Store dengan EGData dan menyempurnakan daftar keinginan Anda.',
                 '• Di halaman produk (/p/) dan bundel (/bundles/): menambahkan tiga tombol di bawah tombol pembelian.',
                 '– EGData (basis data harga dan riwayat penawaran) menautkan tepat ke penawaran itu, bukan ke sebuah pencarian.',
-                '– GG.deals mencari di antara penawaran ber-DRM Epic, tanpa ambang rating toko bawaan, dan PCGamingWiki mencari kompatibilitas serta perbaikan. Keduanya memakai nama Inggris, diminta lewat id penawaran, karena Epic menerjemahkan nama gim; dan setiap kali penawaran ini milik sebuah gim — DLC, edisi, paket mata uang — PCGamingWiki mencari gim tersebut. Masing-masing menyatakan di tooltip-nya bahwa ia mencari berdasarkan nama dan bisa meleset. Di halaman yang hanya untuk seluler, tombol PCGamingWiki tidak digambar sama sekali: wiki itu mendokumentasikan gim PC.',
+                '– GG.deals mencari di antara penawaran ber-DRM Epic, tanpa ambang rating toko bawaan, dan PCGamingWiki mencari kompatibilitas serta perbaikan. Keduanya memakai nama Inggris, diminta lewat id penawaran, karena Epic menerjemahkan nama gim; dan setiap kali penawaran ini milik sebuah gim — DLC, edisi, paket mata uang — PCGamingWiki mencari gim tersebut. Masing-masing menyatakan di tooltip-nya bahwa ia mencari berdasarkan nama dan bisa meleset. Di halaman yang hanya untuk seluler, tombol GG.deals maupun PCGamingWiki tidak digambar: wiki itu mendokumentasikan gim PC dan GG.deals mengikuti toko PC.',
                 '– Satu set tombol per tombol pembelian: bundel punya dua (bilah di atas dan bagian "Buy …") dan keduanya mendapat miliknya.',
                 '– Menavigasi di dalam toko menuju produk atau bundel akan memuat ulang halaman. Epic adalah aplikasi satu halaman dan skrip tidak aktif di beranda, pencarian, maupun katalog; pemuatan ulang itulah yang menjamin tombol muncul.',
                 '• Di daftar keinginan Anda (/wishlist) ditambahkan bilah dengan tiga alat:',
@@ -827,7 +827,7 @@
                 'Skrip ini menghubungkan Epic Games Store dengan EGData dan menambah baik senarai hajat anda.',
                 '• Pada halaman produk (/p/) dan pakej (/bundles/): menambah tiga butang di bawah butang pembelian.',
                 '– EGData (pangkalan data harga dan sejarah tawaran) memaut terus ke tawaran itu, bukan ke carian.',
-                '– GG.deals mencari dalam tawaran ber-DRM Epic, tanpa ambang penilaian kedai lalai, dan PCGamingWiki mencari keserasian serta pembaikan. Kedua-duanya menggunakan nama Inggeris, diminta melalui id tawaran, kerana Epic menterjemah nama permainan; dan setiap kali tawaran ini milik sesebuah permainan — DLC, edisi, pek mata wang — PCGamingWiki mencari permainan itu. Setiap satu menyatakan dalam tooltip-nya bahawa ia mencari mengikut nama dan boleh tersasar. Pada halaman yang hanya untuk mudah alih, butang PCGamingWiki langsung tidak dilukis: wiki itu mendokumenkan permainan PC.',
+                '– GG.deals mencari dalam tawaran ber-DRM Epic, tanpa ambang penilaian kedai lalai, dan PCGamingWiki mencari keserasian serta pembaikan. Kedua-duanya menggunakan nama Inggeris, diminta melalui id tawaran, kerana Epic menterjemah nama permainan; dan setiap kali tawaran ini milik sesebuah permainan — DLC, edisi, pek mata wang — PCGamingWiki mencari permainan itu. Setiap satu menyatakan dalam tooltip-nya bahawa ia mencari mengikut nama dan boleh tersasar. Pada halaman yang hanya untuk mudah alih, butang GG.deals mahupun PCGamingWiki tidak dilukis: wiki itu mendokumenkan permainan PC dan GG.deals menjejaki kedai PC.',
                 '– Satu set butang bagi setiap butang pembelian: pakej mempunyai dua (bar di atas dan bahagian "Buy …") dan kedua-duanya mendapat set masing-masing.',
                 '– Menavigasi di dalam kedai ke sesuatu produk atau pakej akan memuat semula halaman. Epic ialah aplikasi satu halaman dan skrip tidak aktif di laman utama, carian atau katalog; muat semula itulah yang menjamin butang muncul.',
                 '• Pada senarai hajat anda (/wishlist) ditambah satu bar dengan tiga alat:',
@@ -859,7 +859,7 @@
                 'Iniuugnay ng script na ito ang Epic Games Store sa EGData at pinapaganda ang wishlist mo.',
                 '• Sa mga pahina ng produkto (/p/) at bundle (/bundles/): nagdaragdag ng tatlong button sa ilalim ng button ng pagbili.',
                 '– Ang EGData (database ng mga presyo at kasaysayan ng deal) ay tumuturo mismo sa alok na iyon, hindi sa isang paghahanap.',
-                '– Naghahanap ang GG.deals sa mga alok na may DRM ng Epic, nang walang default na pinakamababang rating ng tindahan, at naghahanap ang PCGamingWiki ng compatibility at mga fix. Pareho silang gumagamit ng pangalang Ingles, hinihingi ayon sa offer id, dahil isinasalin ng Epic ang pangalan ng mga laro; at kapag ang alok ay bahagi ng isang laro — DLC, edisyon, currency pack — ang hinahanap ng PCGamingWiki ay ang larong iyon. Sinasabi ng bawat isa sa tooltip nito na naghahanap ito ayon sa pangalan at maaaring sumablay. Sa pahinang para lang sa mobile, hindi na iginuguhit ang button ng PCGamingWiki: mga larong PC ang dinodokumento ng wiki.',
+                '– Naghahanap ang GG.deals sa mga alok na may DRM ng Epic, nang walang default na pinakamababang rating ng tindahan, at naghahanap ang PCGamingWiki ng compatibility at mga fix. Pareho silang gumagamit ng pangalang Ingles, hinihingi ayon sa offer id, dahil isinasalin ng Epic ang pangalan ng mga laro; at kapag ang alok ay bahagi ng isang laro — DLC, edisyon, currency pack — ang hinahanap ng PCGamingWiki ay ang larong iyon. Sinasabi ng bawat isa sa tooltip nito na naghahanap ito ayon sa pangalan at maaaring sumablay. Sa pahinang para lang sa mobile, hindi iginuguhit ang button ng GG.deals ni ang ng PCGamingWiki: mga larong PC ang dinodokumento ng wiki at mga tindahan ng PC ang sinusubaybayan ng GG.deals.',
                 '– Isang set ng button bawat button ng pagbili: may dalawa ang mga bundle (ang bar sa itaas at ang seksiyong "Buy …") at parehong may sariling set.',
                 '– Ang pag-navigate sa loob ng tindahan patungo sa isang produkto o bundle ay nagre-reload ng pahina. Single-page app ang Epic at hindi aktibo ang script sa home, paghahanap o browse; ang reload na iyon ang tumitiyak na lilitaw ang button.',
                 '• Sa wishlist mo (/wishlist) may idinaragdag na bar na may tatlong kasangkapan:',
@@ -891,7 +891,7 @@
                 'สคริปต์นี้เชื่อม Epic Games Store เข้ากับ EGData และปรับปรุงรายการที่อยากได้ของคุณ',
                 '• ในหน้าสินค้า (/p/) และหน้าชุดรวม (/bundles/): เพิ่มปุ่มสามปุ่มไว้ใต้ปุ่มซื้อ',
                 '– EGData (ฐานข้อมูลราคาและประวัติข้อเสนอ) ลิงก์ไปยังข้อเสนอนั้นโดยตรง ไม่ใช่ไปยังหน้าค้นหา',
-                '– GG.deals ค้นในดีลที่มี DRM ของ Epic โดยไม่ใช้เกณฑ์คะแนนร้านค้าขั้นต่ำที่ตั้งไว้ ส่วน PCGamingWiki ค้นเรื่องความเข้ากันได้และการแก้ไข ทั้งคู่ใช้ชื่อภาษาอังกฤษที่ขอมาด้วยรหัสข้อเสนอ เพราะ Epic แปลชื่อเกม และหากข้อเสนอนี้เป็นของเกมใดเกมหนึ่ง (DLC, รุ่น, แพ็กสกุลเงิน) PCGamingWiki จะค้นเกมนั้นแทน แต่ละปุ่มบอกไว้ในคำแนะนำแล้วว่าค้นด้วยชื่อจึงอาจไม่ตรง ในหน้าที่มีเฉพาะมือถือ ปุ่ม PCGamingWiki จะไม่ถูกวาดเลย เพราะวิกินี้บันทึกเกมพีซี',
+                '– GG.deals ค้นในดีลที่มี DRM ของ Epic โดยไม่ใช้เกณฑ์คะแนนร้านค้าขั้นต่ำที่ตั้งไว้ ส่วน PCGamingWiki ค้นเรื่องความเข้ากันได้และการแก้ไข ทั้งคู่ใช้ชื่อภาษาอังกฤษที่ขอมาด้วยรหัสข้อเสนอ เพราะ Epic แปลชื่อเกม และหากข้อเสนอนี้เป็นของเกมใดเกมหนึ่ง (DLC, รุ่น, แพ็กสกุลเงิน) PCGamingWiki จะค้นเกมนั้นแทน แต่ละปุ่มบอกไว้ในคำแนะนำแล้วว่าค้นด้วยชื่อจึงอาจไม่ตรง ในหน้าที่มีเฉพาะมือถือ จะไม่วาดทั้งปุ่ม GG.deals และ PCGamingWiki เพราะวิกินี้บันทึกเกมพีซี และ GG.deals ติดตามร้านค้าพีซี',
                 '– ปุ่มหนึ่งชุดต่อปุ่มซื้อหนึ่งปุ่ม: ชุดรวมมีสองปุ่ม (แถบด้านบนและส่วน "Buy …") และทั้งสองจะได้ชุดของตัวเอง',
                 '– การเปลี่ยนหน้าไปยังสินค้าหรือชุดรวมภายในร้านจะทำให้หน้าโหลดใหม่ Epic เป็นแอปหน้าเดียวและสคริปต์ไม่ได้ทำงานอยู่ที่หน้าแรก หน้าค้นหา หรือหน้าเรียกดู การโหลดใหม่นี้เองที่รับประกันว่าปุ่มจะปรากฏ',
                 '• ในรายการที่อยากได้ (/wishlist) จะเพิ่มแถบเครื่องมือสามอย่าง:',
@@ -923,7 +923,7 @@
                 'Tập lệnh này kết nối Epic Games Store với EGData và cải thiện danh sách mong muốn của bạn.',
                 '• Trên trang sản phẩm (/p/) và gói (/bundles/): thêm ba nút bên dưới nút mua.',
                 '– EGData (cơ sở dữ liệu giá và lịch sử khuyến mãi) dẫn đúng tới ưu đãi đó, không phải tới một trang tìm kiếm.',
-                '– GG.deals tìm trong các ưu đãi có DRM của Epic, không áp ngưỡng đánh giá cửa hàng mặc định, còn PCGamingWiki tìm về tương thích và bản sửa lỗi. Cả hai dùng tên tiếng Anh, lấy theo id ưu đãi, vì Epic dịch tên trò chơi; và mỗi khi ưu đãi thuộc về một trò chơi — DLC, phiên bản, gói tiền tệ — thì PCGamingWiki tìm trò chơi đó. Mỗi nút đều nói trong chú giải rằng nó tìm theo tên nên có thể trật. Ở trang chỉ dành cho di động, nút PCGamingWiki không được vẽ ra: wiki này ghi chép các trò chơi PC.',
+                '– GG.deals tìm trong các ưu đãi có DRM của Epic, không áp ngưỡng đánh giá cửa hàng mặc định, còn PCGamingWiki tìm về tương thích và bản sửa lỗi. Cả hai dùng tên tiếng Anh, lấy theo id ưu đãi, vì Epic dịch tên trò chơi; và mỗi khi ưu đãi thuộc về một trò chơi — DLC, phiên bản, gói tiền tệ — thì PCGamingWiki tìm trò chơi đó. Mỗi nút đều nói trong chú giải rằng nó tìm theo tên nên có thể trật. Ở trang chỉ dành cho di động, cả nút GG.deals lẫn PCGamingWiki đều không được vẽ ra: wiki này ghi chép các trò chơi PC còn GG.deals theo dõi các cửa hàng PC.',
                 '– Một bộ nút cho mỗi nút mua: các gói có hai nút mua (thanh trên cùng và mục "Buy …") và cả hai đều có bộ riêng.',
                 '– Điều hướng trong cửa hàng tới một sản phẩm hoặc gói sẽ tải lại trang. Epic là ứng dụng một trang và tập lệnh không hoạt động ở trang chủ, trang tìm kiếm hay trang duyệt; chính lần tải lại đó bảo đảm nút xuất hiện.',
                 '• Trên danh sách mong muốn (/wishlist), tập lệnh thêm một thanh với ba công cụ:',
@@ -955,7 +955,7 @@
                 'このスクリプトは Epic Games Store と EGData をつなぎ、ウィッシュリストを使いやすくします。',
                 '• 製品ページ（/p/）とバンドルページ（/bundles/）: 購入ボタンの下にボタンを3つ追加します。',
                 '– EGData（価格とセール履歴のデータベース）は検索ではなく、そのオファーそのものにリンクします。',
-                '– GG.deals は Epic の DRM が付いた特価の中を、既定の店舗評価の下限なしで検索します。PCGamingWiki は互換性と修正を検索します。どちらもオファー ID で取得した英語名を使います。Epic がゲーム名を翻訳するためです。オファーが何らかのゲームに属する場合（DLC、エディション、通貨パックなど）、PCGamingWiki はそのゲームを検索します。名前で検索するため外すことがある旨は、それぞれのツールチップに書いてあります。 モバイル専用のページでは PCGamingWiki のボタンは描画しません。あのウィキが扱うのは PC のゲームだからです。',
+                '– GG.deals は Epic の DRM が付いた特価の中を、既定の店舗評価の下限なしで検索します。PCGamingWiki は互換性と修正を検索します。どちらもオファー ID で取得した英語名を使います。Epic がゲーム名を翻訳するためです。オファーが何らかのゲームに属する場合（DLC、エディション、通貨パックなど）、PCGamingWiki はそのゲームを検索します。名前で検索するため外すことがある旨は、それぞれのツールチップに書いてあります。 モバイル専用のページでは GG.deals と PCGamingWiki のボタンをどちらも描画しません。あのウィキが扱うのは PC のゲームで、GG.deals が追うのは PC のストアだからです。',
                 '– 購入ボタン1つにつきボタン一式。バンドルには購入ボタンが2つあり（上部のバーと「Buy …」セクション）、その両方に付きます。',
                 '– ストア内から製品やバンドルへ移動するとページが再読み込みされます。Epic はシングルページアプリで、ホーム・検索・ブラウズではスクリプトが動作していません。この再読み込みこそがボタンの表示を保証します。',
                 '• ウィッシュリスト（/wishlist）にはツールが3つ入ったバーを追加します:',
@@ -987,7 +987,7 @@
                 '이 스크립트는 Epic Games Store를 EGData와 연결하고 위시리스트를 개선합니다.',
                 '• 제품(/p/) 및 번들(/bundles/) 페이지: 구매 버튼 아래에 버튼 세 개를 추가합니다.',
                 '– EGData(가격 및 할인 이력 데이터베이스)는 검색이 아니라 바로 그 상품 페이지로 연결됩니다.',
-                '– GG.deals는 Epic DRM이 걸린 할인 중에서, 기본 상점 평점 하한 없이 검색합니다. PCGamingWiki는 호환성과 수정을 검색합니다. 둘 다 오퍼 id로 받아온 영어 이름을 씁니다. Epic이 게임 이름을 번역하기 때문입니다. 그리고 오퍼가 어떤 게임에 속하면(DLC, 에디션, 화폐 팩 등) PCGamingWiki는 그 게임을 검색합니다. 이름으로 검색하므로 빗나갈 수 있다는 점은 각 버튼의 툴팁에 적혀 있습니다. 모바일 전용 페이지에서는 PCGamingWiki 버튼을 아예 그리지 않습니다. 그 위키가 다루는 것은 PC 게임이기 때문입니다.',
+                '– GG.deals는 Epic DRM이 걸린 할인 중에서, 기본 상점 평점 하한 없이 검색합니다. PCGamingWiki는 호환성과 수정을 검색합니다. 둘 다 오퍼 id로 받아온 영어 이름을 씁니다. Epic이 게임 이름을 번역하기 때문입니다. 그리고 오퍼가 어떤 게임에 속하면(DLC, 에디션, 화폐 팩 등) PCGamingWiki는 그 게임을 검색합니다. 이름으로 검색하므로 빗나갈 수 있다는 점은 각 버튼의 툴팁에 적혀 있습니다. 모바일 전용 페이지에서는 GG.deals와 PCGamingWiki 버튼을 둘 다 그리지 않습니다. 그 위키가 다루는 것은 PC 게임이고 GG.deals가 좇는 것은 PC 상점이기 때문입니다.',
                 '– 구매 버튼마다 버튼 한 세트: 번들에는 구매 버튼이 둘(상단 바와 "Buy …" 섹션) 있으며 각각 자기 세트를 받습니다.',
                 '– 상점 안에서 제품이나 번들로 이동하면 페이지가 새로 로드됩니다. Epic은 단일 페이지 앱이고 홈, 검색, 둘러보기에서는 스크립트가 활성화되지 않았습니다. 바로 그 새로고침이 버튼이 나타나도록 보장합니다.',
                 '• 위시리스트(/wishlist)에는 도구 세 개가 담긴 막대를 추가합니다:',
@@ -1019,7 +1019,7 @@
                 '本脚本将 Epic Games Store 与 EGData 连接起来，并改进你的愿望单。',
                 '• 在商品页（/p/）和捆绑包页（/bundles/）：在购买按钮下方添加三个按钮。',
                 '– EGData（价格与优惠历史数据库）直接链接到该商品本身，而不是搜索结果。',
-                '– GG.deals 在带 Epic DRM 的优惠中搜索，且不套用默认的店铺评分下限；PCGamingWiki 则搜索兼容性与修复。两者都使用英文名称，按报价 id 取得，因为 Epic 会翻译游戏名；若该报价隶属于某款游戏（DLC、版本、货币包等），PCGamingWiki 改为搜索那款游戏。两个按钮的提示里都写明了是按名称搜索，可能不准。 在仅限手机的页面上不会画出 PCGamingWiki 按钮：那个 wiki 收录的是 PC 游戏。',
+                '– GG.deals 在带 Epic DRM 的优惠中搜索，且不套用默认的店铺评分下限；PCGamingWiki 则搜索兼容性与修复。两者都使用英文名称，按报价 id 取得，因为 Epic 会翻译游戏名；若该报价隶属于某款游戏（DLC、版本、货币包等），PCGamingWiki 改为搜索那款游戏。两个按钮的提示里都写明了是按名称搜索，可能不准。 在仅限手机的页面上，GG.deals 和 PCGamingWiki 的按钮都不会画出来：那个 wiki 收录的是 PC 游戏，而 GG.deals 追踪的是 PC 商店。',
                 '– 每个购买按钮配一组按钮：捆绑包有两个购买按钮（顶部的横栏和“Buy …”区块），两个都会各配一组。',
                 '– 在商店内跳转到商品或捆绑包会重新加载页面。Epic 是单页应用，脚本在首页、搜索和浏览页并未运行；正是这次重新加载保证了按钮会出现。',
                 '• 在愿望单（/wishlist）中添加一个含三个工具的工具栏：',
@@ -1051,7 +1051,7 @@
                 '本腳本將 Epic Games Store 與 EGData 連結起來，並改進你的願望清單。',
                 '• 在商品頁（/p/）與組合包頁（/bundles/）：在購買按鈕下方加入三個按鈕。',
                 '– EGData（價格與優惠歷史資料庫）直接連到該商品本身，而不是搜尋結果。',
-                '– GG.deals 在帶 Epic DRM 的優惠中搜尋，且不套用預設的商店評分下限；PCGamingWiki 則搜尋相容性與修正。兩者都使用英文名稱，依報價 id 取得，因為 Epic 會翻譯遊戲名稱；若該報價隸屬於某款遊戲（DLC、版本、貨幣包等），PCGamingWiki 改為搜尋那款遊戲。兩個按鈕的提示都寫明是以名稱搜尋，可能不準。 在僅限手機的頁面上不會畫出 PCGamingWiki 按鈕：那個 wiki 收錄的是 PC 遊戲。',
+                '– GG.deals 在帶 Epic DRM 的優惠中搜尋，且不套用預設的商店評分下限；PCGamingWiki 則搜尋相容性與修正。兩者都使用英文名稱，依報價 id 取得，因為 Epic 會翻譯遊戲名稱；若該報價隸屬於某款遊戲（DLC、版本、貨幣包等），PCGamingWiki 改為搜尋那款遊戲。兩個按鈕的提示都寫明是以名稱搜尋，可能不準。 在僅限手機的頁面上，GG.deals 與 PCGamingWiki 的按鈕都不會畫出來：那個 wiki 收錄的是 PC 遊戲，而 GG.deals 追蹤的是 PC 商店。',
                 '– 每個購買按鈕配一組按鈕：組合包有兩個購買按鈕（頂端的橫列與「Buy …」區塊），兩個都會各配一組。',
                 '– 在商店內跳轉到商品或組合包會重新載入頁面。Epic 是單頁應用程式，腳本在首頁、搜尋與瀏覽頁並未運作；正是這次重新載入保證了按鈕會出現。',
                 '• 在願望清單（/wishlist）中加入一個含三項工具的工具列：',
@@ -1189,7 +1189,7 @@
     const LINK_ATTR = 'data-egs2egd-link';
     const STYLES_ID = 'egs2egd-styles';
     // Sincronizar con @version del encabezado en cada bump.
-    const SCRIPT_VERSION = '1.8.4';
+    const SCRIPT_VERSION = '1.8.5';
 
     // GG.deals filtra por DRM con un bitmask numérico en la query, no por nombre:
     // 1 Steam, 8 GOG, 16 sin DRM, 32 otros, 128 Microsoft Store, 1024 Epic. Aquí
@@ -1262,8 +1262,19 @@
     // La regla es «hay móvil Y NO hay escritorio», no «hay móvil» a secas: hay fichas
     // que llevan las dos, y ahí el juego sí es de PC. Y tampoco vale «no hay
     // escritorio» a secas: hay ofertas sin ninguna etiqueta de plataforma —la de tipo
-    // OTHERS de "Among Us"—, y no constar no es lo mismo que ser de móvil. Sin dato,
-    // el botón se queda.
+    // OTHERS de "Among Us"—, y no constar no es lo mismo que ser de móvil.
+    //
+    // Cuando la oferta NO trae ninguna etiqueta de plataforma se juzga por las del
+    // JUEGO al que pertenece, que ya se pide para el nombre y las trae igual. Así
+    // entran los complementos de un juego de móvil —su DLC, sus ediciones, sus
+    // bandas sonoras—, que es donde falta el dato: el DLC "VistaRewardRLS1" no tiene
+    // etiquetas y vive en el namespace de Rocket League Sideswipe, que es [Android].
+    // El orden importa y es este: **manda la etiqueta de la propia oferta**. Si se
+    // mirara primero la del juego se rompería el caso contrario, que también existe:
+    // la oferta de Fall Guys para iOS es [iOS] y su juego base es [Windows], porque
+    // en ese namespace conviven las fichas de las dos plataformas.
+    //
+    // Si ni la oferta ni su juego dicen nada, el botón se queda.
     //
     // Lo que esto NO arregla, y conviene no confundirlo: un juego que Epic marca
     // Windows y del que PCGamingWiki no tiene artículo. "The Walking Dead: No Man's
@@ -1277,6 +1288,14 @@
     // sin fin.
     const NAME_CACHE_KEY = 'egs2egd-en-names';
     const NAME_CACHE_TTL = 30 * 24 * 60 * 60 * 1000;   // 30 días
+    // Versión de lo que se guarda en la caché. **Súbela SIEMPRE que cambie lo que se
+    // guarda o cómo se calcula.** Una entrada escrita por una versión anterior tiene
+    // la misma forma, así que se lee como buena y devuelve el resultado VIEJO durante
+    // 30 días: el arreglo se publica, el usuario actualiza y no ve ningún cambio en
+    // las fichas que ya había visitado. Pasó con los mods de GOG en 1.5.2. Las
+    // entradas sin este campo son de antes y cuentan como no encontradas; se vuelven
+    // a pedir y se sobrescriben.
+    const NAME_CACHE_SCHEMA = 2;
     const NAME_CACHE_MAX = 200;                        // entradas
     const NAME_TIMEOUT_MS = 8000;
 
@@ -1584,7 +1603,7 @@
         try {
             const all = JSON.parse(localStorage.getItem(NAME_CACHE_KEY) || '{}');
             const hit = all[id];
-            if (hit && Date.now() - hit.ts < NAME_CACHE_TTL) return hit.names;
+            if (hit && hit.v === NAME_CACHE_SCHEMA && Date.now() - hit.ts < NAME_CACHE_TTL) return hit.names;
         } catch (e) { /* caché corrupta: se ignora y se vuelve a pedir */ }
         return null;
     }
@@ -1593,7 +1612,7 @@
         try {
             let all = {};
             try { all = JSON.parse(localStorage.getItem(NAME_CACHE_KEY) || '{}'); } catch (e) { all = {}; }
-            all[id] = { names, ts: Date.now() };
+            all[id] = { names, ts: Date.now(), v: NAME_CACHE_SCHEMA };
             const keys = Object.keys(all);
             if (keys.length > NAME_CACHE_MAX) {
                 keys.sort((a, b) => (all[a].ts || 0) - (all[b].ts || 0))
@@ -1641,6 +1660,17 @@
     }
 
     /**
+     * ¿Alguna de las dos listas de etiquetas dice plataforma? Sirve para saber si hay
+     * dato con el que juzgar antes de caer al juego base.
+     * @param {Array<{name?: string}>} tags - `tags` de una oferta.
+     * @returns {boolean} true si hay al menos una etiqueta de plataforma.
+     */
+    function hasPlatformTags(tags) {
+        const nombres = (Array.isArray(tags) ? tags : []).map((t) => t?.name);
+        return [...PLATFORM_TAGS_DESKTOP, ...PLATFORM_TAGS_MOBILE].some((p) => nombres.includes(p));
+    }
+
+    /**
      * Nombres en inglés de la oferta, pedidos a la API de EGData. Devuelve null ante
      * cualquier fallo, que es lo que deja los botones con el título de la página.
      * Todo lo que no sea el juego suelto cuesta una segunda petición, y solo la
@@ -1663,12 +1693,19 @@
             if (!name) return null;
 
             let baseName = '';
+            let base = null;
             if (!BASE_GAME_TYPE.test(offer.offerType || '') && offer.namespace) {
-                const base = await fetchJson(EGDATA_BASE_GAME_URL + encodeURIComponent(offer.namespace));
+                base = await fetchJson(EGDATA_BASE_GAME_URL + encodeURIComponent(offer.namespace));
                 if (base?.id && base.id !== offer.id) baseName = cleanApiName(base?.title);
             }
 
-            const names = { name, baseName, mobileOnly: isMobileOnly(offer.tags) };
+            // La etiqueta de la propia oferta manda; la del juego solo se consulta
+            // cuando la oferta no dice nada. El porqué, en PLATFORM_TAGS_MOBILE.
+            const mobileOnly = hasPlatformTags(offer.tags)
+                ? isMobileOnly(offer.tags)
+                : isMobileOnly(base?.tags);
+
+            const names = { name, baseName, mobileOnly };
             writeNameCache(offerId, names);
             return names;
         })();
@@ -2135,21 +2172,23 @@
             fetchEnglishNames(offerId).then((names) => {
                 if (!names) return;
                 if (!ggLink.isConnected || !pcgwLink.isConnected) return;
-                ggLink.href = ggDealsUrl(names.name);
-                // En una ficha solo de móvil, PCGamingWiki sobra: se retira en vez de
-                // dejar un botón que solo lleva a una búsqueda vacía. Se hace aquí y
-                // no antes de pintar porque el dato llega con ESTA misma respuesta;
-                // esperarla dejaría la fila en blanco en todas las fichas para
-                // arreglar unas pocas. El hideEpicTooltip() es por si estuviera
-                // abierto el suyo: el tooltip de la tienda no cuelga del enlace, así
-                // que quitarlo no se lo llevaría.
-                // Las entradas de caché anteriores a esto no traen el campo, así que
-                // valen como «no consta» y conservan el botón hasta que caduquen.
+                // En una ficha solo de móvil sobran LOS DOS: PCGamingWiki documenta
+                // juegos de PC y GG.deals sigue ofertas de tiendas de PC, así que
+                // ninguno de los dos puede encontrar nada. Se retiran en vez de dejar
+                // dos botones que solo llevan a una búsqueda vacía; el de EGData se
+                // queda, porque esas ofertas sí están en su base de datos.
+                // Se hace aquí y no antes de pintar porque el dato llega con ESTA
+                // misma respuesta; esperarla dejaría la fila en blanco en todas las
+                // fichas para arreglar unas pocas. El hideEpicTooltip() es por si
+                // estuviera abierto el de alguno: el tooltip de la tienda no cuelga
+                // del enlace, así que quitarlo no se lo llevaría.
                 if (names.mobileOnly) {
                     hideEpicTooltip();
+                    ggLink.remove();
                     pcgwLink.remove();
                     return;
                 }
+                ggLink.href = ggDealsUrl(names.name);
                 // Si la oferta pertenece a otro juego —un DLC, una edición, un paquete
                 // de monedas—, PCGamingWiki va a ese juego: no tiene artículo para el
                 // complemento, lo documenta dentro del juego al que pertenece.
