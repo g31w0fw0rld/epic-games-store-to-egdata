@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.8.5
+// @version      1.8.6
 // @description  Adds EGData, GG.deals and PCGamingWiki buttons below every purchase button on Epic Games Store product and bundle pages — bundles have two, and both get the trio. EGData links to that exact offer; the other two search by the English name, looked up by offer id because Epic translates game names and both sites index in English, and each says so in the store's own tooltip. On your wishlist it adds an 'only discounted' filter, remembered sort and filters, and a shareable link.
 // @author       g31w0fw0rld
 // @license      MIT
@@ -1189,7 +1189,7 @@
     const LINK_ATTR = 'data-egs2egd-link';
     const STYLES_ID = 'egs2egd-styles';
     // Sincronizar con @version del encabezado en cada bump.
-    const SCRIPT_VERSION = '1.8.5';
+    const SCRIPT_VERSION = '1.8.6';
 
     // GG.deals filtra por DRM con un bitmask numérico en la query, no por nombre:
     // 1 Steam, 8 GOG, 16 sin DRM, 32 otros, 128 Microsoft Store, 1024 Epic. Aquí
@@ -1361,6 +1361,33 @@
     const WL_GROUP_TITLE = '.css-zk51sn';            // texto del nombre del grupo
     const WL_CHECKBOX = '[role="checkbox"]';         // cada opción de filtro
     const WL_TOOLBAR_ID = 'egs2egd-wl-toolbar';
+
+    // --- Cuántos ítems tiene la lista, para no bajar a ciegas ------------------
+    // El barrido de wlLoadAllItems() existe porque Epic pagina la lista por scroll,
+    // pero hasta ahora no sabía CUÁNDO parar: bajaba hasta que el conteo del DOM se
+    // estabilizaba cinco rondas seguidas estando al fondo. Esa heurística sobra al
+    // final (cinco rondas de cortesía = 2,5 s) y se equivoca por abajo si una carga
+    // tarda más que la ronda, porque entonces "no creció" se lee como "ya no hay más".
+    //
+    // Epic sí sabe el total y lo pide DE UN SOLO GOLPE: la persisted query
+    // `getWishlist` devuelve la lista entera en una respuesta —sin `paging`, sin
+    // `start`/`count`— con la forma Wishlist.wishlistItems.elements[]. Verificado en
+    // docs/wishlist.html, el estado deshidratado de React Query de /wishlist: los 9
+    // ítems de la lista llegaron en esa única query. Cada elemento trae solo
+    // { id, order, created, updated, offerId, namespace }: ni título ni precio, que
+    // es justo lo que aquí no hace falta. Se cuentan y ya.
+    //
+    // El endpoint es el de la propia tienda (EPIC_CLIENT_STORE_GRAPHQL en la config
+    // que la página deja en el HTML), o sea MISMO ORIGEN: con `credentials: 'include'`
+    // viaja la sesión y `@grant none` sigue en pie, sin @connect ni GM_xmlhttpRequest.
+    const WL_GRAPHQL_URL = 'https://store.epicgames.com/graphql';
+    // Hash de la persisted query, leído del queryKey del volcado. Los hashes de
+    // persisted query CADUCAN —en los scripts de Twitch, uno viejo devolvía payloads
+    // vacíos en lugar de un error—, así que aquí no se confía en él: si la respuesta
+    // no trae un array de elementos, wlFetchTotal() devuelve null y el barrido se
+    // queda con la heurística de siempre. Nunca es camino crítico.
+    const WL_WISHLIST_QUERY_HASH = '40e7770852757ee6aaa43b0f6fce65de984754e8d32572a1c978910cbf26f02e';
+    const WL_TOTAL_TIMEOUT_MS = 8000;
 
     // Patrón de la petición que la propia página hace para la oferta que se
     // compra: products/{namespace}/offers/{offerId}. Ese offerId es el que usa
@@ -2738,6 +2765,91 @@
         });
     }
 
+    /**
+     * accountId de la sesión, sacado de lo que Epic ya dejó en la página: no hay que
+     * pedirlo. Varias queries del snapshot de React Query lo llevan dentro de su
+     * propia clave, con la forma ["accountId", "<32 hex>"] —getWishlist y
+     * getLatestEulaAsMarkdownQuery, entre otras—. Se recorren TODAS las claves y no
+     * solo la de getWishlist, que es precisamente la que puede no estar.
+     * @returns {string|null} El accountId, o null si no aparece.
+     */
+    function wlAccountId() {
+        try {
+            const queries = window.__REACT_QUERY_INITIAL_QUERIES__?.queries || [];
+            for (const q of queries) {
+                for (const part of (q.queryKey || [])) {
+                    if (Array.isArray(part) && part[0] === 'accountId' &&
+                        /^[0-9a-f]{32}$/i.test(part[1] || '')) return part[1];
+                }
+            }
+        } catch (e) { /* sin snapshot: se sigue sin total */ }
+        return null;
+    }
+
+    /**
+     * Cuántos ítems tiene la lista de deseos, según la propia API de Epic.
+     *
+     * Se prueba primero GET, que es la forma canónica de una persisted query
+     * (operationName + variables + extensions en la query string); si el servidor la
+     * rechaza se reintenta el mismo cuerpo por POST. Los dos a propósito: el volcado
+     * de la página trae el estado de React Query pero NO el registro de red, así que
+     * el verbo que usa Epic no está verificado y se prueban ambos en vez de adivinar.
+     * El log dice cuál contestó, que es el dato que falta para dejar solo uno.
+     *
+     * Devuelve null ante cualquier duda —red caída, hash caducado, sesión ausente,
+     * respuesta sin la forma esperada—, y null significa "sigue con la heurística".
+     * @returns {Promise<number|null>} Número de ítems de la lista, o null.
+     */
+    async function wlFetchTotal() {
+        const accountId = wlAccountId();
+        const variables = accountId ? { accountId } : {};
+        const extensions = { persistedQuery: { version: 1, sha256Hash: WL_WISHLIST_QUERY_HASH } };
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), WL_TOTAL_TIMEOUT_MS);
+
+        // Cada intento se traga sus propios fallos: si el GET devuelve el HTML de un
+        // desafío de Cloudflare, .json() lanza y aquí eso vale null, no una excepción
+        // que se llevaría por delante el intento por POST.
+        const intento = async (url, init) => {
+            try {
+                const res = await fetch(url, init);
+                if (!res.ok) return null;
+                const json = await res.json();
+                const els = json?.data?.Wishlist?.wishlistItems?.elements;
+                return Array.isArray(els) ? els.length : null;
+            } catch (e) { return null; }
+        };
+
+        try {
+            const qs = new URLSearchParams({
+                operationName: 'getWishlist',
+                variables: JSON.stringify(variables),
+                extensions: JSON.stringify(extensions),
+            });
+            const porGet = await intento(`${WL_GRAPHQL_URL}?${qs}`,
+                { credentials: 'include', signal: ctrl.signal });
+            if (porGet !== null) {
+                console.log(`(egs2egd): wishlist — ${porGet} ítems según la API (GET)`);
+                return porGet;
+            }
+
+            const porPost = await intento(WL_GRAPHQL_URL, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ operationName: 'getWishlist', variables, extensions }),
+                signal: ctrl.signal,
+            });
+            if (porPost !== null) {
+                console.log(`(egs2egd): wishlist — ${porPost} ítems según la API (POST)`);
+                return porPost;
+            }
+
+            console.warn('(egs2egd): wishlist — la API no dio el total; se baja a ciegas');
+        } finally { clearTimeout(timer); }
+        return null;
+    }
+
     // Fuerza la carga de TODOS los ítems del wishlist. Epic los pagina por scroll
     // (infinite scroll): si no se baja, los que faltan nunca entran al DOM y el
     // filtro "solo con descuento" no puede ocultarlos. Muestra todo primero (por si
@@ -2770,12 +2882,31 @@
         wlReapplyInProgress = true; // silencia captura/observer durante el barrido
         try {
             wlItems().forEach((li) => { li.style.display = ''; }); // todo visible para paginar
+            // Total real de la lista, para cortar en cuanto el DOM lo alcance en vez
+            // de esperar las SETTLE rondas de cortesía. NO sustituye a la heurística:
+            // con los filtros propios de Epic activos (plataforma, género…) el DOM
+            // muestra MENOS ítems que la lista completa y el total no se alcanza
+            // nunca, así que ahí sigue mandando la salida por estabilización. Y si la
+            // API no contesta, `total` se queda en null y esto es lo que ya había.
+            //
+            // Va SIN await: se pide en paralelo y el bucle lo lee cuando llegue. Con
+            // await, una API lenta congelaría hasta 8 s un botón ya deshabilitado,
+            // sin que la página se moviera; así el barrido arranca igual que siempre
+            // y el corte temprano entra en cuanto haya dato.
+            let total = null;
+            wlFetchTotal().then((n) => { total = n; });
             const doc = document.scrollingElement || document.documentElement;
             const MAX_ROUNDS = 400; // tope de seguridad (~400 * 500ms ≈ 3.3 min)
             const SETTLE = 5;       // rondas EN EL FONDO sin crecer => terminado
             let stable = 0;
             let last = wlItems().length;
             for (let i = 0; i < MAX_ROUNDS && stable < SETTLE; i++) {
+                // Ya está la lista entera: ni una ronda más. Se comprueba al
+                // principio del cuerpo, no tras el scroll, para cortar en la primera
+                // ronda posible en cuanto el total llegue (viene en paralelo) sin
+                // gastar antes un tramo de bajada de más. Se compara contra null y no
+                // por verdad porque una lista vacía da 0, que también es un corte.
+                if (total !== null && wlItems().length >= total) break;
                 // Contenedor real que scrollea (div interno o la ventana).
                 const cont = wlScrollContainer(wlItems()[wlItems().length - 1]);
                 // Scroll SUAVE, un tramo hacia abajo (no salto al fondo): así el
