@@ -1,8 +1,9 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.8.6
+// @version      1.8.7
 // @description  Adds EGData, GG.deals and PCGamingWiki buttons below every purchase button on Epic Games Store product and bundle pages — bundles have two, and both get the trio. EGData links to that exact offer; the other two search by the English name, looked up by offer id because Epic translates game names and both sites index in English, and each says so in the store's own tooltip. On your wishlist it adds an 'only discounted' filter, remembered sort and filters, and a shareable link.
+// @icon         data:image/png;base64,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
 // @author       g31w0fw0rld
 // @license      MIT
 // @match        https://store.epicgames.com/*
@@ -1188,8 +1189,18 @@
     const DATA_ATTR = 'data-egs2egd';
     const LINK_ATTR = 'data-egs2egd-link';
     const STYLES_ID = 'egs2egd-styles';
+    // Envoltorio del botón de EGData y de la fila de enlaces. En escritorio no
+    // hace nada —los deja apilados, como estaban—; existe para que en móvil los
+    // tres botones puedan compartir un renglón, que sin un padre flex común no es
+    // posible.
+    const BLOCK_CLASS = 'egs2egd-block';
+    const LABEL_LONG_CLASS = 'egs2egd-long';
+    const LABEL_SHORT_CLASS = 'egs2egd-short';
+    // Ancho por debajo del cual la ficha de Epic va a una sola columna y la caja de
+    // compra ocupa la pantalla: es ahí donde caben los tres botones en un renglón.
+    const MOBILE_MAX_WIDTH = 768;
     // Sincronizar con @version del encabezado en cada bump.
-    const SCRIPT_VERSION = '1.8.6';
+    const SCRIPT_VERSION = '1.8.7';
 
     // GG.deals filtra por DRM con un bitmask numérico en la query, no por nombre:
     // 1 Steam, 8 GOG, 16 sin DRM, 32 otros, 128 Microsoft Store, 1024 Epic. Aquí
@@ -1847,6 +1858,42 @@
             a[${LINK_ATTR}="true"] .egs2egd-ico svg {
                 height: 14px; width: auto; display: block;
             }
+
+            /* En escritorio el envoltorio no pinta nada: EGData arriba y la fila de
+               enlaces debajo, que es como caben en una columna de compra estrecha. */
+            .${LABEL_SHORT_CLASS} { display: none; }
+            @media screen and (max-width: ${MOBILE_MAX_WIDTH}px) {
+                /* En móvil la caja de compra ocupa el ancho de la pantalla y los
+                   tres botones caben en un renglón: EGData pesa uno y la fila de
+                   enlaces dos, que la deja con dos botones tan anchos como él. */
+                /* La separación con el botón de compra pasa al envoltorio y se le
+                   quita a los dos hijos. Si se dejara en ellos, los tres botones no
+                   arrancarían a la misma altura: el de EGData la lleva en línea
+                   —y solo cuando no es el primer juego de botones de la página—,
+                   mientras que la fila la trae del CSS. */
+                .${BLOCK_CLASS} { display: flex; align-items: stretch; gap: 8px; margin-top: 0.625rem; }
+                .${BLOCK_CLASS} > div:first-child { flex: 1 1 0; min-width: 0; display: flex; }
+                .${BLOCK_CLASS} > .egs2egd-links { flex: 2 1 0; min-width: 0; margin-top: 0; }
+                /* El botón de EGData hereda del de compra: alto, con letra grande y
+                   un icono de 24 px. Aquí se pone a la medida de los otros dos. */
+                .${BLOCK_CLASS} > div:first-child > a[${DATA_ATTR}="true"] {
+                    flex: 1 1 auto; min-width: 0;
+                    margin-top: 0 !important;
+                    justify-content: center !important;
+                    padding: 5px 8px !important;
+                    gap: 6px !important;
+                    font-size: 12px !important;
+                    font-weight: 700 !important;
+                    line-height: 1.3 !important;
+                    white-space: nowrap;
+                    overflow: hidden;
+                }
+                .${BLOCK_CLASS} > div:first-child > a[${DATA_ATTR}="true"] .egs2egd-icon {
+                    width: 14px; height: 14px; flex: 0 0 auto;
+                }
+                .${LABEL_LONG_CLASS} { display: none; }
+                .${LABEL_SHORT_CLASS} { display: inline; }
+            }
         `;
         (document.head || document.documentElement).appendChild(style);
     }
@@ -2090,10 +2137,13 @@
      * clic central y "copiar dirección del enlace".
      * El `title` se pone siempre: es la caída para cuando el tooltip de la tienda no
      * se pueda montar. attachEpicTooltip() lo retira cuando sí lo monta.
-     * @param {{ label: string, url: string, iconSvg?: string, iconUrl?: string, tooltip: string }} opts
+     * Con `shortLabel` el enlace lleva las DOS etiquetas puestas y es el CSS el que
+     * enseña una u otra según el ancho, para que el cambio siga al girar el teléfono
+     * sin escuchar `resize`.
+     * @param {{ label: string, shortLabel?: string, url: string, iconSvg?: string, iconUrl?: string, tooltip: string }} opts
      * @returns {HTMLAnchorElement} El enlace listo para insertar.
      */
-    function buildLinkButton({ label, url, iconSvg, iconUrl, tooltip }) {
+    function buildLinkButton({ label, shortLabel, url, iconSvg, iconUrl, tooltip }) {
         const a = document.createElement('a');
         a.setAttribute(LINK_ATTR, 'true');
         a.href = url;
@@ -2116,7 +2166,18 @@
             a.appendChild(img);
         }
         const text = document.createElement('span');
-        text.textContent = label;
+        if (shortLabel) {
+            const long = document.createElement('span');
+            long.className = LABEL_LONG_CLASS;
+            long.textContent = label;
+            const short = document.createElement('span');
+            short.className = LABEL_SHORT_CLASS;
+            short.textContent = shortLabel;
+            text.appendChild(long);
+            text.appendChild(short);
+        } else {
+            text.textContent = label;
+        }
         a.appendChild(text);
         return a;
     }
@@ -2185,6 +2246,9 @@
         });
         const pcgwLink = buildLinkButton({
             label: 'PCGamingWiki',
+            // En móvil los tres botones comparten renglón y "PCGamingWiki" es la
+            // etiqueta que no cabe; el logo de al lado ya dice de qué sitio es.
+            shortLabel: 'PCGW',
             url: pcgwUrl(title),
             iconSvg: PCGW_ICON_SVG,
             tooltip: t.pcgwTip
@@ -2352,6 +2416,7 @@
 
         // Contenedores div intermedios para la estructura visual (como el original).
         const div = document.createElement('div');
+        div.className = BLOCK_CLASS;
         const divButton = document.createElement('div');
         div.appendChild(divButton);
 
