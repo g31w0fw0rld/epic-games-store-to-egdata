@@ -1,6 +1,6 @@
 # Epic Games Store to EGData Button
 
-Tampermonkey userscript for the Epic Games Store: EGData, GG.deals and PCGamingWiki buttons on product and bundle pages, plus wishlist tools. / Userscript de Tampermonkey para Epic Games Store: botones a EGData, GG.deals y PCGamingWiki en las páginas de producto y bundle, y herramientas en la lista de deseos.
+Userscript for the Epic Games Store: EGData, GG.deals and PCGamingWiki buttons on product and bundle pages, plus wishlist tools. / Userscript para Epic Games Store: botones a EGData, GG.deals y PCGamingWiki en las páginas de producto y bundle, y herramientas en la lista de deseos.
 
 ![The EGData button below the purchase button on an Epic product page, with GG.deals and PCGamingWiki sharing the row underneath](docs/screenshot-p.png)
 
@@ -60,7 +60,7 @@ Tampermonkey userscript for the Epic Games Store: EGData, GG.deals and PCGamingW
 **Language:** **32 languages** — English, Spanish, Latin American Spanish, German, French, Italian, Dutch, Portuguese, Brazilian Portuguese, Polish, Russian, Ukrainian, Czech, Danish, Finnish, Swedish, Norwegian, Hungarian, Romanian, Bulgarian, Turkish, Arabic, Hindi, Indonesian, Malay, Filipino, Thai, Vietnamese, Japanese, Korean, Simplified Chinese and Traditional Chinese. It follows the language Epic is actually showing: the `?lang=` in the URL first, since that is how Epic switches language; then the option ticked in Epic's own language menu; then `<html lang>`, which React writes on hydration; then your browser, falling back to English. It covers the wishlist toolbar and the two search tooltips; the button labels are brand names and stay as they are.
 
 **Install:**
-1. Install [Tampermonkey](https://www.tampermonkey.net/).
+1. Install a userscript manager: [Violentmonkey](https://violentmonkey.github.io/) (open source, Chrome/Edge/Firefox) or [Tampermonkey](https://www.tampermonkey.net/). On Chrome and Edge, also turn on **Allow user scripts** on the extension's own page in `chrome://extensions` — without it nothing runs.
 2. Open the installer: [epic-games-store-to-egdata.user.js](https://github.com/g31w0fw0rld/epic-games-store-to-egdata/raw/main/epic-games-store-to-egdata.user.js) (also on [GreasyFork](https://greasyfork.org/es-419/users/1590477-g31w) and [OpenUserJS](https://openuserjs.org/users/g31w0fw0rldgmail.com/scripts)).
 
 **Site:** `store.epicgames.com`
@@ -89,7 +89,7 @@ Tampermonkey userscript for the Epic Games Store: EGData, GG.deals and PCGamingW
 **Idioma:** **32 idiomas** —inglés, español, español de Latinoamérica, alemán, francés, italiano, neerlandés, portugués, portugués de Brasil, polaco, ruso, ucraniano, checo, danés, finés, sueco, noruego, húngaro, rumano, búlgaro, turco, árabe, hindi, indonesio, malayo, filipino, tailandés, vietnamita, japonés, coreano, chino simplificado y chino tradicional—. Sigue el idioma en que Epic está mostrando la página de verdad: primero el `?lang=` de la URL, que es el mecanismo con que Epic cambia de idioma; luego la opción marcada en el propio menú de idioma de Epic; luego el `<html lang>`, que React escribe al hidratar; luego el navegador, con inglés como respaldo. Cubre la barra de la lista de deseos y los dos tooltips de búsqueda; las etiquetas de los botones son marcas y se quedan como están.
 
 **Instalación:**
-1. Instala [Tampermonkey](https://www.tampermonkey.net/).
+1. Instala un gestor de userscripts: [Violentmonkey](https://violentmonkey.github.io/) (código abierto, Chrome/Edge/Firefox) o [Tampermonkey](https://www.tampermonkey.net/). En Chrome y Edge, activa además **Allow user scripts** en la página de la propia extensión en `chrome://extensions`; sin eso no se ejecuta nada.
 2. Abre el instalador: [epic-games-store-to-egdata.user.js](https://github.com/g31w0fw0rld/epic-games-store-to-egdata/raw/main/epic-games-store-to-egdata.user.js) (también en [GreasyFork](https://greasyfork.org/es-419/users/1590477-g31w) y [OpenUserJS](https://openuserjs.org/users/g31w0fw0rldgmail.com/scripts)).
 
 **Sitio:** `store.epicgames.com`
