@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.8.8
+// @version      1.8.9
 // @description  Adds EGData, GG.deals and PCGamingWiki buttons below every purchase button on Epic Games Store product and bundle pages, one set per purchase button — some bundles show two. EGData links to that exact offer; the other two search by the English name, looked up by offer id because Epic translates game names and both sites index in English, and each says so in the store's own tooltip. On your wishlist it adds an 'only discounted' filter, remembered sort and filters, and a shareable link.
 // @icon         data:image/png;base64,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
 // @author       g31w0fw0rld
@@ -1200,7 +1200,7 @@
     // compra ocupa la pantalla: es ahí donde caben los tres botones en un renglón.
     const MOBILE_MAX_WIDTH = 768;
     // Sincronizar con @version del encabezado en cada bump.
-    const SCRIPT_VERSION = '1.8.8';
+    const SCRIPT_VERSION = '1.8.9';
 
     // GG.deals filtra por DRM con un bitmask numérico en la query, no por nombre:
     // 1 Steam, 8 GOG, 16 sin DRM, 32 otros, 128 Microsoft Store, 1024 Epic. Aquí
@@ -1399,6 +1399,19 @@
     // queda con la heurística de siempre. Nunca es camino crítico.
     const WL_WISHLIST_QUERY_HASH = '40e7770852757ee6aaa43b0f6fce65de984754e8d32572a1c978910cbf26f02e';
     const WL_TOTAL_TIMEOUT_MS = 8000;
+
+    // --- Margen para que las tarjetas se rellenen -------------------------------
+    // Epic mete los <li> vacíos y los rellena al entrar en viewport (ver
+    // wlItemResolved). Tras cada barrido se reaplica el filtro hasta que no quede
+    // ninguna sin resolver, con este tope: 20 * 250 ms = 5 s.
+    const WL_SETTLE_TRIES = 20;
+    const WL_SETTLE_STEP_MS = 250;
+    // Pasadas del barrido. Dos: la primera rellena todo lo que Epic alcance a pintar
+    // mientras el scroll pasa por delante, y la segunda repesca las que el scroll
+    // adelantó antes de que llegaran sus datos. Más pasadas no aportan —una tarjeta
+    // que sigue vacía tras dos barridos completos no se va a rellenar sola— y cada
+    // una cuesta un recorrido entero de la lista.
+    const WL_LOAD_PASSES = 2;
 
     // Patrón de la petición que la propia página hace para la oferta que se
     // compra: products/{namespace}/offers/{offerId}. Ese offerId es el que usa
@@ -2825,11 +2838,71 @@
             } catch (e) { return false; }
         });
     }
+    /**
+     * ¿Esta tarjeta ya se puede juzgar? Epic mete en el DOM los <li> con su
+     * [data-testid="offer-card-layout-wrapper"] ANTES de tener nada dentro: son
+     * cascarones con textContent "", sin nodo de precio y sin ni el <a> del juego.
+     * Los rellena cuando entran en viewport, y una vez rellenos ya no los desmonta.
+     * Verificado el 2026-09-08 en una lista de 9 ítems: recién cargada, los 9
+     * wrappers estaban presentes y los 9 vacíos.
+     *
+     * Distinguirlos NO es cosmético: un cascarón no tiene chip "-NN%" ni tachado,
+     * así que wlItemDiscounted() lo declaraba "sin descuento" y el filtro le ponía
+     * display:none. Y un <li> sin caja no entra nunca en viewport, así que Epic no
+     * lo rellenaba, no mutaba, el observer no tenía qué reevaluar y se quedaba
+     * oculto para siempre: la lista aparecía vacía (o con la única tarjeta que
+     * había alcanzado a pintarse) hasta la siguiente recarga, que la servía ya
+     * pintada desde caché. De ahí el "la primera vez no carga nada".
+     *
+     * Por eso el filtro tiene TRES estados y no dos —en descuento, sin descuento y
+     * sin resolver— y solo oculta el segundo: nunca se oculta por ignorancia.
+     * @returns {boolean} true si la tarjeta ya pintó su precio.
+     */
+    function wlItemResolved(li) {
+        // La zona de precio manda, y se busca por PREFIJO del testid: en escritorio
+        // es price-desktop (el verificado), y así una variante como price-mobile
+        // entra sin tener que enumerarlas.
+        const price = li.querySelector('[data-testid^="price"]');
+        if (price) return /\d/.test(price.textContent || '');
+        // Sin zona de precio identificable —otro testid, un rediseño—, cualquier
+        // dígito en la tarjeta vale como señal de pintada: el cascarón no tiene
+        // ninguno. Es la caída, no el camino normal: por sí solo se equivocaría con
+        // un título que lleve números ("20XX") si Epic lo pinta antes del precio.
+        return /\d/.test(li.textContent || '');
+    }
+
+    /**
+     * Aplica el filtro "solo con descuento" y devuelve cuántas tarjetas quedaron
+     * SIN resolver, que es lo que el arranque necesita para saber si ya terminó.
+     * @returns {number} Tarjetas aún no juzgables (0 = lista entera decidida).
+     */
     function wlApplyDiscountFilter() {
         const on = !!getWishlistSettings().onlyDiscount;
+        let pendientes = 0;
         wlItems().forEach((li) => {
-            li.style.display = (on && !wlItemDiscounted(li)) ? 'none' : '';
+            if (!on) { li.style.display = ''; return; }
+            if (!wlItemResolved(li)) {
+                // Visible a propósito: es la única forma de que Epic la rellene y
+                // de que la siguiente pasada pueda decidir de verdad.
+                li.style.display = '';
+                pendientes++;
+                return;
+            }
+            li.style.display = wlItemDiscounted(li) ? '' : 'none';
         });
+        return pendientes;
+    }
+
+    // Reaplica el filtro hasta que no queden tarjetas sin resolver, o hasta agotar
+    // el margen. Las que están en viewport se rellenan solas en unos cientos de ms;
+    // las que no, las repesca la siguiente pasada del barrido.
+    async function wlSettleDiscountFilter() {
+        let pendientes = wlApplyDiscountFilter();
+        for (let i = 0; i < WL_SETTLE_TRIES && pendientes > 0; i++) {
+            await wlDelay(WL_SETTLE_STEP_MS);
+            pendientes = wlApplyDiscountFilter();
+        }
+        return pendientes;
     }
 
     /**
@@ -2883,7 +2956,15 @@
                 if (!res.ok) return null;
                 const json = await res.json();
                 const els = json?.data?.Wishlist?.wishlistItems?.elements;
-                return Array.isArray(els) ? els.length : null;
+                // Un array VACÍO se trata como "sin dato", no como cero. Es la
+                // firma exacta del hash caducado que este módulo dice no querer
+                // creerse (payload con la forma buena y sin contenido), y como cero
+                // era el peor de los valores posibles: `resueltas() >= 0` es
+                // siempre cierto, así que el barrido salía en la ronda 0 y no
+                // cargaba nada. Una lista de deseos de verdad vacía también da
+                // vacío, y ahí el barrido sale igual de rápido porque no hay <li>
+                // que recorrer: dar null no cuesta nada y cubre el otro caso.
+                return (Array.isArray(els) && els.length) ? els.length : null;
             } catch (e) { return null; }
         };
 
@@ -2966,14 +3047,21 @@
             const MAX_ROUNDS = 400; // tope de seguridad (~400 * 500ms ≈ 3.3 min)
             const SETTLE = 5;       // rondas EN EL FONDO sin crecer => terminado
             let stable = 0;
-            let last = wlItems().length;
+            // Lo que cuenta aquí son las tarjetas RESUELTAS, no los <li> presentes.
+            // Epic mete los wrappers de golpe y los rellena al entrar en viewport
+            // (ver wlItemResolved), así que medir presencia hacía que el barrido
+            // creyera tener la lista entera desde la ronda 0 —9 wrappers vacíos = 9
+            // ítems según la API— y saliera sin haber scrolleado ni un tramo. El
+            // barrido existe para que las tarjetas se puedan JUZGAR, no para que
+            // existan; medir lo segundo daba la lista por barrida sin barrerla.
+            const resueltas = () => wlItems().filter(wlItemResolved).length;
+            let last = resueltas();
             for (let i = 0; i < MAX_ROUNDS && stable < SETTLE; i++) {
                 // Ya está la lista entera: ni una ronda más. Se comprueba al
                 // principio del cuerpo, no tras el scroll, para cortar en la primera
                 // ronda posible en cuanto el total llegue (viene en paralelo) sin
-                // gastar antes un tramo de bajada de más. Se compara contra null y no
-                // por verdad porque una lista vacía da 0, que también es un corte.
-                if (total !== null && wlItems().length >= total) break;
+                // gastar antes un tramo de bajada de más.
+                if (total !== null && resueltas() >= total) break;
                 // Contenedor real que scrollea (div interno o la ventana).
                 const cont = wlScrollContainer(wlItems()[wlItems().length - 1]);
                 // Scroll SUAVE, un tramo hacia abajo (no salto al fondo): así el
@@ -2982,7 +3070,7 @@
                 if (cont) cont.scrollBy({ top: step, behavior: 'smooth' });
                 else window.scrollBy({ top: step, behavior: 'smooth' });
                 await wlDelay(500);
-                const n = wlItems().length;
+                const n = resueltas();
                 if (n > last) { last = n; stable = 0; continue; }
                 // Solo contamos "sin novedad" cuando YA estamos al fondo; si no,
                 // seguimos bajando (aún queda lista por recorrer).
@@ -3000,6 +3088,32 @@
             wlReapplyInProgress = prevReapply;
             wlLoadingAll = false;
         }
+    }
+
+    /**
+     * Deja la lista entera cargada Y con todas sus tarjetas resueltas, que es lo
+     * que el filtro necesita para poder juzgarlas.
+     *
+     * Un solo barrido no basta: el scroll baja a tramos de 500 ms y una tarjeta
+     * cuyos datos tardan más que eso se queda vacía cuando el scroll ya pasó de
+     * largo, y nada la vuelve a visitar. Por eso hay una segunda pasada, que las
+     * repesca. Entre pasadas se espera a que se rellenen las que ya están en
+     * viewport (wlSettleDiscountFilter), porque si el margen las resuelve todas la
+     * segunda pasada no llega a hacerse.
+     * @returns {Promise<number>} Tarjetas que siguen sin resolver (0 = lista entera).
+     */
+    async function wlLoadAllList() {
+        let pendientes = 0;
+        for (let pasada = 0; pasada < WL_LOAD_PASSES; pasada++) {
+            await wlLoadAllItems();
+            pendientes = await wlSettleDiscountFilter();
+            if (pendientes === 0) break;
+        }
+        if (pendientes > 0) {
+            console.warn(`(egs2egd): wishlist — ${pendientes} tarjeta(s) sin precio tras ` +
+                `${WL_LOAD_PASSES} pasadas; se dejan VISIBLES para no ocultarlas a ciegas`);
+        }
+        return pendientes;
     }
 
     // --- Modal "Saber más" (autocontenido, sin dependencias) --------------------
@@ -3284,7 +3398,7 @@
                 // Cargar TODO antes de ocultar, si no el filtro solo veria los
                 // ya cargados. Se deshabilita el check para evitar doble disparo.
                 discChk.disabled = true;
-                try { await wlLoadAllItems(); } finally { discChk.disabled = false; }
+                try { await wlLoadAllList(); } finally { discChk.disabled = false; }
             }
             wlApplyDiscountFilter();
         });
@@ -3394,8 +3508,9 @@
         }
 
         // Si el filtro ya viene activo, cargar TODO antes de ocultar para que
-        // aplique sobre la lista completa (Epic la pagina por scroll).
-        if (getWishlistSettings().onlyDiscount) await wlLoadAllItems();
+        // aplique sobre la lista completa (Epic la pagina por scroll) y con las
+        // tarjetas ya pintadas (las mete vacías y las rellena al verlas).
+        if (getWishlistSettings().onlyDiscount) await wlLoadAllList();
         wlApplyDiscountFilter();  // aplica el filtro "solo con descuento" al arranque
         wlReady = true;
         startWishlistObserver();
