@@ -2,6 +2,12 @@
 
 Userscript for the Epic Games Store: EGData, GG.deals and PCGamingWiki buttons on product and bundle pages, plus wishlist tools. / Userscript para Epic Games Store: botones a EGData, GG.deals y PCGamingWiki en las páginas de producto y bundle, y herramientas en la lista de deseos.
 
+**⚡ Quick install / Instalación rápida:** **[Install / Instalar](https://github.com/g31w0fw0rld/epic-games-store-to-egdata/raw/main/epic-games-store-to-egdata.user.js)** — also on / también en [GreasyFork](https://greasyfork.org/scripts/573567) · [OpenUserJS](https://openuserjs.org/scripts/g31w0fw0rldgmail.com/Epic_Games_Store_to_EGData_Button).
+
+> You need a userscript manager first: [Violentmonkey](https://violentmonkey.github.io/) (open source) or [Tampermonkey](https://www.tampermonkey.net/). On Chrome and Edge, also turn on **Allow user scripts** on the extension's own page in `chrome://extensions` — without it nothing runs. Step-by-step under [English](#english).
+>
+> Necesitas antes un gestor de userscripts: [Violentmonkey](https://violentmonkey.github.io/) (código abierto) o [Tampermonkey](https://www.tampermonkey.net/). En Chrome y Edge, activa además **Allow user scripts** en la página de la propia extensión en `chrome://extensions`; sin eso no se ejecuta nada. Pasos detallados en [Español](#español).
+
 ![The EGData button below the purchase button on an Epic product page, with GG.deals and PCGamingWiki sharing the row underneath](docs/screenshot-p.png)
 
 *Product page (`/p/`): EGData sits under the purchase button and reuses Epic's own styling; GG.deals and PCGamingWiki split the row below it, at the same height and with the same corners. / Página de producto (`/p/`): EGData va bajo el botón de compra y reutiliza el estilo propio de Epic; GG.deals y PCGamingWiki se reparten la fila de abajo, a la misma altura y con las mismas esquinas.*
@@ -61,7 +67,7 @@ Userscript for the Epic Games Store: EGData, GG.deals and PCGamingWiki buttons o
 
 **Install:**
 1. Install a userscript manager: [Violentmonkey](https://violentmonkey.github.io/) (open source, Chrome/Edge/Firefox) or [Tampermonkey](https://www.tampermonkey.net/). On Chrome and Edge, also turn on **Allow user scripts** on the extension's own page in `chrome://extensions` — without it nothing runs.
-2. Open the installer: [epic-games-store-to-egdata.user.js](https://github.com/g31w0fw0rld/epic-games-store-to-egdata/raw/main/epic-games-store-to-egdata.user.js) (also on [GreasyFork](https://greasyfork.org/es-419/users/1590477-g31w) and [OpenUserJS](https://openuserjs.org/users/g31w0fw0rldgmail.com/scripts)).
+2. Open the installer: [epic-games-store-to-egdata.user.js](https://github.com/g31w0fw0rld/epic-games-store-to-egdata/raw/main/epic-games-store-to-egdata.user.js) (also on [GreasyFork](https://greasyfork.org/scripts/573567) and [OpenUserJS](https://openuserjs.org/scripts/g31w0fw0rldgmail.com/Epic_Games_Store_to_EGData_Button)).
 
 **Site:** `store.epicgames.com`
 
@@ -90,7 +96,7 @@ Userscript for the Epic Games Store: EGData, GG.deals and PCGamingWiki buttons o
 
 **Instalación:**
 1. Instala un gestor de userscripts: [Violentmonkey](https://violentmonkey.github.io/) (código abierto, Chrome/Edge/Firefox) o [Tampermonkey](https://www.tampermonkey.net/). En Chrome y Edge, activa además **Allow user scripts** en la página de la propia extensión en `chrome://extensions`; sin eso no se ejecuta nada.
-2. Abre el instalador: [epic-games-store-to-egdata.user.js](https://github.com/g31w0fw0rld/epic-games-store-to-egdata/raw/main/epic-games-store-to-egdata.user.js) (también en [GreasyFork](https://greasyfork.org/es-419/users/1590477-g31w) y [OpenUserJS](https://openuserjs.org/users/g31w0fw0rldgmail.com/scripts)).
+2. Abre el instalador: [epic-games-store-to-egdata.user.js](https://github.com/g31w0fw0rld/epic-games-store-to-egdata/raw/main/epic-games-store-to-egdata.user.js) (también en [GreasyFork](https://greasyfork.org/scripts/573567) y [OpenUserJS](https://openuserjs.org/scripts/g31w0fw0rldgmail.com/Epic_Games_Store_to_EGData_Button)).
 
 **Sitio:** `store.epicgames.com`
 
