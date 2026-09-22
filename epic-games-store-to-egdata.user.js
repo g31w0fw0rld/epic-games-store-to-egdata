@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.8.10
+// @version      1.8.11
 // @description  Lookup buttons and wishlist tools for the Epic Games Store. Epic tells you today's price and nothing more —no history, no comparison, no idea whether the game runs— and its wishlist cannot even show you just what is on sale. The buttons go to that exact offer or to its English name, and the wishlist gains the sorting and the filter Epic never gave it. It only reads and links. The rest is in "Learn more", on the page, and in the repository. 32 languages.
 // @icon         data:image/png;base64,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
 // @author       g31w0fw0rld
@@ -1200,7 +1200,7 @@
     // compra ocupa la pantalla: es ahí donde caben los tres botones en un renglón.
     const MOBILE_MAX_WIDTH = 768;
     // Sincronizar con @version del encabezado en cada bump.
-    const SCRIPT_VERSION = '1.8.10';
+    const SCRIPT_VERSION = '1.8.11';
 
     // GG.deals filtra por DRM con un bitmask numérico en la query, no por nombre:
     // 1 Steam, 8 GOG, 16 sin DRM, 32 otros, 128 Microsoft Store, 1024 Epic. Aquí
@@ -2839,6 +2839,36 @@
         });
     }
     /**
+     * ¿Esta tarjeta está pintada y SIN precio? Es el caso de los juegos que todavía
+     * no se venden ("Próximamente", sin fecha): Epic pinta la tarjeta COMPLETA
+     * —carátula, título, clasificación y la fila de acciones con el botón de compra
+     * deshabilitado— y deja su [data-testid="price-desktop"] vacío, sin ni un dígito.
+     * Verificado el 2026-09-21 con KINGDOM HEARTS IV.
+     *
+     * Sin distinguirla, wlItemResolved() la tomaba por cascarón sin rellenar, y eso
+     * costaba dos cosas: quedaba VISIBLE con el filtro puesto —justo lo que el filtro
+     * debe ocultar, porque sin precio no hay descuento posible— y, al no resolver
+     * nunca, `pendientes` no llegaba a 0, así que wlLoadAllList() gastaba siempre su
+     * segunda pasada entera (barrido de toda la lista y otra consulta del total a la
+     * API incluidos) por una tarjeta que no tenía nada que repescar.
+     *
+     * Se decide por la PRESENCIA de la fila de acciones, no por la ausencia de
+     * precio: la pinta el mismo render que el precio, así que si el botón ya está y
+     * la zona de precio sigue vacía, no es que el precio falte por llegar — es que no
+     * hay. El cascarón no tiene ni botones ni zona de precio, así que las dos
+     * comprobaciones lo dejan fuera y sigue contando como "sin resolver".
+     * @returns {boolean} true si la tarjeta ya pintó y no tiene precio.
+     */
+    function wlItemPriceless(li) {
+        const price = li.querySelector('[data-testid^="price"]');
+        if (!price || /\d/.test(price.textContent || '')) return false;
+        // Sufijo, no valor exacto: el testid verificado es add-to-cart-cta-button
+        // (lo llevan igual la tarjeta con precio y la de "Próximamente"), y así una
+        // variante futura del mismo botón entra sin enumerarlas.
+        return !!li.querySelector('[data-testid$="cta-button"]');
+    }
+
+    /**
      * ¿Esta tarjeta ya se puede juzgar? Epic mete en el DOM los <li> con su
      * [data-testid="offer-card-layout-wrapper"] ANTES de tener nada dentro: son
      * cascarones con textContent "", sin nodo de precio y sin ni el <a> del juego.
@@ -2859,6 +2889,8 @@
      * @returns {boolean} true si la tarjeta ya pintó su precio.
      */
     function wlItemResolved(li) {
+        // Pintada y sin precio: ya es juzgable, no hay nada que esperar.
+        if (wlItemPriceless(li)) return true;
         // La zona de precio manda, y se busca por PREFIJO del testid: en escritorio
         // es price-desktop (el verificado), y así una variante como price-mobile
         // entra sin tener que enumerarlas.
@@ -3110,7 +3142,7 @@
             if (pendientes === 0) break;
         }
         if (pendientes > 0) {
-            console.warn(`(egs2egd): wishlist — ${pendientes} tarjeta(s) sin precio tras ` +
+            console.warn(`(egs2egd): wishlist — ${pendientes} tarjeta(s) sin resolver tras ` +
                 `${WL_LOAD_PASSES} pasadas; se dejan VISIBLES para no ocultarlas a ciegas`);
         }
         return pendientes;
