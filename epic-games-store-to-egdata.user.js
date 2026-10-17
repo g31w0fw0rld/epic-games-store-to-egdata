@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.8.11
+// @version      1.8.12
 // @description  Lookup buttons and wishlist tools for the Epic Games Store. Epic tells you today's price and nothing more —no history, no comparison, no idea whether the game runs— and its wishlist cannot even show you just what is on sale. The buttons go to that exact offer or to its English name, and the wishlist gains the sorting and the filter Epic never gave it. It only reads and links. The rest is in "Learn more", on the page, and in the repository. 32 languages.
 // @icon         data:image/png;base64,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
 // @author       g31w0fw0rld
@@ -1182,9 +1182,51 @@
     // =============================================
     const EGDATA_BASE_URL = 'https://egdata.app/offers/';
     const EGDATA_ICON_URL = 'https://cdn.egdata.app/logo_simple_white_clean.png';
+    // Epic sirve DOS tiendas a la vez, y cuál toca depende de la ruta, no de la
+    // ficha. Verificado el 2026-10-17:
+    //   · /bundles/ sigue en la de siempre: React Query, con la oferta en
+    //     __REACT_QUERY_INITIAL_QUERIES__ y el botón de compra marcado con
+    //     data-testid="purchase-cta-button".
+    //   · /p/ —juegos, ediciones, DLC, precompras— pasó a React Router: no queda
+    //     ni el global de React Query ni un solo data-testid en la columna de compra,
+    //     y el script esperaba sus 20 s y se rendía sin pintar nada.
+    // De la nueva no hay atributo estable que valga: el botón de compra solo se
+    // distingue por su clase de CSS module, `_sidebarBuyButton_<hash>_<n>`. El
+    // prefijo es el nombre que le dio Epic; el hash cambia con cada compilación, de
+    // ahí el `class*=`. Y se exige `button` porque nuestro enlace de EGData hereda
+    // las clases del botón de compra: sin el tipo, el observer lo tomaría por otro
+    // botón de compra y le colgaría un bloque a él.
     const PURCHASE_BUTTON_SELECTOR = '[data-testid="purchase-cta-button"]';
+    const PDP_BUY_BUTTON_SELECTOR = 'button[class*="_sidebarBuyButton_"]';
+    const ANY_PURCHASE_BUTTON_SELECTOR = `${PURCHASE_BUTTON_SELECTOR}, ${PDP_BUY_BUTTON_SELECTOR}`;
+    // Cuántos niveles sube cada tienda desde el botón de compra hasta el contenedor
+    // del que cuelga el bloque. En la vieja, 3. En la nueva, 2: el padre es la fila
+    // compra + carrito (o el botón solo, en «Próximamente») y el abuelo, la columna
+    // precio · compra · regalar · deseos, así que el bloque queda debajo de deseos y
+    // encima de «Recompensas de Epic», que es donde iba en la vieja. Subir 3 lo
+    // llevaba al final de la columna, por debajo de «Compartir» y «Denunciar».
+    const PURCHASE_HOST_DEPTH = 3;
+    const PDP_BUY_HOST_DEPTH = 2;
+    // La oferta, en el estado de React Router:
+    //   loaderData['routes/pdp/pdp'].productPage.pageContent.{offerId, title}
+    // Ese offerId es el mismo que usa EGData —comprobado con sus API en cinco fichas:
+    // juego base, edición, DLC (ADD_ON) y una de «Próximamente»—. No se hace el
+    // barrido en profundidad de la tienda vieja: la misma ficha trae en
+    // relatedOffers las ofertas de sus ediciones y complementos, cada una con su
+    // offerId, así que «el primero que aparezca» podría ser el de otra.
+    //
+    // Se lee sin fijar ni la ruta ni el nombre de la página: cualquier ruta que
+    // tenga un `<algo>.pageContent.offerId` a ese nivel. Es preventivo, por los
+    // bundles: siguen en la tienda vieja, pero cuando Epic los migre su loader no se
+    // llamará `routes/pdp/pdp`, y quizá tampoco `productPage`. Con la ruta fija el
+    // script se quedaría mudo en ellos sin que nada avisara, que es justo lo que
+    // acaba de pasar en /p/.
+    const PDP_CONTENT_KEY = 'pageContent';
+    // Marca del bloque en la tienda nueva, para lo que solo aplica allí (el ancho).
+    const PDP_BLOCK_CLASS = 'egs2egd-pdp';
     // El <h1> de la ficha. Es el título del producto a secas, sin los añadidos que
-    // Epic le pone al de la página.
+    // Epic le pone al de la página. Solo en la tienda vieja; en la nueva el título
+    // sale de pageContent.title.
     const PDP_TITLE_SELECTOR = '[data-testid="pdp-title"]';
     const DATA_ATTR = 'data-egs2egd';
     const LINK_ATTR = 'data-egs2egd-link';
@@ -1200,7 +1242,7 @@
     // compra ocupa la pantalla: es ahí donde caben los tres botones en un renglón.
     const MOBILE_MAX_WIDTH = 768;
     // Sincronizar con @version del encabezado en cada bump.
-    const SCRIPT_VERSION = '1.8.11';
+    const SCRIPT_VERSION = '1.8.12';
 
     // GG.deals filtra por DRM con un bitmask numérico en la query, no por nombre:
     // 1 Steam, 8 GOG, 16 sin DRM, 32 otros, 128 Microsoft Store, 1024 Epic. Aquí
@@ -1487,13 +1529,51 @@
     // =============================================
 
     /**
-     * Busca el slug (ID) del producto en los datos internos de React Query
-     * que Epic Games Store almacena en window.__REACT_QUERY_INITIAL_QUERIES__.
-     * Recorre las queries buscando la que contiene 'getCatalogOffer' y extrae
-     * el ID de la oferta del catálogo.
+     * Contenido de la ficha en la tienda nueva (React Router), o null si la página
+     * es de la vieja o todavía no ha hidratado.
+     *
+     * `__reactRouterDataRouter` es el router vivo y llega al hidratar;
+     * `__reactRouterContext` es la instantánea del servidor y está antes. Se mira
+     * primero el vivo y se cae a la instantánea: de una ficha a otra el script recarga
+     * la página (ver onUrlChange), así que las dos dicen lo mismo.
+     *
+     * Recorre todas las rutas y mira SOLO un nivel por debajo de cada una
+     * (route.<página>.pageContent), no en profundidad: ver PDP_CONTENT_KEY.
+     * @returns {{offerId: string, title?: string}|null}
+     */
+    function readPdpContent() {
+        try {
+            const sources = [
+                window.__reactRouterDataRouter?.state?.loaderData,
+                window.__reactRouterContext?.state?.loaderData,
+            ];
+            for (const ld of sources) {
+                if (!ld || typeof ld !== 'object') continue;
+                for (const route of Object.values(ld)) {
+                    if (!route || typeof route !== 'object') continue;
+                    for (const page of Object.values(route)) {
+                        const pc = page && typeof page === 'object' ? page[PDP_CONTENT_KEY] : null;
+                        if (pc && typeof pc.offerId === 'string' && /^[0-9a-f]{32}$/i.test(pc.offerId)) {
+                            return pc;
+                        }
+                    }
+                }
+            }
+        } catch (e) { /* estado aún no disponible */ }
+        return null;
+    }
+
+    /**
+     * Busca el slug (ID) de la oferta. En la tienda nueva lo lee del estado de
+     * React Router (readPdpContent). En la vieja, de los datos de React Query que
+     * Epic deja en window.__REACT_QUERY_INITIAL_QUERIES__: recorre las queries
+     * buscando la que contiene 'getCatalogOffer' y extrae el ID de la oferta.
      * @returns {string|null} El ID del slug o null si no se encuentra.
      */
     function findSlug() {
+        // Tienda nueva (/p/): la oferta viene con nombre y apellidos, sin buscarla.
+        const pdp = readPdpContent();
+        if (pdp) return pdp.offerId;
         try {
             const queries = window.__REACT_QUERY_INITIAL_QUERIES__?.queries || [];
             const isBundle = getUrlType() === 'bundle';
@@ -1614,9 +1694,16 @@
      *
      * La caída a document.title deja igual que antes los casos sin <h1>, los bundles
      * entre ellos.
+     *
+     * En la tienda nueva el <h1> ya no lleva data-testid y el título sale del estado
+     * de la ficha, que es el mismo texto. Ojo, que a veces es solo la edición —la de
+     * RDR2 se titula «Ultimate Edition», sin el juego—: lo corrige el nombre en
+     * inglés de EGData, que llega después y sí lo trae completo.
      * @returns {string} El título limpio del juego.
      */
     function getGameTitle() {
+        const pdpTitle = readPdpContent()?.title?.trim();
+        if (pdpTitle) return pdpTitle;
         const heading = document.querySelector(PDP_TITLE_SELECTOR)?.textContent?.trim();
         if (heading) return heading;
         const rawTitle = document.title || '';
@@ -1814,6 +1901,14 @@
             a[${DATA_ATTR}="true"]:focus {
                 outline: 2px solid #fff3 !important;
                 outline-offset: 2px !important;
+            }
+            /* Tienda nueva: el ancho de la columna lo daba la clase heredada del
+               botón de compra viejo; la del nuevo es flex: 1 dentro de SU fila (la
+               del carrito), y fuera de ella no ensancha nada, así que EGData se
+               encogía a su etiqueta. El centrado sí lo trae la clase heredada. */
+            .${PDP_BLOCK_CLASS} > div:first-child > a[${DATA_ATTR}="true"] {
+                width: 100%;
+                box-sizing: border-box;
             }
             /* Fila de GG.deals + PCGamingWiki: mismo aspecto que el botón de EGData
                (negro, texto blanco, misma altura y mismas esquinas) repartiéndose a
@@ -2400,8 +2495,9 @@
     }
 
     /**
-     * Inserta el botón EGData colgando del contenedor 3 niveles arriba del botón
-     * de compra dado (misma colocación original que ya funcionaba en productos).
+     * Inserta el botón EGData colgando del contenedor de la columna de compra: 3
+     * niveles arriba del botón de compra en la tienda vieja y 2 en la nueva (ver
+     * PDP_BUY_HOST_DEPTH). En las dos queda bajo los botones de Epic.
      * @param {HTMLButtonElement} purchaseButton - Botón de compra de referencia.
      * @param {string} slug - ID de la oferta en EGData.
      * @param {boolean} withMargin - Añade separación superior (para botones extra).
@@ -2415,8 +2511,12 @@
         // exactamente un EGData por cada uno, aunque compartan host.
         if (purchaseButton.dataset.egs2egdDone === '1') return null;
 
-        // Contenedor padre adecuado (3 niveles arriba del botón de compra).
-        const host = purchaseButton.parentElement?.parentElement?.parentElement;
+        // Contenedor padre adecuado: 3 niveles arriba en la tienda vieja, 2 en la
+        // nueva (ver PDP_BUY_HOST_DEPTH).
+        const isPdp = purchaseButton.matches(PDP_BUY_BUTTON_SELECTOR);
+        const depth = isPdp ? PDP_BUY_HOST_DEPTH : PURCHASE_HOST_DEPTH;
+        let host = purchaseButton;
+        for (let i = 0; i < depth && host; i++) host = host.parentElement;
         if (!host) return null;
 
         purchaseButton.dataset.egs2egdDone = '1';
@@ -2429,7 +2529,7 @@
 
         // Contenedores div intermedios para la estructura visual (como el original).
         const div = document.createElement('div');
-        div.className = BLOCK_CLASS;
+        div.className = isPdp ? `${BLOCK_CLASS} ${PDP_BLOCK_CLASS}` : BLOCK_CLASS;
         const divButton = document.createElement('div');
         div.appendChild(divButton);
 
@@ -2473,7 +2573,7 @@
     function createEGDataButton(slug, urlType, gameTitle) {
         try {
             const egDataLink = `${EGDATA_BASE_URL}${slug}`;
-            const purchaseButtons = document.querySelectorAll(PURCHASE_BUTTON_SELECTOR);
+            const purchaseButtons = document.querySelectorAll(ANY_PURCHASE_BUTTON_SELECTOR);
             if (!purchaseButtons.length) return null;
 
             let firstButton = null;
@@ -2528,7 +2628,8 @@
 
     /**
      * Inicia un intervalo de polling que espera a que React cargue los datos
-     * del catálogo (__REACT_QUERY_INITIAL_QUERIES__), encuentre el slug
+     * de la oferta (__REACT_QUERY_INITIAL_QUERIES__ en la tienda vieja, el estado de
+     * React Router en la nueva), encuentre el slug
      * del producto y el botón de compra esté en el DOM. Al primer botón
      * arranca un MutationObserver que sigue pintando los botones tardíos.
      */
@@ -2550,12 +2651,13 @@
         waitIntervalId = setInterval(() => {
             attempts++;
 
-            // Esperar a que React Query esté disponible
-            if (!window.__REACT_QUERY_INITIAL_QUERIES__) {
+            // Esperar a que haya datos: React Query en la tienda vieja, el estado de
+            // React Router en la nueva.
+            if (!window.__REACT_QUERY_INITIAL_QUERIES__ && !readPdpContent()) {
                 if (attempts >= MAX_POLL_ATTEMPTS) {
                     clearInterval(waitIntervalId);
                     waitIntervalId = null;
-                    console.warn('(egs2egd): Tiempo de espera agotado para React Query data');
+                    console.warn('(egs2egd): Tiempo de espera agotado: sin datos de la oferta (ni React Query ni React Router)');
                 }
                 return;
             }
@@ -2569,7 +2671,7 @@
                 return;
             }
 
-            const purchaseButton = document.querySelector(PURCHASE_BUTTON_SELECTOR);
+            const purchaseButton = document.querySelector(ANY_PURCHASE_BUTTON_SELECTOR);
             if (!purchaseButton) {
                 if (attempts >= MAX_POLL_ATTEMPTS) {
                     clearInterval(waitIntervalId);
