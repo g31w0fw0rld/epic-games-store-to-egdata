@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Epic Games Store to EGData Button
 // @namespace    https://www.epicgames.com/store/
-// @version      1.8.14
+// @version      1.8.15
 // @description  Lookup buttons and wishlist tools for the Epic Games Store. Epic tells you today's price and nothing more —no history, no comparison, no idea whether the game runs— and its wishlist cannot even show you just what is on sale. The buttons go to that exact offer or to its English name, and the wishlist gains the sorting and the filter Epic never gave it. It only reads and links. The rest is in "Learn more", on the page, and in the repository. 32 languages.
 // @icon         data:image/png;base64,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
 // @author       g31w0fw0rld
@@ -1242,7 +1242,7 @@
     // compra ocupa la pantalla: es ahí donde caben los tres botones en un renglón.
     const MOBILE_MAX_WIDTH = 768;
     // Sincronizar con @version del encabezado en cada bump.
-    const SCRIPT_VERSION = '1.8.14';
+    const SCRIPT_VERSION = '1.8.15';
 
     // GG.deals filtra por DRM con un bitmask numérico en la query, no por nombre:
     // 1 Steam, 8 GOG, 16 sin DRM, 32 otros, 128 Microsoft Store, 1024 Epic. Aquí
@@ -2056,18 +2056,35 @@
     // El tooltip de Epic (el de "Agregar al carrito", por ejemplo) no es un
     // componente suyo: es Radix Tooltip, que monta la caja en un portal al final del
     // <body> —un div con data-radix-popper-content-wrapper, colocado con position
-    // fixed— y la viste con las clases de su design system, las eds_*. No hay API
-    // pública que llamar: Radix vive dentro de su bundle de React. Así que se replica
-    // su DOM y se reutiliza su CSS, que es lo que de verdad da el aspecto.
+    // fixed— y la viste con las clases de su design system. No hay API pública que
+    // llamar: Radix vive dentro de su bundle de React. Así que se replica su DOM y se
+    // reutiliza su CSS, que es lo que de verdad da el aspecto.
     //
-    // Las clases eds_* son hashes de compilación: si Epic toca ese componente,
-    // cambian y aquí dejarían de pintar. Por eso NO se dan por buenas: se monta un
-    // ejemplar y se comprueba que siga teniendo fondo. Si no lo tiene, no se monta
-    // nada y los botones se quedan con su `title`, que es la caída de siempre.
-    // Verificadas contra el DOM real de la tienda el 2026-08-13.
+    // Hay dos juegos de clases, uno por tienda: eds_370_* en la de React Router, que
+    // sirve las fichas /p/ desde 2026-10, y eds_* en la vieja, que sigue con los
+    // bundles y la lista de deseos. Son hashes de compilación y cambian cuando Epic
+    // toca el componente; así se perdió el de /p/ al estrenar la tienda nueva, que
+    // dejó los botones con el `title` del navegador. Por eso NO se dan por buenas: de
+    // cada juego se monta un ejemplar fuera de la vista, se mira si tiene fondo y
+    // gana el primero que lo tenga. Si no lo tiene ninguno, no se monta nada y los
+    // botones se quedan con su `title`, que es la caída de siempre.
+    //
+    // Va siempre el aviso corto, también para los textos largos. Epic pinta los
+    // suyos largos ("Recompensas de Epic") con letra de 14 px —en la vieja, con otro
+    // componente, Tippy—, pero los tooltips del resto de los scripts van todos a
+    // 12 px, y se prefirió que este no fuera el único distinto (decidido el
+    // 2026-10-20).
+    // Verificadas contra el DOM real de las dos tiendas: las eds_370_* el
+    // 2026-10-20, las eds_* el 2026-08-13.
     const EPIC_TIP_WRAPPER_ATTR = 'data-radix-popper-content-wrapper';
-    const EPIC_TIP_CLASSES = ['eds_o3n6et0', 'eds_1ypbntdd', 'eds_xd1k8g0'];
-    const EPIC_TIP_ARROW_CLASS = 'eds_o3n6et1';
+    // Los juegos de clases, en el orden en que se prueban: primero el de la tienda
+    // nueva, que es adonde va migrando Epic. `offset` es la separación entre la caja
+    // y el botón sin contar la flecha: 5 px en la nueva (medido: 10 px de hueco con
+    // la flecha), ninguna en la vieja.
+    const EPIC_TIP_THEMES = [
+        { box: ['eds_370_xgyy800', 'eds_370_g1avra3', 'eds_370_g1avra0', 'eds_370_19s876i0', 'eds_370_m0fvud0'], arrow: 'eds_370_xgyy801', offset: 5 },
+        { box: ['eds_o3n6et0', 'eds_1ypbntdd', 'eds_xd1k8g0'], arrow: 'eds_o3n6et1', offset: 0 },
+    ];
     const EPIC_TIP_Z_INDEX = '1100';
     // Medidas de la flecha, tal cual las emite Radix (10x5 sobre un viewBox 0 0 30 10).
     const EPIC_TIP_ARROW_W = 10;
@@ -2081,6 +2098,7 @@
     let epicTipText = null;
     let epicTipArrow = null;
     let epicTipSrText = null;
+    let epicTipOffset = 0;
     let epicTipLive = null;
     let epicTipTimer = null;
 
@@ -2088,9 +2106,10 @@
      * Construye el DOM que emite Radix: wrapper posicionado, caja con las clases del
      * tema, la flecha en un span propio y una copia del texto solo para lectores de
      * pantalla (role="tooltip"), que es lo que hace la tienda.
+     * @param {{ box: string[], arrow: string, offset: number }} theme - Juego de clases.
      * @returns {HTMLDivElement} El wrapper, todavía fuera del documento.
      */
-    function buildEpicTooltipNode() {
+    function buildEpicTooltipNode(theme) {
         const wrapper = document.createElement('div');
         wrapper.setAttribute(EPIC_TIP_WRAPPER_ATTR, '');
         // Radix lo coloca con transform sobre left/top a cero; aquí left/top directos
@@ -2098,7 +2117,7 @@
         wrapper.style.cssText = `position: fixed; z-index: ${EPIC_TIP_Z_INDEX}; min-width: max-content; pointer-events: none;`;
 
         const box = document.createElement('div');
-        box.className = EPIC_TIP_CLASSES.join(' ');
+        box.className = theme.box.join(' ');
         box.setAttribute('data-side', 'top');
         box.setAttribute('data-align', 'center');
         box.setAttribute('data-state', 'delayed-open');
@@ -2108,7 +2127,7 @@
 
         const arrow = document.createElement('span');
         arrow.style.position = 'absolute';
-        arrow.innerHTML = `<svg class="${EPIC_TIP_ARROW_CLASS}" width="${EPIC_TIP_ARROW_W}" height="${EPIC_TIP_ARROW_H}" viewBox="0 0 30 10" preserveAspectRatio="none" style="display:block"><polygon points="0,0 30,0 15,10"></polygon></svg>`;
+        arrow.innerHTML = `<svg class="${theme.arrow}" width="${EPIC_TIP_ARROW_W}" height="${EPIC_TIP_ARROW_H}" viewBox="0 0 30 10" preserveAspectRatio="none" style="display:block"><polygon points="0,0 30,0 15,10"></polygon></svg>`;
         box.appendChild(arrow);
 
         const sr = document.createElement('span');
@@ -2121,29 +2140,36 @@
         epicTipText = text;
         epicTipArrow = arrow;
         epicTipSrText = sr;
+        epicTipOffset = theme.offset;
         return wrapper;
     }
 
     /**
-     * Comprueba que las clases del tema sigan vistiendo la caja, montándola fuera de
+     * Busca el primer juego de clases que siga vistiendo la caja, montándola fuera de
      * la vista y mirando si tiene fondo. Es lo que separa un tooltip de la tienda de
      * un párrafo suelto flotando sobre la página.
-     * @returns {boolean} true si el CSS de Epic sigue reconociendo esas clases.
+     * @returns {boolean} true si el CSS de Epic sigue reconociendo alguno.
      */
     function epicTooltipIsLive() {
         if (epicTipLive !== null) return epicTipLive;
 
-        const wrapper = buildEpicTooltipNode();
-        epicTipText.nodeValue = 'x';
-        wrapper.style.left = '-9999px';
-        wrapper.style.top = '0px';
-        document.body.appendChild(wrapper);
-        const bg = getComputedStyle(epicTipBox).backgroundColor;
-        wrapper.remove();
+        epicTipLive = false;
+        for (const theme of EPIC_TIP_THEMES) {
+            const wrapper = buildEpicTooltipNode(theme);
+            epicTipText.nodeValue = 'x';
+            wrapper.style.left = '-9999px';
+            wrapper.style.top = '0px';
+            document.body.appendChild(wrapper);
+            const bg = getComputedStyle(epicTipBox).backgroundColor;
+            wrapper.remove();
+            if (bg && bg !== 'transparent' && !/^rgba\(.*,\s*0\)$/.test(bg)) {
+                epicTipWrapper = wrapper;
+                epicTipLive = true;
+                break;
+            }
+        }
 
-        epicTipLive = !!bg && bg !== 'transparent' && !/^rgba\(.*,\s*0\)$/.test(bg);
         if (epicTipLive) {
-            epicTipWrapper = wrapper;
             // Con la página en movimiento el tooltip quedaría flotando fuera de sitio:
             // Radix lo reposiciona, aquí basta con cerrarlo. Van aquí, una sola vez,
             // y no por botón: hay un juego de botones por cada botón de compra.
@@ -2165,12 +2191,13 @@
         const rect = anchor.getBoundingClientRect();
         const width = epicTipWrapper.offsetWidth;
         const height = epicTipWrapper.offsetHeight;
+        const gap = epicTipOffset + EPIC_TIP_ARROW_H;
 
         let side = 'top';
-        let top = rect.top - height - EPIC_TIP_ARROW_H;
+        let top = rect.top - height - gap;
         if (top < EPIC_TIP_EDGE_MARGIN) {
             side = 'bottom';
-            top = rect.bottom + EPIC_TIP_ARROW_H;
+            top = rect.bottom + gap;
         }
 
         const maxLeft = document.documentElement.clientWidth - width - EPIC_TIP_EDGE_MARGIN;
